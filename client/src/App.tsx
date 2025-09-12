@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import Places from "@/pages/places";
 import Guides from "@/pages/guides";
 import Messages from "@/pages/messages";
+import Bookings from "@/pages/bookings";
 import AdminDashboard from "@/pages/admin-dashboard";
 import GuideDashboard from "@/pages/guide-dashboard";
 import NotFound from "@/pages/not-found";
@@ -37,6 +38,7 @@ function Router() {
           <Route path="/places" component={Places} />
           <Route path="/guides" component={Guides} />
           <Route path="/messages" component={Messages} />
+          <Route path="/bookings" component={Bookings} />
           {user?.role === 'admin' && (
             <Route path="/admin" component={AdminDashboard} />
           )}
