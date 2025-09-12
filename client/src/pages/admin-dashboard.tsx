@@ -1,0 +1,481 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
+import Navbar from "@/components/navbar";
+import PlaceCard from "@/components/place-card";
+import GuideCard from "@/components/guide-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp } from "lucide-react";
+import type { Place, Guide, InsertPlace, Booking, User } from "@shared/schema";
+
+export default function AdminDashboard() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isPlaceDialogOpen, setIsPlaceDialogOpen] = useState(false);
+  const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+
+  // Redirect non-admin users
+  if (user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="text-center py-12">
+            <CardContent>
+              <h2 className="text-2xl font-bold mb-4">غير مصرح</h2>
+              <p className="text-muted-foreground">هذه الصفحة مخصصة للمشرفين فقط</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const { data: places = [] } = useQuery<Place[]>({
+    queryKey: ["/api/places"],
+  });
+
+  const { data: guides = [] } = useQuery<Guide[]>({
+    queryKey: ["/api/guides"],
+  });
+
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
+  });
+
+  // Statistics
+  const stats = {
+    totalPlaces: places.length,
+    totalGuides: guides.length,
+    totalBookings: bookings.length,
+    pendingBookings: bookings.filter(b => b.status === 'pending').length,
+  };
+
+  const createPlaceMutation = useMutation({
+    mutationFn: async (data: InsertPlace) => {
+      await apiRequest("POST", "/api/places", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      setIsPlaceDialogOpen(false);
+      setEditingPlace(null);
+      toast({
+        title: "تم إنشاء المكان بنجاح",
+        description: "تم إضافة المكان السياحي الجديد",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في إنشاء المكان",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePlaceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertPlace> }) => {
+      await apiRequest("PUT", `/api/places/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      setIsPlaceDialogOpen(false);
+      setEditingPlace(null);
+      toast({
+        title: "تم تحديث المكان بنجاح",
+        description: "تم حفظ التغييرات",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث المكان",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePlaceMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/places/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      toast({
+        title: "تم حذف المكان",
+        description: "تم حذف المكان السياحي بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المكان",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmitPlace = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    const data: InsertPlace = {
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      imageUrl: formData.get("imageUrl") as string,
+      location: formData.get("location") as string,
+      category: formData.get("category") as string,
+    };
+
+    if (editingPlace) {
+      updatePlaceMutation.mutate({ id: editingPlace.id, data });
+    } else {
+      createPlaceMutation.mutate(data);
+    }
+  };
+
+  const handleEditPlace = (place: Place) => {
+    setEditingPlace(place);
+    setIsPlaceDialogOpen(true);
+  };
+
+  const handleDeletePlace = (place: Place) => {
+    if (confirm(`هل أنت متأكد من حذف "${place.name}"؟`)) {
+      deletePlaceMutation.mutate(place.id);
+    }
+  };
+
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">لوحة تحكم المشرف</h1>
+          <p className="text-muted-foreground">إدارة المنصة والمحتوى والمستخدمين</p>
+        </div>
+
+        {/* Statistics */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold" data-testid="stat-places">{stats.totalPlaces}</h3>
+              <p className="text-muted-foreground">الأماكن السياحية</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="text-2xl font-bold" data-testid="stat-guides">{stats.totalGuides}</h3>
+              <p className="text-muted-foreground">المرشدين السياحيين</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="text-2xl font-bold" data-testid="stat-bookings">{stats.totalBookings}</h3>
+              <p className="text-muted-foreground">إجمالي الحجوزات</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-2xl font-bold" data-testid="stat-pending">{stats.pendingBookings}</h3>
+              <p className="text-muted-foreground">حجوزات في الانتظار</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Management Tabs */}
+        <Tabs defaultValue="places" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="places" data-testid="tab-places">الأماكن السياحية</TabsTrigger>
+            <TabsTrigger value="guides" data-testid="tab-guides">المرشدين السياحيين</TabsTrigger>
+            <TabsTrigger value="bookings" data-testid="tab-bookings">الحجوزات</TabsTrigger>
+          </TabsList>
+
+          {/* Places Management */}
+          <TabsContent value="places">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>إدارة الأماكن السياحية</CardTitle>
+                  <Dialog open={isPlaceDialogOpen} onOpenChange={setIsPlaceDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        onClick={() => setEditingPlace(null)}
+                        data-testid="button-add-place"
+                      >
+                        <Plus className="w-4 h-4 ml-2" />
+                        إضافة مكان جديد
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingPlace ? 'تعديل المكان السياحي' : 'إضافة مكان سياحي جديد'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <form onSubmit={handleSubmitPlace} className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">اسم المكان</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            defaultValue={editingPlace?.name || ""}
+                            required
+                            data-testid="input-place-name"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="description">الوصف</Label>
+                          <Textarea
+                            id="description"
+                            name="description"
+                            defaultValue={editingPlace?.description || ""}
+                            required
+                            data-testid="input-place-description"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="imageUrl">رابط الصورة</Label>
+                          <Input
+                            id="imageUrl"
+                            name="imageUrl"
+                            type="url"
+                            defaultValue={editingPlace?.imageUrl || ""}
+                            data-testid="input-place-image"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="location">الموقع</Label>
+                          <Input
+                            id="location"
+                            name="location"
+                            defaultValue={editingPlace?.location || ""}
+                            data-testid="input-place-location"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="category">الفئة</Label>
+                          <Input
+                            id="category"
+                            name="category"
+                            defaultValue={editingPlace?.category || ""}
+                            placeholder="مثال: طبيعة، تراث، جبال"
+                            data-testid="input-place-category"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            type="submit" 
+                            disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
+                            data-testid="button-save-place"
+                          >
+                            {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 'جاري الحفظ...' : 
+                             editingPlace ? 'تحديث' : 'إضافة'}
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsPlaceDialogOpen(false)}
+                            data-testid="button-cancel-place"
+                          >
+                            إلغاء
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {places.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا توجد أماكن سياحية</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {places.map((place) => (
+                      <div key={place.id} className="relative group">
+                        <PlaceCard place={place} />
+                        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleEditPlace(place)}
+                              data-testid={`button-edit-place-${place.id}`}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeletePlace(place)}
+                              data-testid={`button-delete-place-${place.id}`}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Guides Management */}
+          <TabsContent value="guides">
+            <Card>
+              <CardHeader>
+                <CardTitle>إدارة المرشدين السياحيين</CardTitle>
+              </CardHeader>
+              
+              <CardContent>
+                {guides.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا يوجد مرشدين سياحيين</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {guides.map((guide) => (
+                      <GuideCard key={guide.id} guide={guide} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Bookings Management */}
+          <TabsContent value="bookings">
+            <Card>
+              <CardHeader>
+                <CardTitle>إدارة الحجوزات</CardTitle>
+              </CardHeader>
+              
+              <CardContent>
+                {bookings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا توجد حجوزات</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {bookings.map((booking) => (
+                      <Card key={booking.id}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
+                                حجز رقم: {booking.id.slice(-6)}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                من {new Date(booking.startDate).toLocaleDateString('ar-SA')} 
+                                إلى {new Date(booking.endDate).toLocaleDateString('ar-SA')}
+                              </p>
+                              {booking.notes && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  ملاحظات: {booking.notes}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-left">
+                              <Badge 
+                                variant={
+                                  booking.status === 'confirmed' ? 'default' :
+                                  booking.status === 'pending' ? 'secondary' :
+                                  booking.status === 'completed' ? 'outline' :
+                                  'destructive'
+                                }
+                                data-testid={`booking-status-${booking.id}`}
+                              >
+                                {booking.status === 'confirmed' ? 'مؤكد' :
+                                 booking.status === 'pending' ? 'في الانتظار' :
+                                 booking.status === 'completed' ? 'مكتمل' :
+                                 'ملغي'}
+                              </Badge>
+                              <p className="text-sm font-semibold mt-2" data-testid={`booking-amount-${booking.id}`}>
+                                {booking.totalAmount} ر.س
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

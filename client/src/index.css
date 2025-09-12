@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(43, 10%, 97%);
+  --foreground: hsl(20, 10%, 15%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 10%, 15%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 10%, 15%);
+  --primary: hsl(142, 45%, 35%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(43, 75%, 55%);
+  --secondary-foreground: hsl(20, 10%, 15%);
+  --muted: hsl(43, 20%, 92%);
+  --muted-foreground: hsl(20, 8%, 45%);
+  --accent: hsl(207, 50%, 55%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 75%, 55%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(43, 20%, 85%);
+  --input: hsl(43, 20%, 85%);
+  --ring: hsl(142, 45%, 35%);
+  --radius: 12px;
+  --chart-1: hsl(142, 45%, 45%);
+  --chart-2: hsl(43, 75%, 65%);
+  --chart-3: hsl(207, 50%, 65%);
+  --chart-4: hsl(25, 80%, 65%);
+  --chart-5: hsl(280, 50%, 65%);
+  --font-sans: 'Noto Sans Arabic', sans-serif;
+  --font-serif: 'Noto Sans Arabic', serif;
+  --font-mono: 'Noto Sans Arabic', monospace;
+  --font-arabic: 'Noto Sans Arabic', sans-serif;
+  --spacing: 0.25rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00), 0px 1px 2px -1px hsl(142, 45%, 35%, 0.00);
+  --shadow: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00), 0px 1px 2px -1px hsl(142, 45%, 35%, 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00), 0px 2px 4px -1px hsl(142, 45%, 35%, 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00), 0px 4px 6px -1px hsl(142, 45%, 35%, 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00), 0px 8px 10px -1px hsl(142, 45%, 35%, 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(142, 45%, 35%, 0.00);
+  --tracking-normal: 0em;
+}
+
+.dark {
+  --background: hsl(20, 10%, 5%);
+  --foreground: hsl(43, 20%, 92%);
+  --card: hsl(20, 10%, 8%);
+  --card-foreground: hsl(43, 20%, 85%);
+  --popover: hsl(20, 10%, 5%);
+  --popover-foreground: hsl(43, 20%, 92%);
+  --primary: hsl(142, 45%, 40%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(43, 75%, 50%);
+  --secondary-foreground: hsl(20, 10%, 15%);
+  --muted: hsl(20, 10%, 12%);
+  --muted-foreground: hsl(20, 8%, 60%);
+  --accent: hsl(207, 50%, 60%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 75%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(20, 10%, 20%);
+  --input: hsl(20, 10%, 20%);
+  --ring: hsl(142, 45%, 40%);
+  --font-sans: 'Noto Sans Arabic', sans-serif;
+  --font-serif: 'Noto Sans Arabic', serif;
+  --font-mono: 'Noto Sans Arabic', monospace;
+  --font-arabic: 'Noto Sans Arabic', sans-serif;
+  --shadow-2xs: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00), 0px 1px 2px -1px hsl(142, 45%, 40%, 0.00);
+  --shadow: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00), 0px 1px 2px -1px hsl(142, 45%, 40%, 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00), 0px 2px 4px -1px hsl(142, 45%, 40%, 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00), 0px 4px 6px -1px hsl(142, 45%, 40%, 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00), 0px 8px 10px -1px hsl(142, 45%, 40%, 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(142, 45%, 40%, 0.00);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-arabic antialiased;
+    font-family: var(--font-arabic);
+  }
+  
+  [dir="rtl"] {
+    direction: rtl;
+  }
+}
+
+@layer components {
+  .hero-gradient {
+    background: linear-gradient(135deg, rgba(46, 139, 87, 0.9) 0%, rgba(70, 130, 180, 0.8) 100%);
+  }
+  
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pattern-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+}
