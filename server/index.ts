@@ -3,8 +3,17 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+// Disable ETags to prevent 304 responses that break React Query fetcher
+app.set('etag', false);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Disable caching for API routes to ensure fresh data
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

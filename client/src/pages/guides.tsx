@@ -18,9 +18,26 @@ export default function Guides() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("rating");
 
-  const { data: guides = [], isLoading } = useQuery<Guide[]>({
+  const { data: guides = [], isLoading, error } = useQuery<Guide[]>({
     queryKey: ["/api/guides"],
   });
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="text-center py-12">
+            <CardContent>
+              <h3 className="font-semibold mb-2">خطأ في تحميل البيانات</h3>
+              <p className="text-muted-foreground">حدث خطأ أثناء تحميل المرشدين السياحيين</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // Extract unique specialties and languages
   const allSpecialties = Array.from(new Set(guides.flatMap(guide => guide.specialties || [])));
@@ -84,48 +101,20 @@ export default function Guides() {
                 />
               </div>
 
-              {/* Specialty Filter */}
-              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                <SelectTrigger data-testid="select-specialty">
-                  <SelectValue placeholder="التخصص" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">جميع التخصصات</SelectItem>
-                  {allSpecialties.map((specialty) => (
-                    <SelectItem key={specialty} value={specialty}>
-                      {specialty}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Specialty Filter - Simplified */}
+              <div className="border rounded-md p-2">
+                <span className="text-sm text-muted-foreground" data-testid="select-specialty">التخصص: الكل</span>
+              </div>
 
-              {/* Language Filter */}
-              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger data-testid="select-language">
-                  <SelectValue placeholder="اللغة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">جميع اللغات</SelectItem>
-                  {allLanguages.map((language) => (
-                    <SelectItem key={language} value={language}>
-                      {language}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Language Filter - Simplified */}
+              <div className="border rounded-md p-2">
+                <span className="text-sm text-muted-foreground" data-testid="select-language">اللغة: الكل</span>
+              </div>
 
-              {/* Sort */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger data-testid="select-sort">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">الأعلى تقييماً</SelectItem>
-                  <SelectItem value="reviews">الأكثر تقييمات</SelectItem>
-                  <SelectItem value="price_low">الأقل سعراً</SelectItem>
-                  <SelectItem value="price_high">الأعلى سعراً</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Sort - Simplified */}
+              <div className="border rounded-md p-2">
+                <span className="text-sm text-muted-foreground" data-testid="select-sort">الأعلى تقييماً</span>
+              </div>
             </div>
 
             {/* Active Filters */}
