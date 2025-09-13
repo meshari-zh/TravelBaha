@@ -42,12 +42,14 @@ export default function Navbar() {
           {/* Logo and Brand */}
           <Link href="/">
             <div className="flex items-center space-x-4 space-x-reverse cursor-pointer">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">ب</span>
-              </div>
+              <img 
+                src="@assets/لوقو الموقع_1757794549973.png" 
+                alt="لوجو منصة الباحة السياحية" 
+                className="w-12 h-12 object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold text-foreground">منصة الباحة السياحية</h1>
-                <p className="text-sm text-muted-foreground">دليلك لاستكشاف الباحة</p>
+                <h1 className="text-xl font-bold text-foreground">إرشاد سياحي</h1>
+                <p className="text-sm text-muted-foreground">منطقة الباحة</p>
               </div>
             </div>
           </Link>
