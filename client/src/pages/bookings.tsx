@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/navbar";
+import ReviewForm from "@/components/review-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, User, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { CalendarDays, MapPin, User, Clock, Star } from "lucide-react";
 import type { Booking } from "@shared/schema";
 
 export default function Bookings() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
+  const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
 
   const { data: bookings = [], isLoading, error } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -203,6 +206,29 @@ export default function Bookings() {
                       <Button variant="destructive" size="sm" data-testid={`booking-cancel-${booking.id}`}>
                         إلغاء الحجز
                       </Button>
+                    )}
+                    {booking.status === "completed" && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="flex items-center gap-2"
+                            data-testid={`booking-review-${booking.id}`}
+                          >
+                            <Star className="w-4 h-4" />
+                            تقييم المرشد
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <ReviewForm
+                            bookingId={booking.id}
+                            guideId={booking.guideId}
+                            guideName={`المرشد - ${booking.guideId.slice(0, 8)}`}
+                            onSuccess={() => setSelectedBookingForReview(null)}
+                          />
+                        </DialogContent>
+                      </Dialog>
                     )}
                   </div>
                 </CardContent>

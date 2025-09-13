@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Star, Calendar as CalendarIcon, Users, MessageCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Guide } from "@shared/schema";
+import type { Guide, Review } from "@shared/schema";
 import { insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -45,6 +45,11 @@ export default function GuideProfile() {
   const { data: guide, isLoading, error } = useQuery<Guide>({
     queryKey: ["/api/guides", id],
     queryFn: () => fetch(`/api/guides/${id}`).then(res => res.json()),
+  });
+
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery<Review[]>({
+    queryKey: ["/api/reviews/guide", id],
+    enabled: !!id,
   });
 
   const form = useForm<BookingFormData>({
@@ -250,6 +255,63 @@ export default function GuideProfile() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Reviews Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>التقييمات والمراجعات</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {reviewsLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-muted rounded mb-2 w-1/4"></div>
+                        <div className="h-16 bg-muted rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">لا توجد تقييمات</h3>
+                    <p className="text-muted-foreground">كن أول من يقيم هذا المرشد</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <Card key={review.id} className="border-l-4 border-l-secondary">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`w-4 h-4 ${
+                                    i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                  }`} 
+                                />
+                              ))}
+                              <span className="font-medium mr-2" data-testid={`review-rating-${review.id}`}>
+                                {review.rating}/5
+                              </span>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.createdAt!).toLocaleDateString('ar-SA')}
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-muted-foreground" data-testid={`review-comment-${review.id}`}>
+                              {review.comment}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Booking Form */}
