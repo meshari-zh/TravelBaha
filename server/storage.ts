@@ -68,18 +68,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
+    // If email is provided, check if a user with this email already exists
+    if (userData.email) {
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, userData.email));
+      
+      if (existingUser) {
+        // User with this email exists, update only safe fields (never the ID)
+        const safeUpdates = {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImageUrl: userData.profileImageUrl,
+          role: userData.role,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+        };
+        
+        const [updatedUser] = await db
+          .update(users)
+          .set(safeUpdates)
+          .where(eq(users.email, userData.email))
+          .returning();
+        return updatedUser;
+      }
+    }
+    
+    // No existing user found, try to insert new user
+    try {
+      const [user] = await db
+        .insert(users)
+        .values(userData)
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            // Only update safe fields, never the primary key
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            profileImageUrl: userData.profileImageUrl,
+            role: userData.role,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      return user;
+    } catch (error: any) {
+      // This should not happen due to our pre-check, but handle gracefully
+      console.error('Unexpected error in upsertUser:', error);
+      throw new Error('Failed to create or update user');
+    }
   }
 
   // Places operations
