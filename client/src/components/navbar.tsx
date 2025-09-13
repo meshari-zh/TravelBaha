@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User } from "lucide-react";
+import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -43,8 +44,8 @@ export default function Navbar() {
           <Link href="/">
             <div className="flex items-center space-x-4 space-x-reverse cursor-pointer">
               <img 
-                src="@assets/لوقو الموقع_1757794549973.png" 
-                alt="لوجو منصة الباحة السياحية" 
+                src={siteLogo} 
+                alt="لوجو إرشاد سياحي - منطقة الباحة" 
                 className="w-12 h-12 object-contain"
               />
               <div>

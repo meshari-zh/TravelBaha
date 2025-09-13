@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import type { Place, Guide } from "@shared/schema";
+import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
+import heroVideo from "@assets/واجهت الموقع_1757794048716.mp4";
+import videoPoster from "@assets/رغدان_1757793151105.jpg";
 
 export default function Landing() {
   const { data: places = [] } = useQuery<Place[]>({
@@ -27,12 +30,14 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-4 space-x-reverse">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">ب</span>
-              </div>
+              <img 
+                src={siteLogo} 
+                alt="لوجو إرشاد سياحي - منطقة الباحة" 
+                className="w-12 h-12 object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold text-foreground">منصة الباحة السياحية</h1>
-                <p className="text-sm text-muted-foreground">دليلك لاستكشاف الباحة</p>
+                <h1 className="text-xl font-bold text-foreground">إرشاد سياحي</h1>
+                <p className="text-sm text-muted-foreground">منطقة الباحة</p>
               </div>
             </div>
             
@@ -66,6 +71,31 @@ export default function Landing() {
 
       {/* Hero Section */}
       <Hero />
+
+      {/* Video Section */}
+      <section className="py-12 bg-card">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-foreground mb-4">اكتشف جمال منطقة الباحة</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة
+            </p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
+              <video 
+                controls 
+                className="w-full h-full object-cover"
+                poster={videoPoster}
+                data-testid="hero-video"
+              >
+                <source src={heroVideo} type="video/mp4" />
+                متصفحك لا يدعم تشغيل الفيديو
+              </video>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Welcome Section */}
       <section className="py-16 bg-muted">

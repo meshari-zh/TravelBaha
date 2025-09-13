@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Place, Guide, Booking } from "@shared/schema";
+import heroVideo from "@assets/واجهت الموقع_1757794048716.mp4";
+import videoPoster from "@assets/رغدان_1757793151105.jpg";
 
 export default function Home() {
   const { user } = useAuth();
@@ -210,10 +212,10 @@ export default function Home() {
               <video 
                 controls 
                 className="w-full h-full object-cover"
-                poster="@assets/رغدان_1757793151105.jpg"
+                poster={videoPoster}
                 data-testid="hero-video"
               >
-                <source src="@assets/واجهت الموقع_1757794048716.mp4" type="video/mp4" />
+                <source src={heroVideo} type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
             </div>

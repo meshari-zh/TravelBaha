@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users } from "lucide-react";
 import type { Place } from "@shared/schema";
+import { resolveAssetUrl } from "@/utils/assets";
 
 interface PlaceCardProps {
   place: Place;
@@ -21,7 +22,7 @@ export default function PlaceCard({ place, showGuideCount = false, onSelect }: P
     <Card className="overflow-hidden card-hover cursor-pointer" onClick={handleClick} data-testid={`place-card-${place.id}`}>
       <div className="relative h-48 overflow-hidden">
         <img 
-          src={place.imageUrl || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600'} 
+          src={resolveAssetUrl(place.imageUrl)} 
           alt={place.name}
           className="w-full h-full object-cover transition-transform hover:scale-105"
           data-testid={`place-image-${place.id}`}
