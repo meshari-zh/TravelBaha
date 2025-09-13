@@ -68,6 +68,7 @@ export interface IStorage {
   getInvite(code: string): Promise<Invite | undefined>;
   createInvite(invite: InsertInvite): Promise<Invite>;
   useInvite(code: string, userId: string): Promise<Invite>;
+  deleteInvite(id: string): Promise<void>;
   
   // User role operations
   updateUserRole(userId: string, role: "tourist" | "guide" | "admin"): Promise<User>;
@@ -353,6 +354,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(invites.code, code))
       .returning();
     return updatedInvite;
+  }
+
+  async deleteInvite(id: string): Promise<void> {
+    await db.delete(invites).where(eq(invites.id, id));
   }
 
   // User role operations

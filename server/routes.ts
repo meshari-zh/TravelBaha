@@ -441,6 +441,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/invites/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      await storage.deleteInvite(id);
+      res.status(200).json({ message: "Invite deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting invite:", error);
+      res.status(500).json({ message: "Failed to delete invite" });
+    }
+  });
+
   // User profile routes
   app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
     try {
