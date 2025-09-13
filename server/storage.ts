@@ -5,6 +5,7 @@ import {
   bookings,
   messages,
   reviews,
+  invites,
   type User,
   type UpsertUser,
   type Place,
@@ -17,6 +18,8 @@ import {
   type InsertMessage,
   type Review,
   type InsertReview,
+  type Invite,
+  type InsertInvite,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, asc } from "drizzle-orm";
@@ -59,6 +62,15 @@ export interface IStorage {
   // Reviews operations
   getReviewsByGuide(guideId: string): Promise<Review[]>;
   createReview(review: InsertReview): Promise<Review>;
+  
+  // Invites operations
+  getAllInvites(): Promise<Invite[]>;
+  getInvite(code: string): Promise<Invite | undefined>;
+  createInvite(invite: InsertInvite): Promise<Invite>;
+  useInvite(code: string, userId: string): Promise<Invite>;
+  
+  // User role operations
+  updateUserRole(userId: string, role: "tourist" | "guide" | "admin"): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -312,6 +324,44 @@ export class DatabaseStorage implements IStorage {
   async createReview(review: InsertReview): Promise<Review> {
     const [newReview] = await db.insert(reviews).values(review).returning();
     return newReview;
+  }
+
+  // Invites operations
+  async getAllInvites(): Promise<Invite[]> {
+    return await db.select().from(invites).orderBy(desc(invites.createdAt));
+  }
+
+  async getInvite(code: string): Promise<Invite | undefined> {
+    const [invite] = await db.select().from(invites).where(eq(invites.code, code));
+    return invite;
+  }
+
+  async createInvite(invite: InsertInvite): Promise<Invite> {
+    const [newInvite] = await db.insert(invites).values(invite).returning();
+    return newInvite;
+  }
+
+  async useInvite(code: string, userId: string): Promise<Invite> {
+    const [updatedInvite] = await db
+      .update(invites)
+      .set({ 
+        isUsed: true, 
+        usedBy: userId, 
+        usedAt: new Date() 
+      })
+      .where(eq(invites.code, code))
+      .returning();
+    return updatedInvite;
+  }
+
+  // User role operations
+  async updateUserRole(userId: string, role: "tourist" | "guide" | "admin"): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
   }
 }
 

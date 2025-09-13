@@ -16,14 +16,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp } from "lucide-react";
-import type { Place, Guide, InsertPlace, Booking, User } from "@shared/schema";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, Key, Copy } from "lucide-react";
+import type { Place, Guide, InsertPlace, Booking, User, Invite } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isPlaceDialogOpen, setIsPlaceDialogOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
 
   // Redirect non-admin users
   if (user?.role !== 'admin') {
@@ -52,6 +54,14 @@ export default function AdminDashboard() {
 
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
+  });
+
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+  });
+
+  const { data: invites = [] } = useQuery<Invite[]>({
+    queryKey: ["/api/invites"],
   });
 
   // Statistics
@@ -159,6 +169,93 @@ export default function AdminDashboard() {
     },
   });
 
+  // Generate random invite code
+  const generateInviteCode = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 7);
+  };
+
+  const createInviteMutation = useMutation({
+    mutationFn: async (role: "guide" | "admin") => {
+      const code = generateInviteCode();
+      const response = await apiRequest("POST", "/api/invites", { code, role });
+      return { code, role };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
+      setGeneratedInviteCode(data.code);
+      setIsInviteDialogOpen(true);
+      toast({
+        title: "تم إنشاء رمز الدعوة",
+        description: `تم إنشاء رمز دعوة جديد لدور ${data.role === 'guide' ? 'مرشد' : 'مشرف'}`,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في إنشاء رمز الدعوة",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: "tourist" | "guide" | "admin" }) => {
+      await apiRequest("PUT", `/api/users/${userId}/role`, { role });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "تم تحديث الدور",
+        description: "تم تحديث دور المستخدم بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث دور المستخدم",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "تم النسخ",
+        description: "تم نسخ رمز الدعوة إلى الحافظة",
+      });
+    } catch (err) {
+      toast({
+        title: "خطأ في النسخ",
+        description: "فشل في نسخ رمز الدعوة",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmitPlace = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -245,10 +342,12 @@ export default function AdminDashboard() {
 
         {/* Management Tabs */}
         <Tabs defaultValue="places" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="places" data-testid="tab-places">الأماكن السياحية</TabsTrigger>
             <TabsTrigger value="guides" data-testid="tab-guides">المرشدين السياحيين</TabsTrigger>
             <TabsTrigger value="bookings" data-testid="tab-bookings">الحجوزات</TabsTrigger>
+            <TabsTrigger value="users" data-testid="tab-users">إدارة المستخدمين</TabsTrigger>
+            <TabsTrigger value="invites" data-testid="tab-invites">رموز الدعوة</TabsTrigger>
           </TabsList>
 
           {/* Places Management */}
@@ -474,7 +573,188 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Users Management */}
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>إدارة المستخدمين</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {users.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا يوجد مستخدمين</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {users.map((u) => (
+                      <Card key={u.id}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h4 className="font-semibold" data-testid={`user-name-${u.id}`}>
+                                {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email}
+                              </h4>
+                              <p className="text-sm text-muted-foreground" data-testid={`user-email-${u.id}`}>
+                                {u.email}
+                              </p>
+                              <Badge variant="outline" className="mt-1" data-testid={`user-role-${u.id}`}>
+                                {u.role === 'tourist' ? 'سائح' : u.role === 'guide' ? 'مرشد' : 'مشرف'}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "tourist" })}
+                                disabled={u.role === "tourist"}
+                                data-testid={`button-role-tourist-${u.id}`}
+                              >
+                                سائح
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "guide" })}
+                                disabled={u.role === "guide"}
+                                data-testid={`button-role-guide-${u.id}`}
+                              >
+                                مرشد
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "admin" })}
+                                disabled={u.role === "admin"}
+                                data-testid={`button-role-admin-${u.id}`}
+                              >
+                                مشرف
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Invite Codes Management */}
+          <TabsContent value="invites">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>إدارة رموز الدعوة</CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => createInviteMutation.mutate("guide")}
+                      disabled={createInviteMutation.isPending}
+                      data-testid="button-create-guide-invite"
+                    >
+                      <Key className="w-4 h-4 ml-2" />
+                      رمز دعوة مرشد
+                    </Button>
+                    <Button
+                      onClick={() => createInviteMutation.mutate("admin")}
+                      disabled={createInviteMutation.isPending}
+                      data-testid="button-create-admin-invite"
+                    >
+                      <UserCheck className="w-4 h-4 ml-2" />
+                      رمز دعوة مشرف
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {invites.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا توجد رموز دعوة</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {invites.map((invite) => (
+                      <Card key={invite.id}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <code className="bg-muted px-2 py-1 rounded text-sm font-mono" data-testid={`invite-code-${invite.id}`}>
+                                  {invite.code}
+                                </code>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(invite.code)}
+                                  data-testid={`button-copy-${invite.id}`}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                نوع الدور: {invite.role === 'guide' ? 'مرشد' : 'مشرف'} • 
+                                تم الإنشاء: {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString('ar-SA') : 'غير معروف'}
+                              </p>
+                              {invite.isUsed && (
+                                <p className="text-sm text-green-600 mt-1" data-testid={`invite-used-${invite.id}`}>
+                                  تم الاستخدام في: {invite.usedAt ? new Date(invite.usedAt).toLocaleDateString('ar-SA') : 'غير معروف'}
+                                </p>
+                              )}
+                            </div>
+                            <Badge 
+                              variant={invite.isUsed ? "secondary" : "default"}
+                              data-testid={`invite-status-${invite.id}`}
+                            >
+                              {invite.isUsed ? 'مستخدم' : 'متاح'}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        {/* Invite Code Generation Dialog */}
+        <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>رمز الدعوة الجديد</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">رمز الدعوة:</p>
+                <div className="flex items-center gap-2">
+                  <code className="bg-background px-3 py-2 rounded border flex-1 text-center font-mono">
+                    {generatedInviteCode}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(generatedInviteCode)}
+                    data-testid="button-copy-generated-invite"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                شارك هذا الرمز مع الشخص المناسب لتحديث دوره في المنصة
+              </p>
+              <Button 
+                onClick={() => setIsInviteDialogOpen(false)} 
+                className="w-full"
+                data-testid="button-close-invite-dialog"
+              >
+                حسناً
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

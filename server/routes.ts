@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, type Booking } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, type Booking } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -332,6 +332,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating review:", error);
       res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  // Invites routes
+  app.get('/api/invites', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const invites = await storage.getAllInvites();
+      res.json(invites);
+    } catch (error) {
+      console.error("Error fetching invites:", error);
+      res.status(500).json({ message: "Failed to fetch invites" });
+    }
+  });
+
+  app.post('/api/invites', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertInviteSchema.parse(req.body);
+      const invite = await storage.createInvite(validatedData);
+      res.status(201).json(invite);
+    } catch (error) {
+      console.error("Error creating invite:", error);
+      res.status(500).json({ message: "Failed to create invite" });
+    }
+  });
+
+  app.post('/api/invites/use', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!code) {
+        return res.status(400).json({ message: "Invite code is required" });
+      }
+
+      // Get the invite
+      const invite = await storage.getInvite(code);
+      if (!invite) {
+        return res.status(404).json({ message: "Invalid invite code" });
+      }
+
+      if (invite.isUsed) {
+        return res.status(400).json({ message: "Invite code already used" });
+      }
+
+      // Use the invite and update user role
+      await storage.useInvite(code, userId);
+      const updatedUser = await storage.updateUserRole(userId, invite.role as "guide" | "admin");
+
+      res.json({ message: `Role updated to ${invite.role}`, user: updatedUser });
+    } catch (error) {
+      console.error("Error using invite:", error);
+      res.status(500).json({ message: "Failed to use invite" });
+    }
+  });
+
+  // User role management routes  
+  app.put('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { role } = req.body;
+      const userId = req.params.id;
+
+      if (!role || !['tourist', 'guide', 'admin'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role. Must be 'tourist', 'guide', or 'admin'" });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, role);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
     }
   });
 

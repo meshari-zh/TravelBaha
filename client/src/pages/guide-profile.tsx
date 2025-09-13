@@ -62,11 +62,10 @@ export default function GuideProfile() {
 
   const bookingMutation = useMutation({
     mutationFn: (data: BookingFormData) => 
-      apiRequest("/api/bookings", "POST", {
+      apiRequest("POST", "/api/bookings", {
         guideId: id,
-        startDate: format(data.startDate, "yyyy-MM-dd"),
-        endDate: format(data.endDate, "yyyy-MM-dd"),
-        guests: data.guests,
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate.toISOString(),
         notes: data.notes || "",
         totalAmount: "0",
       }),

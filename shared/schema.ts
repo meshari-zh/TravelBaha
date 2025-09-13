@@ -95,6 +95,16 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const invites = pgTable("invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  role: varchar("role", { enum: ["guide", "admin"] }).notNull(),
+  isUsed: boolean("is_used").default(false),
+  usedBy: varchar("used_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  usedAt: timestamp("used_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   guide: one(guides, {
@@ -175,6 +185,7 @@ export const insertGuideSchema = createInsertSchema(guides).omit({ id: true, cre
 export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
+export const insertInviteSchema = createInsertSchema(invites).omit({ id: true, createdAt: true, usedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -189,3 +200,5 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect & { sender?: User; receiver?: User };
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+export type InsertInvite = z.infer<typeof insertInviteSchema>;
+export type Invite = typeof invites.$inferSelect;
