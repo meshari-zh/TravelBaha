@@ -1,9 +1,16 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, type Booking } from "@shared/schema";
+import session from "express-session";
+import { parse as parseCookie } from "cookie";
+import { unsign } from "cookie-signature";
+import type { SessionData } from "express-session";
+import { db } from "./db";
+import { sessions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -18,6 +25,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Users routes
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const allUsers = await storage.getAllUsers();
+      // Filter out the current user from the results
+      const users = allUsers.filter(user => user.id !== currentUserId);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
@@ -316,41 +337,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
+  // Map to track authenticated WebSocket connections with user IDs
+  const authenticatedConnections = new Map<WebSocket, string>();
+
+  // Helper function to validate session and get user ID
+  async function validateSessionAndGetUserId(req: any): Promise<string | null> {
+    try {
+      const cookieHeader = req.headers.cookie;
+      if (!cookieHeader) return null;
+
+      const cookies = parseCookie(cookieHeader);
+      const sessionCookie = cookies['connect.sid'];
+      if (!sessionCookie) return null;
+
+      // Parse signed session cookie
+      let sessionId: string;
+      if (sessionCookie.startsWith('s:')) {
+        // Signed cookie - verify signature
+        const unsigned = unsign(sessionCookie.slice(2), process.env.SESSION_SECRET!);
+        if (unsigned === false) {
+          console.log('Invalid session cookie signature');
+          return null;
+        }
+        sessionId = unsigned;
+      } else {
+        // Unsigned cookie
+        sessionId = sessionCookie;
+      }
+
+      // Query session from database
+      const [sessionRecord] = await db.select().from(sessions).where(eq(sessions.sid, sessionId));
+      if (!sessionRecord) {
+        console.log('Session not found in database');
+        return null;
+      }
+
+      // Check if session is expired
+      if (sessionRecord.expire < new Date()) {
+        console.log('Session expired');
+        return null;
+      }
+
+      // Extract user from session data
+      const sessionData = sessionRecord.sess as any;
+      if (!sessionData.passport || !sessionData.passport.user) {
+        console.log('No user data in session');
+        return null;
+      }
+
+      const user = sessionData.passport.user;
+      if (!user.claims || !user.claims.sub) {
+        console.log('Invalid user claims in session');
+        return null;
+      }
+
+      // Verify token hasn't expired
+      const now = Math.floor(Date.now() / 1000);
+      if (user.expires_at && now > user.expires_at) {
+        console.log('User token expired');
+        return null;
+      }
+
+      return user.claims.sub;
+    } catch (error) {
+      console.error('Session validation error:', error);
+      return null;
+    }
+  }
+
   // WebSocket server for real-time messaging
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws'
+  });
   
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('New WebSocket connection');
+  wss.on('connection', async (ws: WebSocket, req) => {
+    console.log('New WebSocket connection attempt');
+    
+    // Authenticate connection immediately using session validation
+    const authenticatedUserId = await validateSessionAndGetUserId(req);
+    
+    if (!authenticatedUserId) {
+      console.log('WebSocket connection rejected: Invalid or missing authentication');
+      ws.close(1008, 'Unauthorized'); // 1008 = Policy Violation
+      return;
+    }
+    
+    // Connection is authenticated - add to mapping
+    authenticatedConnections.set(ws, authenticatedUserId);
+    console.log(`WebSocket authenticated for user: ${authenticatedUserId}`);
+    
+    // Send authentication confirmation
+    ws.send(JSON.stringify({ type: 'authenticated', success: true, userId: authenticatedUserId }));
     
     ws.on('message', async (data: string) => {
       try {
         const message = JSON.parse(data);
         
+        // All connections are pre-authenticated, so we can process messages directly
         if (message.type === 'send_message') {
+          const senderId = authenticatedUserId; // Use server-verified user ID
+          const receiverId = message.receiverId;
+          const content = message.content;
+          
+          if (!receiverId || !content) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Missing receiverId or content' }));
+            return;
+          }
+          
+          // Validate that receiver exists and is a valid user
+          const receiverUser = await storage.getUser(receiverId);
+          if (!receiverUser) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Invalid receiver' }));
+            return;
+          }
+          
           // Store message in database
           const newMessage = await storage.createMessage({
-            senderId: message.senderId,
-            receiverId: message.receiverId,
-            content: message.content,
+            senderId,
+            receiverId,
+            content,
           });
           
-          // Broadcast to all connected clients
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
+          // Send to sender and receiver only (private messaging)
+          authenticatedConnections.forEach((userId, client) => {
+            if (client.readyState === WebSocket.OPEN && 
+                (userId === senderId || userId === receiverId)) {
               client.send(JSON.stringify({
                 type: 'new_message',
                 message: newMessage,
               }));
             }
           });
+        } else {
+          ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
       }
     });
     
     ws.on('close', () => {
-      console.log('WebSocket connection closed');
+      console.log(`WebSocket connection closed for user: ${authenticatedUserId}`);
+      authenticatedConnections.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      authenticatedConnections.delete(ws);
     });
   });
 

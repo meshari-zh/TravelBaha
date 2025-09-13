@@ -21,6 +21,7 @@ export default function Messages() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [isSocketAuthenticated, setIsSocketAuthenticated] = useState(false);
 
   // Fetch available users to chat with based on role
   const { data: availableUsers = [] } = useQuery<User[]>({
@@ -72,44 +73,87 @@ export default function Messages() {
 
   // WebSocket connection
   useEffect(() => {
+    if (!user?.id) return;
+
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log('WebSocket connected');
-      setSocket(ws);
+      console.log('WebSocket connected - server will authenticate automatically');
+      // Server authenticates immediately using session - no need to send auth message
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      
+      if (data.type === 'authenticated') {
+        if (data.success) {
+          console.log('WebSocket authenticated successfully for user:', data.userId);
+          setIsSocketAuthenticated(true);
+          setSocket(ws);
+        } else {
+          console.error('WebSocket authentication failed:', data.error);
+          setIsSocketAuthenticated(false);
+          ws.close();
+        }
+        return;
+      }
+      
+      if (data.type === 'error') {
+        console.error('WebSocket error:', data.message);
+        if (data.message === 'Authentication required') {
+          setIsSocketAuthenticated(false);
+        }
+        return;
+      }
+      
       if (data.type === 'new_message') {
         // Refresh messages if this is the active conversation
         if (selectedUser && 
-            (data.message.senderId === selectedUser.id || data.message.receiverId === selectedUser.id)) {
+            (data.message.senderId === selectedUser.id || data.message.receiverId === selectedUser.id || 
+             data.message.senderId === user.id)) {
           queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedUser.id] });
         }
       }
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
+    ws.onclose = (event) => {
+      console.log('WebSocket disconnected:', event.code, event.reason);
+      if (event.code === 1008) {
+        console.error('WebSocket connection rejected: Unauthorized');
+        toast({
+          title: "اتصال غير مصرح",
+          description: "فشل في تسجيل الدخول للدردشة. سيتم تحديث الصفحة...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 2000);
+      }
       setSocket(null);
+      setIsSocketAuthenticated(false);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket connection error:', error);
+      setSocket(null);
+      setIsSocketAuthenticated(false);
     };
 
     return () => {
       ws.close();
     };
-  }, [selectedUser, queryClient]);
+  }, [user?.id, selectedUser, queryClient]);
 
   const handleSendMessage = (content: string) => {
     if (!selectedUser || !content.trim()) return;
 
-    // Send via WebSocket for real-time delivery
-    if (socket && socket.readyState === WebSocket.OPEN) {
+    // Send via WebSocket for real-time delivery if authenticated
+    if (socket && socket.readyState === WebSocket.OPEN && isSocketAuthenticated) {
       socket.send(JSON.stringify({
         type: 'send_message',
-        senderId: user?.id,
+        // Don't send senderId - server will derive it from authenticated session
         receiverId: selectedUser.id,
         content: content.trim(),
       }));
@@ -212,7 +256,7 @@ export default function Messages() {
                 messages={messages}
                 onSendMessage={handleSendMessage}
                 isLoading={messagesLoading}
-                isConnected={socket?.readyState === WebSocket.OPEN}
+                isConnected={socket?.readyState === WebSocket.OPEN && isSocketAuthenticated}
               />
             ) : (
               <CardContent className="flex items-center justify-center h-full">
