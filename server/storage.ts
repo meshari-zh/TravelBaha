@@ -71,6 +71,7 @@ export interface IStorage {
   
   // User role operations
   updateUserRole(userId: string, role: "tourist" | "guide" | "admin"): Promise<User>;
+  updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; profileImageUrl?: string }): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -359,6 +360,28 @@ export class DatabaseStorage implements IStorage {
     const [updatedUser] = await db
       .update(users)
       .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+
+  // User profile operations
+  async updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; profileImageUrl?: string }): Promise<User> {
+    const updateData: any = { updatedAt: new Date() };
+    
+    if (profileData.firstName !== undefined) {
+      updateData.firstName = profileData.firstName;
+    }
+    if (profileData.lastName !== undefined) {
+      updateData.lastName = profileData.lastName;
+    }
+    if (profileData.profileImageUrl !== undefined) {
+      updateData.profileImageUrl = profileData.profileImageUrl;
+    }
+
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;

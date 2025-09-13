@@ -372,6 +372,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code } = req.body;
       const userId = req.user.claims.sub;
       
+      console.log(`Attempting to redeem invite code: ${code} for user: ${userId}`);
+      
       if (!code) {
         return res.status(400).json({ message: "Invite code is required" });
       }
@@ -379,21 +381,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the invite
       const invite = await storage.getInvite(code);
       if (!invite) {
+        console.log(`Invalid invite code attempted: ${code}`);
         return res.status(404).json({ message: "Invalid invite code" });
       }
 
+      console.log(`Found invite: ${JSON.stringify(invite)}`);
+
       if (invite.isUsed) {
+        console.log(`Invite already used: ${code} by ${invite.usedBy}`);
         return res.status(400).json({ message: "Invite code already used" });
       }
 
-      // Use the invite and update user role
-      await storage.useInvite(code, userId);
+      // Get current user to verify they exist
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        console.log(`User not found: ${userId}`);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log(`Current user before role update: ${JSON.stringify(currentUser)}`);
+
+      // Use the invite and update user role in sequence with proper error handling
+      console.log(`Marking invite as used: ${code}`);
+      const usedInvite = await storage.useInvite(code, userId);
+      console.log(`Invite marked as used: ${JSON.stringify(usedInvite)}`);
+
+      console.log(`Updating user role to: ${invite.role}`);
       const updatedUser = await storage.updateUserRole(userId, invite.role as "guide" | "admin");
+      console.log(`User role updated: ${JSON.stringify(updatedUser)}`);
+
+      // If the role is 'guide', automatically create a guide profile if one doesn't exist
+      if (invite.role === 'guide') {
+        console.log(`Checking if guide profile exists for user: ${userId}`);
+        const existingGuide = await storage.getGuideByUserId(userId);
+        
+        if (!existingGuide) {
+          console.log(`Creating default guide profile for user: ${userId}`);
+          const defaultGuideData = {
+            userId: userId,
+            bio: "",
+            specialties: [],
+            languages: ["العربية"],
+            dailyRate: "0",
+            isActive: true,
+          };
+          
+          const newGuide = await storage.createGuide(defaultGuideData);
+          console.log(`Guide profile created: ${JSON.stringify(newGuide)}`);
+        } else {
+          console.log(`Guide profile already exists: ${JSON.stringify(existingGuide)}`);
+        }
+      }
 
       res.json({ message: `Role updated to ${invite.role}`, user: updatedUser });
+    } catch (error: any) {
+      console.error("Error using invite - Full error:", error);
+      console.error("Error stack:", error?.stack);
+      res.status(500).json({ message: "Failed to use invite", error: error?.message || "Unknown error" });
+    }
+  });
+
+  // User profile routes
+  app.put('/api/users/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName, profileImageUrl } = req.body;
+
+      // Validate input
+      if (!firstName || !lastName) {
+        return res.status(400).json({ message: "First name and last name are required" });
+      }
+
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const updatedUser = await storage.updateUserProfile(userId, {
+        firstName,
+        lastName,
+        profileImageUrl,
+      });
+
+      res.json(updatedUser);
     } catch (error) {
-      console.error("Error using invite:", error);
-      res.status(500).json({ message: "Failed to use invite" });
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
     }
   });
 

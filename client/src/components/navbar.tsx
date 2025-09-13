@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -187,6 +187,13 @@ export default function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="w-4 h-4 ml-2" />
+                    تعديل الملف الشخصي
+                  </Link>
+                </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
                 

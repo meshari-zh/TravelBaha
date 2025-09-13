@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import GuideDashboard from "@/pages/guide-dashboard";
 import GuideProfile from "@/pages/guide-profile";
 import InviteRedemption from "@/pages/invite-redemption";
+import ProfileEdit from "@/pages/profile-edit";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -43,6 +44,7 @@ function Router() {
           <Route path="/messages" component={Messages} />
           <Route path="/bookings" component={Bookings} />
           <Route path="/invite" component={InviteRedemption} />
+          <Route path="/profile" component={ProfileEdit} />
           {user?.role === 'admin' && (
             <Route path="/admin" component={AdminDashboard} />
           )}
