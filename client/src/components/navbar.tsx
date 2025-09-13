@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -99,6 +99,19 @@ export default function Navbar() {
               >
                 <MessageCircle className="w-4 h-4" />
                 الرسائل
+              </Button>
+            </Link>
+            
+            {/* Invite code redemption for all users */}
+            <Link href="/invite">
+              <Button 
+                variant={isActive("/invite") ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="nav-invite"
+              >
+                <Ticket className="w-4 h-4" />
+                كود الدعوة
               </Button>
             </Link>
 
