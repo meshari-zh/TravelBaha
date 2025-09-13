@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +26,16 @@ export default function AdminDashboard() {
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("places");
+
+  // Handle URL parameters for direct tab access
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['places', 'guides', 'bookings', 'users', 'invites'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
 
   // Redirect non-admin users
   if (user?.role !== 'admin') {
@@ -209,6 +219,37 @@ export default function AdminDashboard() {
     },
   });
 
+  const deleteInviteMutation = useMutation({
+    mutationFn: async (inviteId: string) => {
+      await apiRequest("DELETE", `/api/invites/${inviteId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
+      toast({
+        title: "تم حذف رمز الدعوة",
+        description: "تم حذف رمز الدعوة بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف رمز الدعوة",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: "tourist" | "guide" | "admin" }) => {
       await apiRequest("PUT", `/api/users/${userId}/role`, { role });
@@ -341,7 +382,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Management Tabs */}
-        <Tabs defaultValue="places" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="places" data-testid="tab-places">الأماكن السياحية</TabsTrigger>
             <TabsTrigger value="guides" data-testid="tab-guides">المرشدين السياحيين</TabsTrigger>
@@ -702,12 +743,24 @@ export default function AdminDashboard() {
                                 </p>
                               )}
                             </div>
-                            <Badge 
-                              variant={invite.isUsed ? "secondary" : "default"}
-                              data-testid={`invite-status-${invite.id}`}
-                            >
-                              {invite.isUsed ? 'مستخدم' : 'متاح'}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={invite.isUsed ? "secondary" : "default"}
+                                data-testid={`invite-status-${invite.id}`}
+                              >
+                                {invite.isUsed ? 'مستخدم' : 'متاح'}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteInviteMutation.mutate(invite.id)}
+                                disabled={deleteInviteMutation.isPending}
+                                data-testid={`button-delete-invite-${invite.id}`}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

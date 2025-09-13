@@ -46,7 +46,15 @@ function Router() {
           <Route path="/invite" component={InviteRedemption} />
           <Route path="/profile" component={ProfileEdit} />
           {user?.role === 'admin' && (
-            <Route path="/admin" component={AdminDashboard} />
+            <>
+              <Route path="/admin" component={AdminDashboard} />
+              <Route path="/admin/invites">
+                {() => {
+                  window.location.href = '/admin?tab=invites';
+                  return null;
+                }}
+              </Route>
+            </>
           )}
           {user?.role === 'guide' && (
             <Route path="/dashboard" component={GuideDashboard} />
