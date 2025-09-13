@@ -114,13 +114,15 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
         
         {/* Action Buttons */}
         <div className="space-y-2">
-          <Button 
-            className="w-full" 
-            size="sm"
-            data-testid={`guide-profile-${guide.id}`}
-          >
-            عرض الملف الشخصي
-          </Button>
+          <Link href={`/guide/${guide.id}`}>
+            <Button 
+              className="w-full" 
+              size="sm"
+              data-testid={`guide-profile-${guide.id}`}
+            >
+              عرض الملف الشخصي
+            </Button>
+          </Link>
           
           {showContactButton && (
             <Button 

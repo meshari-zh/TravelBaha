@@ -12,6 +12,7 @@ import Messages from "@/pages/messages";
 import Bookings from "@/pages/bookings";
 import AdminDashboard from "@/pages/admin-dashboard";
 import GuideDashboard from "@/pages/guide-dashboard";
+import GuideProfile from "@/pages/guide-profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/places" component={Places} />
           <Route path="/guides" component={Guides} />
+          <Route path="/guide/:id" component={GuideProfile} />
           <Route path="/messages" component={Messages} />
           <Route path="/bookings" component={Bookings} />
           {user?.role === 'admin' && (
