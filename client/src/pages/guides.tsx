@@ -51,10 +51,10 @@ export default function Guides() {
         [guide.user?.firstName, guide.user?.lastName, guide.bio]
           .some(value => (value ?? "").toLowerCase().includes(searchTermLower));
       
-      const matchesSpecialty = !selectedSpecialty || 
+      const matchesSpecialty = !selectedSpecialty || selectedSpecialty === "all" || 
         guide.specialties?.includes(selectedSpecialty);
       
-      const matchesLanguage = !selectedLanguage || 
+      const matchesLanguage = !selectedLanguage || selectedLanguage === "all" || 
         guide.languages?.includes(selectedLanguage);
       
       return matchesSearch && matchesSpecialty && matchesLanguage;
@@ -107,7 +107,7 @@ export default function Guides() {
                   <SelectValue placeholder="التخصص: الكل" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الكل</SelectItem>
+                  <SelectItem value="all">الكل</SelectItem>
                   {allSpecialties.map((specialty) => (
                     <SelectItem key={specialty} value={specialty}>
                       {specialty}
@@ -122,7 +122,7 @@ export default function Guides() {
                   <SelectValue placeholder="اللغة: الكل" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الكل</SelectItem>
+                  <SelectItem value="all">الكل</SelectItem>
                   {allLanguages.map((language) => (
                     <SelectItem key={language} value={language}>
                       {language}
@@ -146,7 +146,7 @@ export default function Guides() {
             </div>
 
             {/* Active Filters */}
-            {(selectedSpecialty || selectedLanguage || searchTerm) && (
+            {((selectedSpecialty && selectedSpecialty !== "all") || (selectedLanguage && selectedLanguage !== "all") || searchTerm) && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {searchTerm && (
                   <Badge variant="secondary" className="flex items-center gap-1">
@@ -160,11 +160,11 @@ export default function Guides() {
                     </button>
                   </Badge>
                 )}
-                {selectedSpecialty && (
+                {selectedSpecialty && selectedSpecialty !== "all" && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     {selectedSpecialty}
                     <button 
-                      onClick={() => setSelectedSpecialty("")}
+                      onClick={() => setSelectedSpecialty("all")}
                       className="text-xs hover:text-foreground"
                       data-testid="button-clear-specialty"
                     >
@@ -172,11 +172,11 @@ export default function Guides() {
                     </button>
                   </Badge>
                 )}
-                {selectedLanguage && (
+                {selectedLanguage && selectedLanguage !== "all" && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     {selectedLanguage}
                     <button 
-                      onClick={() => setSelectedLanguage("")}
+                      onClick={() => setSelectedLanguage("all")}
                       className="text-xs hover:text-foreground"
                       data-testid="button-clear-language"
                     >
@@ -189,8 +189,8 @@ export default function Guides() {
                   size="sm" 
                   onClick={() => {
                     setSearchTerm("");
-                    setSelectedSpecialty("");
-                    setSelectedLanguage("");
+                    setSelectedSpecialty("all");
+                    setSelectedLanguage("all");
                   }}
                   data-testid="button-clear-all-filters"
                 >

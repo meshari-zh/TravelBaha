@@ -39,6 +39,12 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/about" component={About} />
+          <Route path="/login">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
         </>
       ) : (
         <>
@@ -55,6 +61,7 @@ function Router() {
           {user?.role === 'admin' && (
             <>
               <Route path="/admin" component={AdminDashboard} />
+              <Route path="/admin-dashboard" component={AdminDashboard} />
               <Route path="/admin/invites">
                 {() => {
                   window.location.href = '/admin?tab=invites';
