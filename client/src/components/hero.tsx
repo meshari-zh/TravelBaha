@@ -1,21 +1,26 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Hero() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   const handleStartJourney = () => {
+    if (isLoading) return; // Prevent premature action
+    
     if (isAuthenticated) {
-      window.location.href = "/places";
+      setLocation("/places");
     } else {
       window.location.href = "/api/login";
     }
   };
 
   const handleJoinGuide = () => {
+    if (isLoading) return; // Prevent premature action
+    
     if (isAuthenticated) {
-      window.location.href = "/guides";
+      setLocation("/guides");
     } else {
       window.location.href = "/api/login";
     }
@@ -39,6 +44,7 @@ export default function Hero() {
               size="lg" 
               className="text-lg" 
               onClick={handleStartJourney}
+              disabled={isLoading}
               data-testid="hero-start-journey"
             >
               ابدأ رحلتك الآن
@@ -48,6 +54,7 @@ export default function Hero() {
               variant="outline" 
               className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 hover:bg-white/30 text-lg"
               onClick={handleJoinGuide}
+              disabled={isLoading}
               data-testid="hero-join-guide"
             >
               انضم كمرشد سياحي
