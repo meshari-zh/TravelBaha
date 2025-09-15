@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
