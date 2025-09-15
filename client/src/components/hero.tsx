@@ -1,7 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Hero() {
+  const { isAuthenticated } = useAuth();
+
+  const handleStartJourney = () => {
+    if (isAuthenticated) {
+      window.location.href = "/places";
+    } else {
+      window.location.href = "/api/login";
+    }
+  };
+
+  const handleJoinGuide = () => {
+    if (isAuthenticated) {
+      window.location.href = "/guides";
+    } else {
+      window.location.href = "/api/login";
+    }
+  };
+
   return (
     <section className="relative h-[70vh] bg-cover bg-center hero-gradient pattern-overlay" 
              style={{backgroundImage: "url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&h=1080')"}}>
@@ -16,21 +35,23 @@ export default function Hero() {
             منصة تربط بين السياح والمرشدين السياحيين المحليين في منطقة الباحة لتجربة سياحية استثنائية وأصيلة
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/places">
-              <Button size="lg" className="text-lg" data-testid="hero-start-journey">
-                ابدأ رحلتك الآن
-              </Button>
-            </Link>
-            <Link href="/guides">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 hover:bg-white/30 text-lg"
-                data-testid="hero-join-guide"
-              >
-                انضم كمرشد سياحي
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="text-lg" 
+              onClick={handleStartJourney}
+              data-testid="hero-start-journey"
+            >
+              ابدأ رحلتك الآن
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 hover:bg-white/30 text-lg"
+              onClick={handleJoinGuide}
+              data-testid="hero-join-guide"
+            >
+              انضم كمرشد سياحي
+            </Button>
           </div>
         </div>
       </div>
