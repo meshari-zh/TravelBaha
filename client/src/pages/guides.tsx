@@ -46,10 +46,10 @@ export default function Guides() {
   // Filter and sort guides
   const filteredGuides = guides
     .filter(guide => {
+      const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
-        (guide.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         guide.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         guide.bio?.toLowerCase().includes(searchTerm.toLowerCase()));
+        [guide.user?.firstName, guide.user?.lastName, guide.bio]
+          .some(value => (value ?? "").toLowerCase().includes(searchTermLower));
       
       const matchesSpecialty = !selectedSpecialty || 
         guide.specialties?.includes(selectedSpecialty);
@@ -101,20 +101,48 @@ export default function Guides() {
                 />
               </div>
 
-              {/* Specialty Filter - Simplified */}
-              <div className="border rounded-md p-2">
-                <span className="text-sm text-muted-foreground" data-testid="select-specialty">التخصص: الكل</span>
-              </div>
+              {/* Specialty Filter */}
+              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                <SelectTrigger data-testid="select-specialty">
+                  <SelectValue placeholder="التخصص: الكل" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">الكل</SelectItem>
+                  {allSpecialties.map((specialty) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              {/* Language Filter - Simplified */}
-              <div className="border rounded-md p-2">
-                <span className="text-sm text-muted-foreground" data-testid="select-language">اللغة: الكل</span>
-              </div>
+              {/* Language Filter */}
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger data-testid="select-language">
+                  <SelectValue placeholder="اللغة: الكل" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">الكل</SelectItem>
+                  {allLanguages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              {/* Sort - Simplified */}
-              <div className="border rounded-md p-2">
-                <span className="text-sm text-muted-foreground" data-testid="select-sort">الأعلى تقييماً</span>
-              </div>
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger data-testid="select-sort">
+                  <SelectValue placeholder="ترتيب حسب" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">الأعلى تقييماً</SelectItem>
+                  <SelectItem value="price_low">السعر من الأقل للأعلى</SelectItem>
+                  <SelectItem value="price_high">السعر من الأعلى للأقل</SelectItem>
+                  <SelectItem value="reviews">الأكثر تقييماً</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Active Filters */}
