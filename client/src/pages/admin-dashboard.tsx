@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, Key, Copy } from "lucide-react";
-import type { Place, Guide, InsertPlace, Booking, User, Invite } from "@shared/schema";
+import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -28,12 +28,14 @@ export default function AdminDashboard() {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [generatedInviteCode, setGeneratedInviteCode] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("places");
+  const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+  const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
 
   // Handle URL parameters for direct tab access
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab && ['places', 'guides', 'bookings', 'users', 'invites'].includes(tab)) {
+    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'invites'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -73,6 +75,10 @@ export default function AdminDashboard() {
 
   const { data: invites = [] } = useQuery<Invite[]>({
     queryKey: ["/api/invites"],
+  });
+
+  const { data: teamMembers = [] } = useQuery<TeamMember[]>({
+    queryKey: ["/api/team-members"],
   });
 
   // Statistics
@@ -316,6 +322,104 @@ export default function AdminDashboard() {
     },
   });
 
+  // Team member mutations
+  const createTeamMemberMutation = useMutation({
+    mutationFn: async (data: InsertTeamMember) => {
+      await apiRequest("POST", "/api/team-members", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/team-members"] });
+      setIsTeamDialogOpen(false);
+      setEditingTeamMember(null);
+      toast({
+        title: "تم إضافة عضو الفريق",
+        description: "تم إضافة عضو جديد لفريق العمل بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة عضو الفريق",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTeamMemberMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertTeamMember> }) => {
+      await apiRequest("PUT", `/api/team-members/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/team-members"] });
+      setIsTeamDialogOpen(false);
+      setEditingTeamMember(null);
+      toast({
+        title: "تم تحديث عضو الفريق",
+        description: "تم تحديث بيانات عضو الفريق بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث عضو الفريق",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteTeamMemberMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/team-members/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/team-members"] });
+      toast({
+        title: "تم حذف عضو الفريق",
+        description: "تم حذف عضو الفريق بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف عضو الفريق",
+        variant: "destructive",
+      });
+    },
+  });
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -359,6 +463,37 @@ export default function AdminDashboard() {
   const handleDeletePlace = (place: Place) => {
     if (confirm(`هل أنت متأكد من حذف "${place.name}"؟`)) {
       deletePlaceMutation.mutate(place.id);
+    }
+  };
+
+  const handleSubmitTeamMember = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    const data: InsertTeamMember = {
+      name: formData.get("name") as string,
+      role: formData.get("role") as string,
+      description: formData.get("description") as string,
+      imageUrl: formData.get("imageUrl") as string,
+      orderIndex: parseInt(formData.get("orderIndex") as string) || 0,
+      isActive: true,
+    };
+
+    if (editingTeamMember) {
+      updateTeamMemberMutation.mutate({ id: editingTeamMember.id, data });
+    } else {
+      createTeamMemberMutation.mutate(data);
+    }
+  };
+
+  const handleEditTeamMember = (member: TeamMember) => {
+    setEditingTeamMember(member);
+    setIsTeamDialogOpen(true);
+  };
+
+  const handleDeleteTeamMember = (member: TeamMember) => {
+    if (confirm(`هل أنت متأكد من حذف "${member.name}"؟`)) {
+      deleteTeamMemberMutation.mutate(member.id);
     }
   };
 
@@ -418,11 +553,12 @@ export default function AdminDashboard() {
 
         {/* Management Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="places" data-testid="tab-places">الأماكن السياحية</TabsTrigger>
             <TabsTrigger value="guides" data-testid="tab-guides">المرشدين السياحيين</TabsTrigger>
             <TabsTrigger value="bookings" data-testid="tab-bookings">الحجوزات</TabsTrigger>
             <TabsTrigger value="users" data-testid="tab-users">إدارة المستخدمين</TabsTrigger>
+            <TabsTrigger value="team" data-testid="tab-team">فريق العمل</TabsTrigger>
             <TabsTrigger value="invites" data-testid="tab-invites">رموز الدعوة</TabsTrigger>
           </TabsList>
 
@@ -740,6 +876,178 @@ export default function AdminDashboard() {
                                 </AlertDialogContent>
                               </AlertDialog>
                             </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Team Management */}
+          <TabsContent value="team">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>إدارة فريق العمل</CardTitle>
+                  <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        onClick={() => setEditingTeamMember(null)}
+                        data-testid="button-add-team-member"
+                      >
+                        <Plus className="w-4 h-4 ml-2" />
+                        إضافة عضو جديد
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <form onSubmit={handleSubmitTeamMember} className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">اسم العضو</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            defaultValue={editingTeamMember?.name || ""}
+                            required
+                            data-testid="input-team-member-name"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="role">المنصب</Label>
+                          <Input
+                            id="role"
+                            name="role"
+                            defaultValue={editingTeamMember?.role || ""}
+                            required
+                            data-testid="input-team-member-role"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="description">الوصف</Label>
+                          <Textarea
+                            id="description"
+                            name="description"
+                            defaultValue={editingTeamMember?.description || ""}
+                            data-testid="input-team-member-description"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="imageUrl">رابط الصورة</Label>
+                          <Input
+                            id="imageUrl"
+                            name="imageUrl"
+                            type="url"
+                            defaultValue={editingTeamMember?.imageUrl || ""}
+                            data-testid="input-team-member-image"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="orderIndex">ترتيب العرض</Label>
+                          <Input
+                            id="orderIndex"
+                            name="orderIndex"
+                            type="number"
+                            defaultValue={editingTeamMember?.orderIndex || 0}
+                            data-testid="input-team-member-order"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-4">
+                          <Button 
+                            type="submit" 
+                            disabled={createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending}
+                            data-testid="button-save-team-member"
+                          >
+                            {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
+                              ? 'جاري الحفظ...' 
+                              : editingTeamMember ? 'تحديث' : 'إضافة'
+                            }
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsTeamDialogOpen(false)}
+                            data-testid="button-cancel-team-member"
+                          >
+                            إلغاء
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {teamMembers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-muted-foreground">لا يوجد أعضاء في الفريق</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {teamMembers.map((member) => (
+                      <Card key={member.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                              {member.imageUrl ? (
+                                <img 
+                                  src={member.imageUrl} 
+                                  alt={member.name}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-lg font-semibold">
+                                  {member.name.charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold truncate" data-testid={`team-member-name-${member.id}`}>
+                                {member.name}
+                              </h4>
+                              <p className="text-sm text-primary font-medium" data-testid={`team-member-role-${member.id}`}>
+                                {member.role}
+                              </p>
+                              {member.description && (
+                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2" data-testid={`team-member-description-${member.id}`}>
+                                  {member.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditTeamMember(member)}
+                              data-testid={`button-edit-team-member-${member.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteTeamMember(member)}
+                              disabled={deleteTeamMemberMutation.isPending}
+                              data-testid={`button-delete-team-member-${member.id}`}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
