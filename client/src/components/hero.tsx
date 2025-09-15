@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import heroVideo from "@assets/مقطع للباحه_1757969418986.mp4";
 
 export default function Hero() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,10 +28,29 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative h-[70vh] bg-cover bg-center hero-gradient pattern-overlay" 
-             style={{backgroundImage: "url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&h=1080')"}}>
-      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-      <div className="relative container mx-auto px-4 h-full flex items-center">
+    <section className="relative h-[70vh] overflow-hidden">
+      {/* فيديو الخلفية */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        autoPlay
+        loop
+        muted
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        preload="auto"
+      >
+        <source src={heroVideo} type="video/mp4" />
+        {/* في حالة عدم دعم الفيديو، عرض صورة بديلة */}
+        <div className="absolute inset-0 bg-cover bg-center" 
+             style={{backgroundImage: "url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&h=1080')"}} />
+      </video>
+      
+      {/* طبقة التعتيم */}
+      <div className="absolute inset-0 bg-black bg-opacity-40 z-10"></div>
+      
+      {/* المحتوى */}
+      <div className="relative container mx-auto px-4 h-full flex items-center z-20">
         <div className="max-w-3xl">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
             اكتشف جمال الباحة
