@@ -113,6 +113,233 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed tourist attractions endpoint
+  app.post('/api/places/seed', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const touristAttractions = [
+        {
+          name: "ذي عين",
+          description: "قرية تراثية عريقة تتميز بالبيوت الحجرية القديمة والمعمار الأصيل، وتعتبر من أهم المواقع التراثية في منطقة الباحة",
+          imageUrl: "@assets/ذي عين_1757793151104.jpg",
+          location: "الباحة",
+          category: "تراث"
+        },
+        {
+          name: "رغدان",
+          description: "منطقة طبيعية ساحرة تتميز بالجبال الخضراء والطبيعة الخلابة، مكان مثالي للاستجمام والتنزه",
+          imageUrl: "@assets/رغدان_1757793151105.jpg",
+          location: "الباحة",
+          category: "طبيعة"
+        },
+        {
+          name: "شلال الحمدة",
+          description: "شلال طبيعي خلاب يتدفق من ارتفاعات شاهقة، يوفر مناظر طبيعية رائعة ومياه عذبة منعشة",
+          imageUrl: "@assets/شلال الحمده_1757793151105.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال خيرة",
+          description: "من أجمل الشلالات في المنطقة، يقع وسط الغابات الكثيفة ويوفر أجواء هادئة ومنعشة",
+          imageUrl: "@assets/شلال خيره_1757793151106.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال عين الجمل",
+          description: "شلال جميل يقع في منطقة جبلية خلابة، محاط بالأشجار والصخور الطبيعية",
+          imageUrl: "@assets/شلال عين الجمل_1757793151106.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "غابة خيرة",
+          description: "غابة طبيعية كثيفة تضم أنواعاً متنوعة من الأشجار، مكان مثالي للمشي والاستمتاع بالطبيعة",
+          imageUrl: "@assets/غابة خيره_1757793151107.jpg",
+          location: "الباحة",
+          category: "غابات"
+        },
+        {
+          name: "قلعة بخروش",
+          description: "قلعة تاريخية أثرية تحكي تاريخ المنطقة العريق، تتميز بالعمارة التقليدية والموقع الاستراتيجي",
+          imageUrl: "@assets/قلعه بخروش_1757793151107.jpg",
+          location: "الباحة",
+          category: "تراث"
+        },
+        {
+          name: "منتزه الأمير حسام",
+          description: "منتزه عائلي جميل يوفر مرافق ترفيهية متنوعة ومساحات خضراء واسعة للعائلات",
+          imageUrl: "@assets/منتزه الامير حسام_1757793151107.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "حديقة الافندر",
+          description: "حديقة عطرية جميلة تضم زراعات الافندر الأرجواني، توفر أجواءً رومانسية ومناظر خلابة",
+          imageUrl: "@assets/حديقة الافندر_1757970030008.jpg",
+          location: "الباحة",
+          category: "حدائق"
+        },
+        {
+          name: "حديقة الأمير سلطان",
+          description: "حديقة حديثة ومجهزة بمرافق متطورة، تشمل ألعاب الأطفال ومسارات المشي والمطاعم",
+          imageUrl: "@assets/حديقة الامير سلطان_1757970030009.jpg",
+          location: "الباحة",
+          category: "حدائق"
+        },
+        {
+          name: "سد وادي العقيق",
+          description: "سد جميل يجمع مياه الأمطار، يوفر مناظر طبيعية ساحرة ومكاناً هادئاً للاستجمام",
+          imageUrl: "@assets/سد وادي العقيق_1757970030010.jpg",
+          location: "الباحة",
+          category: "سدود"
+        },
+        {
+          name: "شلال الشراشير",
+          description: "شلال مذهل يتميز بتدفقه القوي والمناظر الطبيعية المحيطة به، مكان مثالي للتصوير",
+          imageUrl: "@assets/شلال الشراشير_1757970030010.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال الشولة",
+          description: "شلال طبيعي رائع يقع في منطقة جبلية عالية، يوفر مناظر بانورامية خلابة",
+          imageUrl: "@assets/شلال الشوله11_1757970030011.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال الغدير",
+          description: "شلال هادئ وجميل محاط بالصخور الطبيعية والنباتات الخضراء، مكان مثالي للهدوء والتأمل",
+          imageUrl: "@assets/شلال الغدير_1757970030012.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال أم الدقيق",
+          description: "شلال صغير وساحر يقع في منطقة نائية، يوفر أجواءً هادئة بعيداً عن الضوضاء",
+          imageUrl: "@assets/شلال ام الدقيق_1757970030013.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "شلال صفا البراق",
+          description: "شلال مميز يتميز بصخوره اللامعة والمياه الصافية، يخلق منظراً طبيعياً رائعاً",
+          imageUrl: "@assets/شلال صفا البراق_1757970030013.jpg",
+          location: "الباحة",
+          category: "شلالات"
+        },
+        {
+          name: "عين الجمل",
+          description: "عين مائية طبيعية تتدفق من الجبال، توفر مياهاً عذبة ومكاناً هادئاً للاستجمام",
+          imageUrl: "@assets/عين الجمل_1757970030013.jpg",
+          location: "الباحة",
+          category: "عيون مائية"
+        },
+        {
+          name: "متحف الأخوين",
+          description: "متحف تراثي يعرض تاريخ وثقافة المنطقة، يضم مجموعات نادرة من الآثار والمقتنيات التراثية",
+          imageUrl: "@assets/متحف الاخوين_1757970030014.jpg",
+          location: "الباحة",
+          category: "متاحف"
+        },
+        {
+          name: "منتزه الخلب",
+          description: "منتزه طبيعي جميل يقع في منطقة جبلية، يوفر إطلالات رائعة ومرافق ترفيهية للعائلات",
+          imageUrl: "@assets/منتزه الخلب_1757970030014.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "منتزه الدانة",
+          description: "منتزه عائلي مجهز بمرافق حديثة، يضم مناطق للألعاب والشواء ومسارات للمشي",
+          imageUrl: "@assets/منتزه الدانه_1757970030015.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "منتزه الشروق",
+          description: "منتزه يوفر مناظر رائعة لشروق الشمس، مكان مثالي للاستيقاظ المبكر والاستمتاع بالطبيعة",
+          imageUrl: "@assets/منتزه الشروق_1757970030015.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "منتزه الشلال",
+          description: "منتزه يحيط بشلال طبيعي جميل، يوفر مرافق للزوار ومناطق للجلوس والاسترخاء",
+          imageUrl: "@assets/منتزه الشلال_1757970030015.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "منتزه سد الجنابين",
+          description: "منتزه يقع بجانب سد جميل، يوفر مناظر مائية ساحرة ومرافق ترفيهية متنوعة",
+          imageUrl: "@assets/منتزه سد الجنابين_1757970030016.jpg",
+          location: "الباحة",
+          category: "منتزهات"
+        },
+        {
+          name: "نزل العائد التراثي",
+          description: "نزل تراثي أصيل يوفر تجربة الإقامة التقليدية، مبني بالطراز المعماري القديم",
+          imageUrl: "@assets/نزل العائد التراثي_1757970030016.jpg",
+          location: "الباحة",
+          category: "فنادق تراثية"
+        },
+        {
+          name: "وادي القدحة",
+          description: "وادي طبيعي خلاب يتميز بالمناظر الجبلية والنباتات البرية، مكان رائع للمغامرات والاستكشاف",
+          imageUrl: "@assets/وادي القدحة_1757970030017.jpg",
+          location: "الباحة",
+          category: "أودية"
+        },
+        {
+          name: "وادي القدحة - مسير",
+          description: "مسار طبيعي في وادي القدحة يوفر تجربة مشي رائعة وسط الطبيعة الخلابة",
+          imageUrl: "@assets/وادي القدحه بمسير_1757970030017.jpg",
+          location: "الباحة",
+          category: "أودية"
+        },
+        {
+          name: "وادي تربة زهران",
+          description: "وادي جميل يتميز بالتضاريس المتنوعة والنباتات الطبيعية، مكان مثالي للرحلات الاستكشافية",
+          imageUrl: "@assets/وادي تربه زهران_1757970030017.jpg",
+          location: "الباحة",
+          category: "أودية"
+        },
+        {
+          name: "وادي ثراد",
+          description: "وادي خلاب يوفر مناظر طبيعية ساحرة ومسارات للمشي، مكان هادئ للاسترخاء والتأمل",
+          imageUrl: "@assets/وادي ثراد_1757970030018.jpg",
+          location: "الباحة",
+          category: "أودية"
+        }
+      ];
+
+      const createdPlaces = [];
+      for (const attraction of touristAttractions) {
+        try {
+          const place = await storage.createPlace(attraction);
+          createdPlaces.push(place);
+        } catch (error) {
+          console.error(`Error creating place ${attraction.name}:`, error);
+        }
+      }
+
+      res.json({ 
+        message: `Successfully seeded ${createdPlaces.length} tourist attractions`,
+        places: createdPlaces
+      });
+    } catch (error) {
+      console.error("Error seeding places:", error);
+      res.status(500).json({ message: "Failed to seed places" });
+    }
+  });
+
   // Guides routes
   app.get('/api/guides', async (req, res) => {
     try {
