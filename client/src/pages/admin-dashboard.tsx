@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, Key, Copy } from "lucide-react";
 import type { Place, Guide, InsertPlace, Booking, User, Invite } from "@shared/schema";
@@ -276,6 +277,40 @@ export default function AdminDashboard() {
       toast({
         title: "خطأ",
         description: "فشل في تحديث دور المستخدم",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      await apiRequest("DELETE", `/api/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guides"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
+      toast({
+        title: "تم حذف المستخدم",
+        description: "تم حذف المستخدم وجميع بياناته بنجاح",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المستخدم",
         variant: "destructive",
       });
     },
@@ -643,34 +678,67 @@ export default function AdminDashboard() {
                                 {u.role === 'tourist' ? 'سائح' : u.role === 'guide' ? 'مرشد' : 'مشرف'}
                               </Badge>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "tourist" })}
-                                disabled={u.role === "tourist"}
-                                data-testid={`button-role-tourist-${u.id}`}
-                              >
-                                سائح
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "guide" })}
-                                disabled={u.role === "guide"}
-                                data-testid={`button-role-guide-${u.id}`}
-                              >
-                                مرشد
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "admin" })}
-                                disabled={u.role === "admin"}
-                                data-testid={`button-role-admin-${u.id}`}
-                              >
-                                مشرف
-                              </Button>
+                            <div className="flex gap-2 flex-wrap">
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "tourist" })}
+                                  disabled={u.role === "tourist"}
+                                  data-testid={`button-role-tourist-${u.id}`}
+                                >
+                                  سائح
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "guide" })}
+                                  disabled={u.role === "guide"}
+                                  data-testid={`button-role-guide-${u.id}`}
+                                >
+                                  مرشد
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateUserRoleMutation.mutate({ userId: u.id, role: "admin" })}
+                                  disabled={u.role === "admin"}
+                                  data-testid={`button-role-admin-${u.id}`}
+                                >
+                                  مشرف
+                                </Button>
+                              </div>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    data-testid={`button-delete-user-${u.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      هل أنت متأكد من حذف المستخدم "{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email}"؟
+                                      سيتم حذف جميع البيانات المرتبطة به (الحجوزات، الرسائل، التقييمات) ولا يمكن التراجع عن هذا الإجراء.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteUserMutation.mutate(u.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      data-testid={`button-confirm-delete-user-${u.id}`}
+                                    >
+                                      حذف نهائي
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         </CardContent>

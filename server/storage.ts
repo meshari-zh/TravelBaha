@@ -32,6 +32,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   
   // Places operations
   getAllPlaces(): Promise<Place[]>;
@@ -144,6 +145,62 @@ export class DatabaseStorage implements IStorage {
       console.error('Unexpected error in upsertUser:', error);
       throw new Error('Failed to create or update user');
     }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    // Use transaction to ensure data integrity
+    await db.transaction(async (tx) => {
+      // First check if user exists
+      const [targetUser] = await tx.select().from(users).where(eq(users.id, id));
+      if (!targetUser) {
+        throw new Error("User not found");
+      }
+
+      // Find guide profile if user is a guide
+      const [guideProfile] = await tx.select().from(guides).where(eq(guides.userId, id));
+      
+      // Delete reviews first (depend on bookings)
+      // Delete reviews by user (as tourist)
+      await tx.delete(reviews).where(eq(reviews.touristId, id));
+      
+      // If user is a guide, delete reviews for their guide profile
+      if (guideProfile) {
+        await tx.delete(reviews).where(eq(reviews.guideId, guideProfile.id));
+      }
+      
+      // Now delete bookings (after reviews are deleted)
+      // Delete bookings where user is tourist
+      await tx.delete(bookings).where(eq(bookings.touristId, id));
+      
+      // If user is a guide, delete bookings for their guide profile
+      if (guideProfile) {
+        await tx.delete(bookings).where(eq(bookings.guideId, guideProfile.id));
+      }
+      
+      // Delete messages sent or received by user
+      await tx.delete(messages).where(
+        or(
+          eq(messages.senderId, id),
+          eq(messages.receiverId, id)
+        )
+      );
+      
+      // Delete invites used by user
+      await tx.delete(invites).where(eq(invites.usedBy, id));
+      
+      // Update site content to remove reference to this user
+      await tx.update(siteContent)
+        .set({ updatedBy: null })
+        .where(eq(siteContent.updatedBy, id));
+      
+      // Delete guide profile if exists
+      if (guideProfile) {
+        await tx.delete(guides).where(eq(guides.id, guideProfile.id));
+      }
+      
+      // Finally delete the user
+      await tx.delete(users).where(eq(users.id, id));
+    });
   }
 
   // Places operations
