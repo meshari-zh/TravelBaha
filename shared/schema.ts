@@ -115,6 +115,18 @@ export const siteContent = pgTable("site_content", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  orderIndex: integer("order_index").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   guide: one(guides, {
@@ -197,6 +209,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({ id: true,
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
 export const insertInviteSchema = createInsertSchema(invites).omit({ id: true, createdAt: true, usedAt: true });
 export const insertSiteContentSchema = createInsertSchema(siteContent).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -215,3 +228,5 @@ export type InsertInvite = z.infer<typeof insertInviteSchema>;
 export type Invite = typeof invites.$inferSelect;
 export type InsertSiteContent = z.infer<typeof insertSiteContentSchema>;
 export type SiteContent = typeof siteContent.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;

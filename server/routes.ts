@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, type Booking } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, type Booking } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -575,6 +575,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating/updating site content:", error);
       res.status(500).json({ message: "Failed to create/update site content" });
+    }
+  });
+
+  // Team members routes
+  app.get('/api/team-members', async (req, res) => {
+    try {
+      const teamMembers = await storage.getAllTeamMembers();
+      res.json(teamMembers);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  app.get('/api/team-members/:id', async (req, res) => {
+    try {
+      const member = await storage.getTeamMember(req.params.id);
+      if (!member) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      console.error("Error fetching team member:", error);
+      res.status(500).json({ message: "Failed to fetch team member" });
+    }
+  });
+
+  app.post('/api/team-members', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertTeamMemberSchema.parse(req.body);
+      const member = await storage.createTeamMember(validatedData);
+      res.status(201).json(member);
+    } catch (error) {
+      console.error("Error creating team member:", error);
+      res.status(500).json({ message: "Failed to create team member" });
+    }
+  });
+
+  app.put('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertTeamMemberSchema.partial().parse(req.body);
+      const member = await storage.updateTeamMember(req.params.id, validatedData);
+      res.json(member);
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      res.status(500).json({ message: "Failed to update team member" });
+    }
+  });
+
+  app.delete('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteTeamMember(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting team member:", error);
+      res.status(500).json({ message: "Failed to delete team member" });
     }
   });
 
