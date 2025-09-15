@@ -153,7 +153,11 @@ export default function Landing() {
           </div>
           
           <div className="text-center mt-12">
-            <Button size="lg" data-testid="button-view-all-places">
+            <Button 
+              size="lg" 
+              onClick={() => window.location.href = "/places"}
+              data-testid="button-view-all-places"
+            >
               عرض جميع الأماكن السياحية
             </Button>
           </div>

@@ -38,6 +38,8 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/places" component={Places} />
+          <Route path="/places/:id" component={PlaceDetails} />
           <Route path="/about" component={About} />
           <Route path="/login">
             {() => {
