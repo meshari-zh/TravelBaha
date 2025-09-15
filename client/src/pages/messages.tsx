@@ -31,8 +31,8 @@ export default function Messages() {
         // For tourists, show guides
         return data.map((guide: Guide) => guide.user).filter(Boolean);
       } else {
-        // For guides and admins, show all users except themselves
-        return data.filter((u: User) => u.id !== user?.id);
+        // For guides and admins, show only guides and admins (not tourists)
+        return data.filter((u: User) => u.id !== user?.id && (u.role === 'guide' || u.role === 'admin'));
       }
     },
   });
