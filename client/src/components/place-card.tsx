@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users } from "lucide-react";
+import { Link } from "wouter";
 import type { Place } from "@shared/schema";
 import { resolveAssetUrl } from "@/utils/assets";
 
@@ -61,14 +62,17 @@ export default function PlaceCard({ place, showGuideCount = false, onSelect }: P
             </span>
           )}
           
-          <Button 
-            size="sm" 
-            variant="outline"
-            className="text-accent hover:text-accent/80"
-            data-testid={`place-details-${place.id}`}
-          >
-            عرض التفاصيل
-          </Button>
+          <Link href={`/places/${place.id}`}>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="text-accent hover:text-accent/80"
+              data-testid={`place-details-${place.id}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              عرض التفاصيل
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

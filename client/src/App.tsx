@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Places from "@/pages/places";
+import PlaceDetails from "@/pages/place-details";
 import Guides from "@/pages/guides";
 import Messages from "@/pages/messages";
 import Bookings from "@/pages/bookings";
@@ -39,6 +40,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/places" component={Places} />
+          <Route path="/places/:id" component={PlaceDetails} />
           <Route path="/guides" component={Guides} />
           <Route path="/guide/:id" component={GuideProfile} />
           <Route path="/messages" component={Messages} />
