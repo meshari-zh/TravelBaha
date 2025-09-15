@@ -186,6 +186,37 @@ export default function AdminDashboard() {
     },
   });
 
+  const seedPlacesMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/places/seed");
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      toast({
+        title: "تم إضافة معالم الباحة بنجاح",
+        description: `تم إضافة ${data?.places?.length || 28} معلم سياحي بنجاح`,
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "غير مصرح",
+          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "خطأ",
+        description: "فشل في إضافة معالم الباحة",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Generate random invite code
   const generateInviteCode = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 7);
@@ -460,6 +491,12 @@ export default function AdminDashboard() {
     setIsPlaceDialogOpen(true);
   };
 
+  const handleSeedPlaces = () => {
+    if (confirm("هل أنت متأكد من إضافة جميع معالم الباحة السياحية؟ سيتم إضافة 28 معلم سياحي.")) {
+      seedPlacesMutation.mutate();
+    }
+  };
+
   const handleDeletePlace = (place: Place) => {
     if (confirm(`هل أنت متأكد من حذف "${place.name}"؟`)) {
       deletePlaceMutation.mutate(place.id);
@@ -568,17 +605,26 @@ export default function AdminDashboard() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>إدارة الأماكن السياحية</CardTitle>
-                  <Dialog open={isPlaceDialogOpen} onOpenChange={setIsPlaceDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => setEditingPlace(null)}
-                        data-testid="button-add-place"
-                      >
-                        <Plus className="w-4 h-4 ml-2" />
-                        إضافة مكان جديد
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSeedPlaces}
+                      variant="outline"
+                      disabled={seedPlacesMutation.isPending}
+                      data-testid="button-seed-places"
+                    >
+                      {seedPlacesMutation.isPending ? 'جاري إضافة المعالم...' : 'إضافة معالم الباحة'}
+                    </Button>
+                    <Dialog open={isPlaceDialogOpen} onOpenChange={setIsPlaceDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          onClick={() => setEditingPlace(null)}
+                          data-testid="button-add-place"
+                        >
+                          <Plus className="w-4 h-4 ml-2" />
+                          إضافة مكان جديد
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
                       <DialogHeader>
                         <DialogTitle>
                           {editingPlace ? 'تعديل المكان السياحي' : 'إضافة مكان سياحي جديد'}
@@ -661,6 +707,7 @@ export default function AdminDashboard() {
                       </form>
                     </DialogContent>
                   </Dialog>
+                </div>
                 </div>
               </CardHeader>
               
