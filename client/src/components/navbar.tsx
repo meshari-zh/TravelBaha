@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info } from "lucide-react";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
 export default function Navbar() {
@@ -90,6 +90,18 @@ export default function Navbar() {
               >
                 <Users className="w-4 h-4" />
                 المرشدين السياحيين
+              </Button>
+            </Link>
+            
+            <Link href="/about">
+              <Button 
+                variant={isActive("/about") ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="nav-about"
+              >
+                <Info className="w-4 h-4" />
+                نبذة عنا
               </Button>
             </Link>
             

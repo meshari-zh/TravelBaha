@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, type Booking } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, type Booking } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -506,6 +506,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Site content routes
+  app.get('/api/site-content', async (req, res) => {
+    try {
+      const contents = await storage.getAllSiteContent();
+      res.json(contents);
+    } catch (error) {
+      console.error("Error fetching site content:", error);
+      res.status(500).json({ message: "Failed to fetch site content" });
+    }
+  });
+
+  app.get('/api/site-content/:key', async (req, res) => {
+    try {
+      const content = await storage.getSiteContent(req.params.key);
+      if (!content) {
+        return res.status(404).json({ message: "Content not found" });
+      }
+      res.json(content);
+    } catch (error) {
+      console.error("Error fetching site content:", error);
+      res.status(500).json({ message: "Failed to fetch site content" });
+    }
+  });
+
+  app.post('/api/site-content', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertSiteContentSchema.parse({
+        ...req.body,
+        updatedBy: user.id,
+      });
+      
+      const content = await storage.createOrUpdateSiteContent(validatedData);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Error creating/updating site content:", error);
+      res.status(500).json({ message: "Failed to create/update site content" });
     }
   });
 

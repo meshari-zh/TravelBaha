@@ -6,6 +6,7 @@ import {
   messages,
   reviews,
   invites,
+  siteContent,
   type User,
   type UpsertUser,
   type Place,
@@ -20,6 +21,8 @@ import {
   type InsertReview,
   type Invite,
   type InsertInvite,
+  type SiteContent,
+  type InsertSiteContent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, asc } from "drizzle-orm";
@@ -73,6 +76,11 @@ export interface IStorage {
   // User role operations
   updateUserRole(userId: string, role: "tourist" | "guide" | "admin"): Promise<User>;
   updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; profileImageUrl?: string }): Promise<User>;
+  
+  // Site content operations
+  getAllSiteContent(): Promise<SiteContent[]>;
+  getSiteContent(key: string): Promise<SiteContent | undefined>;
+  createOrUpdateSiteContent(content: InsertSiteContent): Promise<SiteContent>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -390,6 +398,33 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;
+  }
+
+  // Site content operations
+  async getAllSiteContent(): Promise<SiteContent[]> {
+    return await db.select().from(siteContent).orderBy(asc(siteContent.key));
+  }
+
+  async getSiteContent(key: string): Promise<SiteContent | undefined> {
+    const [content] = await db.select().from(siteContent).where(eq(siteContent.key, key));
+    return content;
+  }
+
+  async createOrUpdateSiteContent(content: InsertSiteContent): Promise<SiteContent> {
+    const [result] = await db
+      .insert(siteContent)
+      .values({ ...content, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: siteContent.key,
+        set: {
+          title: content.title,
+          content: content.content,
+          updatedBy: content.updatedBy,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
   }
 }
 

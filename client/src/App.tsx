@@ -16,6 +16,7 @@ import GuideDashboard from "@/pages/guide-dashboard";
 import GuideProfile from "@/pages/guide-profile";
 import InviteRedemption from "@/pages/invite-redemption";
 import ProfileEdit from "@/pages/profile-edit";
+import About from "@/pages/about";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -35,7 +36,10 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/about" component={About} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />
@@ -47,6 +51,7 @@ function Router() {
           <Route path="/bookings" component={Bookings} />
           <Route path="/invite" component={InviteRedemption} />
           <Route path="/profile" component={ProfileEdit} />
+          <Route path="/about" component={About} />
           {user?.role === 'admin' && (
             <>
               <Route path="/admin" component={AdminDashboard} />
