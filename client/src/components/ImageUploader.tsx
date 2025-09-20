@@ -1,23 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { Upload, Image, Trash2, Copy, Check, X, ImageIcon } from 'lucide-react';
-
-interface UploadedFile {
-  filename: string;
-  url: string;
-  size: number;
-  created: string;
-  modified: string;
-}
+import { Upload } from 'lucide-react';
 
 interface ImageUploaderProps {
   value?: string;
@@ -37,20 +26,11 @@ export default function ImageUploader({
   className = ''
 }: ImageUploaderProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
-
-  // Get uploaded files
-  const { data: uploadedFiles = [], isLoading: filesLoading } = useQuery<UploadedFile[]>({
-    queryKey: ['/api/uploads'],
-    enabled: isGalleryOpen
-  });
 
   // Upload mutation
   const uploadMutation = useMutation({
@@ -97,7 +77,6 @@ export default function ImageUploader({
       
       setUploadProgress(0);
       setPreviewUrl(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/uploads'] });
     },
     onError: (error: any) => {
       toast({
@@ -110,24 +89,6 @@ export default function ImageUploader({
     }
   });
 
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: (filename: string) => apiRequest(`/api/uploads/${filename}`, 'DELETE'),
-    onSuccess: () => {
-      toast({
-        title: "تم حذف الصورة",
-        description: "تم حذف الصورة بنجاح",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/uploads'] });
-    },
-    onError: () => {
-      toast({
-        title: "فشل في حذف الصورة",
-        description: "حدث خطأ أثناء حذف الصورة",
-        variant: "destructive",
-      });
-    }
-  });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -188,153 +149,21 @@ export default function ImageUploader({
     }
   };
 
-  const copyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedUrl(url);
-      setTimeout(() => setCopiedUrl(null), 2000);
-      toast({
-        title: "تم نسخ الرابط",
-        description: "تم نسخ رابط الصورة إلى الحافظة",
-      });
-    } catch (error) {
-      toast({
-        title: "فشل في النسخ",
-        description: "حدث خطأ أثناء نسخ الرابط",
-        variant: "destructive",
-      });
-    }
-  };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 بايت';
-    const k = 1024;
-    const sizes = ['بايت', 'كيلوبايت', 'ميجابايت', 'جيجابايت'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   return (
     <div className={`space-y-4 ${className}`}>
       {/* URL Input Field */}
       <div>
         <Label htmlFor="image-url">رابط الصورة</Label>
-        <div className="flex gap-2 mt-1">
-          <Input
-            id="image-url"
-            value={value}
-            onChange={(e) => onChange?.(e.target.value)}
-            placeholder="رابط الصورة أو اختر من المعرض"
-            data-testid="image-url-input"
-          />
-          <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline" size="sm" data-testid="open-gallery">
-                <ImageIcon className="w-4 h-4" />
-                <span className="sr-only">فتح معرض الصور</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-              <DialogHeader>
-                <DialogTitle>معرض الصور</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-4 overflow-y-auto max-h-[60vh]">
-                {filesLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                      <p className="text-muted-foreground">جاري تحميل الصور...</p>
-                    </div>
-                  </div>
-                ) : uploadedFiles.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">لا توجد صور محفوظة</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {uploadedFiles.map((file: UploadedFile) => (
-                      <Card key={file.filename} className="overflow-hidden">
-                        <div className="aspect-square relative">
-                          <img
-                            src={file.url}
-                            alt={file.filename}
-                            className="w-full h-full object-cover"
-                            data-testid={`gallery-image-${file.filename}`}
-                          />
-                          <div className="absolute top-2 right-2 flex gap-1">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              className="w-8 h-8 p-0"
-                              onClick={() => {
-                                onChange?.(file.url);
-                                setIsGalleryOpen(false);
-                              }}
-                              data-testid={`select-image-${file.filename}`}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              className="w-8 h-8 p-0"
-                              onClick={() => copyToClipboard(file.url)}
-                              data-testid={`copy-url-${file.filename}`}
-                            >
-                              {copiedUrl === file.url ? (
-                                <Check className="w-4 h-4 text-green-600" />
-                              ) : (
-                                <Copy className="w-4 h-4" />
-                              )}
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="destructive"
-                              className="w-8 h-8 p-0"
-                              onClick={() => deleteMutation.mutate(file.filename)}
-                              disabled={deleteMutation.isPending}
-                              data-testid={`delete-image-${file.filename}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <CardContent className="p-2">
-                          <p className="text-xs text-muted-foreground truncate" title={file.filename}>
-                            {file.filename}
-                          </p>
-                          <div className="flex justify-between items-center mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {formatFileSize(file.size)}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(file.created)}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Input
+          id="image-url"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder="أدخل رابط الصورة"
+          data-testid="image-url-input"
+          className="mt-1"
+        />
       </div>
 
       {/* Upload Area */}

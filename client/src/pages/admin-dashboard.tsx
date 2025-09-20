@@ -968,17 +968,17 @@ export default function AdminDashboard() {
                         إضافة عضو جديد
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[85vh] overflow-hidden p-0">
-                      <DialogHeader className="px-6 pt-6">
+                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-hidden p-0">
+                      <DialogHeader className="px-6 pt-6 pb-2">
                         <DialogTitle>
                           {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
                         </DialogTitle>
                       </DialogHeader>
                       
                       <div className="px-6 pb-4">
-                        <ScrollArea className="max-h-[60vh] pr-1">
-                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-4">
-                            <div>
+                        <ScrollArea className="max-h-[65vh] pr-2">
+                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-4">
+                            <div className="space-y-2">
                               <Label htmlFor="name">اسم العضو</Label>
                               <Input
                                 id="name"
@@ -989,7 +989,7 @@ export default function AdminDashboard() {
                               />
                             </div>
                             
-                            <div>
+                            <div className="space-y-2">
                               <Label htmlFor="role">المنصب</Label>
                               <Input
                                 id="role"
@@ -1000,17 +1000,19 @@ export default function AdminDashboard() {
                               />
                             </div>
                             
-                            <div>
+                            <div className="space-y-2">
                               <Label htmlFor="description">الوصف</Label>
                               <Textarea
                                 id="description"
                                 name="description"
                                 defaultValue={editingTeamMember?.description || ""}
                                 data-testid="input-team-member-description"
+                                rows={3}
                               />
                             </div>
                             
-                            <div>
+                            <div className="space-y-2">
+                              <Label>صورة العضو</Label>
                               <ImageUploader
                                 value={teamMemberImageUrl}
                                 onChange={setTeamMemberImageUrl}
@@ -1019,7 +1021,7 @@ export default function AdminDashboard() {
                               />
                             </div>
                             
-                            <div>
+                            <div className="space-y-2">
                               <Label htmlFor="orderIndex">ترتيب العرض</Label>
                               <Input
                                 id="orderIndex"
@@ -1032,7 +1034,7 @@ export default function AdminDashboard() {
                           </form>
                         </ScrollArea>
                         
-                        <div className="sticky bottom-0 bg-background pt-4 border-t flex gap-4 justify-end">
+                        <div className="sticky bottom-0 bg-background pt-6 border-t mt-2 flex gap-4 justify-end">
                           <Button 
                             type="button" 
                             variant="outline" 
