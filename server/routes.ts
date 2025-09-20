@@ -11,10 +11,163 @@ import type { SessionData } from "express-session";
 import { db } from "./db";
 import { sessions } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
+import { nanoid } from "nanoid";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Configure multer for file uploads
+  const storage_multer = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'attached_assets/');
+    },
+    filename: (req, file, cb) => {
+      // Sanitize filename and add timestamp for uniqueness
+      const ext = path.extname(file.originalname);
+      const name = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9\u0600-\u06FF\u0750-\u077F_-]/g, '_');
+      const uniqueId = nanoid(8);
+      const timestamp = Date.now();
+      cb(null, `${name}_${timestamp}_${uniqueId}${ext}`);
+    }
+  });
+
+  // File filter for security
+  const fileFilter = (req: any, file: any, cb: any) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    
+    const extension = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(file.mimetype) && allowedExtensions.includes(extension)) {
+      cb(null, true);
+    } else {
+      cb(new Error('نوع الملف غير مدعوم. يرجى رفع صور بصيغة JPG, PNG, WEBP أو GIF فقط.'), false);
+    }
+  };
+
+  const upload = multer({
+    storage: storage_multer,
+    fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+      files: 1 // Single file upload
+    }
+  });
+
+  // Upload endpoint
+  app.post('/api/uploads', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "لم يتم رفع أي ملف" });
+      }
+
+      const fileUrl = `/assets/${req.file.filename}`;
+      
+      res.json({
+        message: "تم رفع الصورة بنجاح",
+        url: fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "فشل في رفع الصورة" });
+    }
+  });
+
+  // List uploaded files endpoint
+  app.get('/api/uploads', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const files = await fs.readdir('attached_assets/');
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+      
+      const imageFiles = files.filter(file => {
+        const ext = path.extname(file).toLowerCase();
+        return allowedExtensions.includes(ext);
+      });
+
+      const filesWithInfo = await Promise.all(
+        imageFiles.map(async (filename) => {
+          try {
+            const stats = await fs.stat(path.join('attached_assets/', filename));
+            return {
+              filename,
+              url: `/assets/${filename}`,
+              size: stats.size,
+              created: stats.birthtime,
+              modified: stats.mtime
+            };
+          } catch (error) {
+            console.error(`Error getting stats for ${filename}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out null entries and sort by creation date (newest first)
+      const validFiles = filesWithInfo
+        .filter(file => file !== null)
+        .sort((a, b) => b!.created.getTime() - a!.created.getTime());
+
+      res.json(validFiles);
+    } catch (error) {
+      console.error("Error listing files:", error);
+      res.status(500).json({ message: "فشل في جلب قائمة الصور" });
+    }
+  });
+
+  // Delete file endpoint
+  app.delete('/api/uploads/:filename', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const filename = req.params.filename;
+      
+      // Security check: ensure filename doesn't contain path traversal
+      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ message: "اسم ملف غير صحيح" });
+      }
+
+      // Check if file exists and is an image
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+      const ext = path.extname(filename).toLowerCase();
+      
+      if (!allowedExtensions.includes(ext)) {
+        return res.status(400).json({ message: "نوع الملف غير مدعوم للحذف" });
+      }
+
+      const filePath = path.join('attached_assets/', filename);
+      
+      try {
+        await fs.access(filePath);
+        await fs.unlink(filePath);
+        res.json({ message: "تم حذف الصورة بنجاح" });
+      } catch (error) {
+        res.status(404).json({ message: "الملف غير موجود" });
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "فشل في حذف الصورة" });
+    }
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

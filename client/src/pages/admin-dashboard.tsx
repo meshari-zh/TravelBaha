@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, Key, Copy } from "lucide-react";
+import ImageUploader from "@/components/ImageUploader";
 import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -30,6 +31,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>("places");
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
+  const [placeImageUrl, setPlaceImageUrl] = useState<string>("");
+  const [teamMemberImageUrl, setTeamMemberImageUrl] = useState<string>("");
 
   // Handle URL parameters for direct tab access
   useEffect(() => {
@@ -39,6 +42,23 @@ export default function AdminDashboard() {
       setActiveTab(tab);
     }
   }, []);
+
+  // Update image URLs when editing items
+  useEffect(() => {
+    if (editingPlace) {
+      setPlaceImageUrl(editingPlace.imageUrl || "");
+    } else {
+      setPlaceImageUrl("");
+    }
+  }, [editingPlace]);
+
+  useEffect(() => {
+    if (editingTeamMember) {
+      setTeamMemberImageUrl(editingTeamMember.imageUrl || "");
+    } else {
+      setTeamMemberImageUrl("");
+    }
+  }, [editingTeamMember]);
 
   // Redirect non-admin users
   if (user?.role !== 'admin') {
@@ -474,7 +494,7 @@ export default function AdminDashboard() {
     const data: InsertPlace = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      imageUrl: formData.get("imageUrl") as string,
+      imageUrl: placeImageUrl,
       location: formData.get("location") as string,
       category: formData.get("category") as string,
     };
@@ -511,7 +531,7 @@ export default function AdminDashboard() {
       name: formData.get("name") as string,
       role: formData.get("role") as string,
       description: formData.get("description") as string,
-      imageUrl: formData.get("imageUrl") as string,
+      imageUrl: teamMemberImageUrl,
       orderIndex: parseInt(formData.get("orderIndex") as string) || 0,
       isActive: true,
     };
@@ -655,13 +675,11 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="imageUrl">رابط الصورة</Label>
-                          <Input
-                            id="imageUrl"
-                            name="imageUrl"
-                            type="url"
-                            defaultValue={editingPlace?.imageUrl || ""}
-                            data-testid="input-place-image"
+                          <ImageUploader
+                            value={placeImageUrl}
+                            onChange={setPlaceImageUrl}
+                            preview={true}
+                            className="w-full"
                           />
                         </div>
                         
@@ -990,13 +1008,11 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="imageUrl">رابط الصورة</Label>
-                          <Input
-                            id="imageUrl"
-                            name="imageUrl"
-                            type="url"
-                            defaultValue={editingTeamMember?.imageUrl || ""}
-                            data-testid="input-team-member-image"
+                          <ImageUploader
+                            value={teamMemberImageUrl}
+                            onChange={setTeamMemberImageUrl}
+                            preview={true}
+                            className="w-full"
                           />
                         </div>
                         
