@@ -41,6 +41,7 @@ function Router() {
           <Route path="/places" component={Places} />
           <Route path="/places/:id" component={PlaceDetails} />
           <Route path="/about" component={About} />
+          <Route path="/profile" component={ProfileEdit} />
           <Route path="/login">
             {() => {
               window.location.href = '/api/login';

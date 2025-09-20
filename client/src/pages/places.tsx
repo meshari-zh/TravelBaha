@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import ImageUploader from "@/components/ImageUploader";
 import type { Place, InsertPlace } from "@shared/schema";
 
 export default function Places() {
@@ -23,6 +24,7 @@ export default function Places() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [placeImageUrl, setPlaceImageUrl] = useState("");
 
   const { data: places = [], isLoading } = useQuery<Place[]>({
     queryKey: ["/api/places"],
@@ -130,6 +132,15 @@ export default function Places() {
     place.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Update image URL when editing place
+  useEffect(() => {
+    if (editingPlace) {
+      setPlaceImageUrl(editingPlace.imageUrl || "");
+    } else {
+      setPlaceImageUrl("");
+    }
+  }, [editingPlace]);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -137,7 +148,7 @@ export default function Places() {
     const data: InsertPlace = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      imageUrl: formData.get("imageUrl") as string,
+      imageUrl: placeImageUrl,
       location: formData.get("location") as string,
       category: formData.get("category") as string,
     };
@@ -214,13 +225,12 @@ export default function Places() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="imageUrl">رابط الصورة</Label>
-                    <Input
-                      id="imageUrl"
-                      name="imageUrl"
-                      type="url"
-                      defaultValue={editingPlace?.imageUrl || ""}
-                      data-testid="input-place-image"
+                    <Label>صورة المكان</Label>
+                    <ImageUploader
+                      value={placeImageUrl}
+                      onChange={setPlaceImageUrl}
+                      preview={true}
+                      className="w-full mt-2"
                     />
                   </div>
                   

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
@@ -15,19 +15,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { User, Settings, Save, ArrowLeft } from "lucide-react";
+import ImageUploader from "@/components/ImageUploader";
 
 const profileSchema = z.object({
   firstName: z.string().min(1, "الاسم الأول مطلوب").max(50, "الاسم الأول طويل جداً"),
   lastName: z.string().min(1, "اسم العائلة مطلوب").max(50, "اسم العائلة طويل جداً"),
-  profileImageUrl: z.string().url("يرجى إدخال رابط صحيح للصورة").optional().or(z.literal("")),
+  profileImageUrl: z.string().optional(),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function ProfileEdit() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -39,15 +41,16 @@ export default function ProfileEdit() {
   });
 
   // Update form when user data loads
-  useState(() => {
+  useEffect(() => {
     if (user) {
       form.reset({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         profileImageUrl: user.profileImageUrl || "",
       });
+      setProfileImageUrl(user.profileImageUrl || "");
     }
-  });
+  }, [user, form]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
@@ -79,7 +82,11 @@ export default function ProfileEdit() {
   });
 
   const onSubmit = (data: ProfileForm) => {
-    updateProfileMutation.mutate(data);
+    const updatedData = {
+      ...data,
+      profileImageUrl,
+    };
+    updateProfileMutation.mutate(updatedData);
   };
 
   if (isLoading) {
@@ -96,7 +103,7 @@ export default function ProfileEdit() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -137,8 +144,8 @@ export default function ProfileEdit() {
                   <div className="flex justify-center mb-6">
                     <Avatar className="w-20 h-20">
                       <AvatarImage 
-                        src={form.watch("profileImageUrl") || user.profileImageUrl || undefined} 
-                        alt={`${user.firstName} ${user.lastName}`} 
+                        src={profileImageUrl || user?.profileImageUrl || undefined} 
+                        alt={`${user?.firstName} ${user?.lastName}`} 
                       />
                       <AvatarFallback className="text-lg">
                         <User className="w-8 h-8" />
@@ -182,23 +189,15 @@ export default function ProfileEdit() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="profileImageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>رابط الصورة الشخصية (اختياري)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://example.com/image.jpg" 
-                            {...field}
-                            data-testid="input-profile-image"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <FormLabel>الصورة الشخصية (اختياري)</FormLabel>
+                    <ImageUploader
+                      value={profileImageUrl}
+                      onChange={setProfileImageUrl}
+                      preview={true}
+                      className="w-full mt-2"
+                    />
+                  </div>
 
                   <div className="space-y-4">
                     <Button 
@@ -239,8 +238,8 @@ export default function ProfileEdit() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p><strong>ملاحظات:</strong></p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>يمكنك ترك حقل الصورة فارغاً لاستخدام الصورة الافتراضية</li>
-                    <li>تأكد من أن رابط الصورة صحيح ويعمل</li>
+                    <li>يمكنك رفع صورة شخصية جديدة أو ترك الحقل فارغاً لاستخدام الصورة الافتراضية</li>
+                    <li>يمكنك سحب الصورة وإفلاتها أو النقر لاختيارها من جهازك</li>
                     <li>سيتم حفظ التغييرات فوراً بعد الضغط على زر الحفظ</li>
                   </ul>
                 </div>
