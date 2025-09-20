@@ -266,6 +266,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Development/Testing - Create admin user endpoint (only for development)
+  if (process.env.NODE_ENV === 'development') {
+    app.post('/api/dev/create-admin', async (req: any, res) => {
+      try {
+        const { id, email, firstName, lastName } = req.body;
+        
+        // Only allow specific test user IDs for security
+        const allowedTestAdmins = ['admin123', 'newadmin456', 'testadmin789'];
+        if (!allowedTestAdmins.includes(id)) {
+          return res.status(400).json({ message: "Invalid admin ID for testing" });
+        }
+
+        await storage.upsertUser({
+          id,
+          email: email || `${id}@test.com`,
+          firstName: firstName || 'Test',
+          lastName: lastName || 'Admin',
+          role: 'admin',
+        });
+
+        res.json({ message: "Test admin user created successfully" });
+      } catch (error) {
+        console.error("Error creating test admin:", error);
+        res.status(500).json({ message: "Failed to create test admin" });
+      }
+    });
+  }
+
   // Seed tourist attractions endpoint
   app.post('/api/places/seed', isAuthenticated, async (req: any, res) => {
     try {

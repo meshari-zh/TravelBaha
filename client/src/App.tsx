@@ -61,18 +61,14 @@ function Router() {
           <Route path="/invite" component={InviteRedemption} />
           <Route path="/profile" component={ProfileEdit} />
           <Route path="/about" component={About} />
-          {user?.role === 'admin' && (
-            <>
-              <Route path="/admin" component={AdminDashboard} />
-              <Route path="/admin-dashboard" component={AdminDashboard} />
-              <Route path="/admin/invites">
-                {() => {
-                  window.location.href = '/admin?tab=invites';
-                  return null;
-                }}
-              </Route>
-            </>
-          )}
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin-dashboard" component={AdminDashboard} />
+          <Route path="/admin/invites">
+            {() => {
+              window.location.href = '/admin?tab=invites';
+              return null;
+            }}
+          </Route>
           {user?.role === 'guide' && (
             <Route path="/dashboard" component={GuideDashboard} />
           )}

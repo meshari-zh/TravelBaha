@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -566,7 +567,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Statistics */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4 mb-8">
           <Card>
             <CardContent className="p-6 text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -610,13 +611,13 @@ export default function AdminDashboard() {
 
         {/* Management Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="places" data-testid="tab-places">الأماكن السياحية</TabsTrigger>
-            <TabsTrigger value="guides" data-testid="tab-guides">المرشدين السياحيين</TabsTrigger>
-            <TabsTrigger value="bookings" data-testid="tab-bookings">الحجوزات</TabsTrigger>
-            <TabsTrigger value="users" data-testid="tab-users">إدارة المستخدمين</TabsTrigger>
-            <TabsTrigger value="team" data-testid="tab-team">فريق العمل</TabsTrigger>
-            <TabsTrigger value="invites" data-testid="tab-invites">رموز الدعوة</TabsTrigger>
+          <TabsList className="w-full overflow-x-auto -mx-4 px-4">
+            <TabsTrigger value="places" data-testid="tab-places" className="shrink-0 whitespace-nowrap">الأماكن السياحية</TabsTrigger>
+            <TabsTrigger value="guides" data-testid="tab-guides" className="shrink-0 whitespace-nowrap">المرشدين السياحيين</TabsTrigger>
+            <TabsTrigger value="bookings" data-testid="tab-bookings" className="shrink-0 whitespace-nowrap">الحجوزات</TabsTrigger>
+            <TabsTrigger value="users" data-testid="tab-users" className="shrink-0 whitespace-nowrap">إدارة المستخدمين</TabsTrigger>
+            <TabsTrigger value="team" data-testid="tab-team" className="shrink-0 whitespace-nowrap">فريق العمل</TabsTrigger>
+            <TabsTrigger value="invites" data-testid="tab-invites" className="shrink-0 whitespace-nowrap">رموز الدعوة</TabsTrigger>
           </TabsList>
 
           {/* Places Management */}
@@ -967,77 +968,71 @@ export default function AdminDashboard() {
                         إضافة عضو جديد
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
+                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[85vh] overflow-hidden p-0">
+                      <DialogHeader className="px-6 pt-6">
                         <DialogTitle>
                           {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
                         </DialogTitle>
                       </DialogHeader>
                       
-                      <form onSubmit={handleSubmitTeamMember} className="space-y-4">
-                        <div>
-                          <Label htmlFor="name">اسم العضو</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            defaultValue={editingTeamMember?.name || ""}
-                            required
-                            data-testid="input-team-member-name"
-                          />
-                        </div>
+                      <div className="px-6 pb-4">
+                        <ScrollArea className="max-h-[60vh] pr-1">
+                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-4">
+                            <div>
+                              <Label htmlFor="name">اسم العضو</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                defaultValue={editingTeamMember?.name || ""}
+                                required
+                                data-testid="input-team-member-name"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="role">المنصب</Label>
+                              <Input
+                                id="role"
+                                name="role"
+                                defaultValue={editingTeamMember?.role || ""}
+                                required
+                                data-testid="input-team-member-role"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="description">الوصف</Label>
+                              <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={editingTeamMember?.description || ""}
+                                data-testid="input-team-member-description"
+                              />
+                            </div>
+                            
+                            <div>
+                              <ImageUploader
+                                value={teamMemberImageUrl}
+                                onChange={setTeamMemberImageUrl}
+                                preview={true}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="orderIndex">ترتيب العرض</Label>
+                              <Input
+                                id="orderIndex"
+                                name="orderIndex"
+                                type="number"
+                                defaultValue={editingTeamMember?.orderIndex || 0}
+                                data-testid="input-team-member-order"
+                              />
+                            </div>
+                          </form>
+                        </ScrollArea>
                         
-                        <div>
-                          <Label htmlFor="role">المنصب</Label>
-                          <Input
-                            id="role"
-                            name="role"
-                            defaultValue={editingTeamMember?.role || ""}
-                            required
-                            data-testid="input-team-member-role"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="description">الوصف</Label>
-                          <Textarea
-                            id="description"
-                            name="description"
-                            defaultValue={editingTeamMember?.description || ""}
-                            data-testid="input-team-member-description"
-                          />
-                        </div>
-                        
-                        <div>
-                          <ImageUploader
-                            value={teamMemberImageUrl}
-                            onChange={setTeamMemberImageUrl}
-                            preview={true}
-                            className="w-full"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="orderIndex">ترتيب العرض</Label>
-                          <Input
-                            id="orderIndex"
-                            name="orderIndex"
-                            type="number"
-                            defaultValue={editingTeamMember?.orderIndex || 0}
-                            data-testid="input-team-member-order"
-                          />
-                        </div>
-                        
-                        <div className="flex gap-4">
-                          <Button 
-                            type="submit" 
-                            disabled={createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending}
-                            data-testid="button-save-team-member"
-                          >
-                            {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
-                              ? 'جاري الحفظ...' 
-                              : editingTeamMember ? 'تحديث' : 'إضافة'
-                            }
-                          </Button>
+                        <div className="sticky bottom-0 bg-background pt-4 border-t flex gap-4 justify-end">
                           <Button 
                             type="button" 
                             variant="outline" 
@@ -1046,8 +1041,19 @@ export default function AdminDashboard() {
                           >
                             إلغاء
                           </Button>
+                          <Button 
+                            type="submit" 
+                            form="team-member-form"
+                            disabled={createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending}
+                            data-testid="button-save-team-member"
+                          >
+                            {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
+                              ? 'جاري الحفظ...' 
+                              : editingTeamMember ? 'تحديث' : 'إضافة'
+                            }
+                          </Button>
                         </div>
-                      </form>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
