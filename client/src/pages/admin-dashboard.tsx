@@ -971,16 +971,16 @@ export default function AdminDashboard() {
                         إضافة عضو جديد
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-hidden p-0">
-                      <DialogHeader className="px-6 pt-6 pb-2">
+                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[95vh] overflow-hidden p-0 flex flex-col">
+                      <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                         <DialogTitle>
                           {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
                         </DialogTitle>
                       </DialogHeader>
                       
-                      <div className="px-6 pb-4">
-                        <ScrollArea className="max-h-[65vh] pr-2">
-                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-4">
+                      <div className="flex-1 overflow-hidden px-6 pb-4">
+                        <ScrollArea className="h-full pr-2">
+                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-6">
                             <div className="space-y-2">
                               <Label htmlFor="name">اسم العضو</Label>
                               <Input
@@ -1036,28 +1036,28 @@ export default function AdminDashboard() {
                             </div>
                           </form>
                         </ScrollArea>
+                      </div>
                         
-                        <div className="sticky bottom-0 bg-background pt-6 border-t mt-2 flex gap-4 justify-end">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={() => setIsTeamDialogOpen(false)}
-                            data-testid="button-cancel-team-member"
-                          >
-                            إلغاء
-                          </Button>
-                          <Button 
-                            type="submit" 
-                            form="team-member-form"
-                            disabled={createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending}
-                            data-testid="button-save-team-member"
-                          >
-                            {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
-                              ? 'جاري الحفظ...' 
-                              : editingTeamMember ? 'تحديث' : 'إضافة'
-                            }
-                          </Button>
-                        </div>
+                      <div className="shrink-0 bg-background px-6 py-4 border-t flex gap-4 justify-end">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsTeamDialogOpen(false)}
+                          data-testid="button-cancel-team-member"
+                        >
+                          إلغاء
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          form="team-member-form"
+                          disabled={createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending}
+                          data-testid="button-save-team-member"
+                        >
+                          {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
+                            ? 'جاري الحفظ...' 
+                            : editingTeamMember ? 'تحديث' : 'إضافة'
+                          }
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
