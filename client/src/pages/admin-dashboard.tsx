@@ -537,6 +537,9 @@ export default function AdminDashboard() {
       isActive: true,
     };
 
+    console.log("Team member data being submitted:", data);
+    console.log("teamMemberImageUrl state:", teamMemberImageUrl);
+
     if (editingTeamMember) {
       updateTeamMemberMutation.mutate({ id: editingTeamMember.id, data });
     } else {

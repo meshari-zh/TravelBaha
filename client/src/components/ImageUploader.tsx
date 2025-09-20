@@ -159,7 +159,10 @@ export default function ImageUploader({
         <Input
           id="image-url"
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={(e) => {
+            console.log("ImageUploader onChange called with:", e.target.value);
+            onChange?.(e.target.value);
+          }}
           placeholder="أدخل رابط الصورة"
           data-testid="image-url-input"
           className="mt-1"
