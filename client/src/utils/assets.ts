@@ -82,9 +82,16 @@ export function resolveAssetUrl(assetPath: string | null | undefined): string {
     return assetPath;
   }
   
-  // Resolve @assets paths to imported URLs
+  // Resolve @assets paths to server static route
   if (assetPath.startsWith('@assets/')) {
-    return assetMap[assetPath] || defaultPlaceImage;
+    // Convert @assets/filename.jpg to /assets/filename.jpg
+    const filename = assetPath.replace('@assets/', '');
+    return `/assets/${filename}`;
+  }
+  
+  // Support legacy /images paths by ensuring they're preserved
+  if (assetPath.startsWith('/images/')) {
+    return assetPath;
   }
   
   // For any other paths, return as-is (relative paths, etc.)

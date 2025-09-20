@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
 
 const app = express();
 // Disable ETags to prevent 304 responses that break React Query fetcher
@@ -8,6 +9,19 @@ app.set('etag', false);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve static assets from attached_assets directory
+app.use('/assets', express.static(path.resolve(process.cwd(), 'attached_assets')));
+// Also serve images from /images path for backward compatibility
+app.use('/images', express.static(path.resolve(process.cwd(), 'attached_assets')));
+
+// Add logging for static file requests
+app.use((req, res, next) => {
+  if (req.path.startsWith('/assets/') || req.path.startsWith('/images/')) {
+    console.log(`Static file request: ${req.method} ${req.path}`);
+  }
+  next();
+});
 
 // Disable caching for API routes to ensure fresh data
 app.use('/api', (req, res, next) => {
