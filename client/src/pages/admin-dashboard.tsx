@@ -971,16 +971,15 @@ export default function AdminDashboard() {
                         إضافة عضو جديد
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg w-[95vw] max-h-[95vh] overflow-hidden p-0 flex flex-col">
+                    <DialogContent className="sm:max-w-lg w-[95vw] h-[95vh] p-0 flex flex-col">
                       <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                         <DialogTitle>
                           {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
                         </DialogTitle>
                       </DialogHeader>
                       
-                      <div className="flex-1 overflow-hidden px-6 pb-4">
-                        <ScrollArea className="h-full pr-2">
-                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-6">
+                      <div className="flex-1 overflow-y-auto px-6 pb-4" style={{minHeight: 0}}>
+                          <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-24">
                             <div className="space-y-2">
                               <Label htmlFor="name">اسم العضو</Label>
                               <Input
@@ -1035,7 +1034,6 @@ export default function AdminDashboard() {
                               />
                             </div>
                           </form>
-                        </ScrollArea>
                       </div>
                         
                       <div className="shrink-0 bg-background px-6 py-4 border-t flex gap-4 justify-end">
