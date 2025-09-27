@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,6 +21,7 @@ import type { Place, InsertPlace } from "@shared/schema";
 
 export default function Places() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,15 +41,15 @@ export default function Places() {
       setIsDialogOpen(false);
       setEditingPlace(null);
       toast({
-        title: "تم إنشاء المكان بنجاح",
-        description: "تم إضافة المكان السياحي الجديد",
+        title: language === 'ar' ? "تم إنشاء المكان بنجاح" : "Place created successfully",
+        description: language === 'ar' ? "تم إضافة المكان السياحي الجديد" : "New tourist place has been added",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -56,8 +58,8 @@ export default function Places() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إنشاء المكان",
+        title: t('error'),
+        description: language === 'ar' ? "فشل في إنشاء المكان" : "Failed to create place",
         variant: "destructive",
       });
     },
@@ -79,8 +81,8 @@ export default function Places() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -110,8 +112,8 @@ export default function Places() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -166,7 +168,7 @@ export default function Places() {
   };
 
   const handleDelete = (place: Place) => {
-    if (confirm(`هل أنت متأكد من حذف "${place.name}"؟`)) {
+    if (confirm(language === 'ar' ? `هل أنت متأكد من حذف "${place.name}"؟` : `Are you sure you want to delete "${place.name}"?`)) {
       deletePlaceMutation.mutate(place.id);
     }
   };
@@ -179,8 +181,8 @@ export default function Places() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">الأماكن السياحية</h1>
-            <p className="text-muted-foreground">اكتشف أجمل الوجهات السياحية في منطقة الباحة</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{t('placesTitle')}</h1>
+            <p className="text-muted-foreground">{t('placesSubtitle')}</p>
           </div>
           
           {user?.role === 'admin' && (
@@ -191,19 +193,22 @@ export default function Places() {
                   data-testid="button-add-place"
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  إضافة مكان جديد
+                  {language === 'ar' ? 'إضافة مكان جديد' : 'Add New Place'}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingPlace ? 'تعديل المكان السياحي' : 'إضافة مكان سياحي جديد'}
+                    {editingPlace ? 
+                      (language === 'ar' ? 'تعديل المكان السياحي' : 'Edit Tourist Place') : 
+                      (language === 'ar' ? 'إضافة مكان سياحي جديد' : 'Add New Tourist Place')
+                    }
                   </DialogTitle>
                 </DialogHeader>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="name">اسم المكان</Label>
+                    <Label htmlFor="name">{t('name')}</Label>
                     <Input
                       id="name"
                       name="name"
@@ -214,7 +219,7 @@ export default function Places() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="description">الوصف</Label>
+                    <Label htmlFor="description">{t('description')}</Label>
                     <Textarea
                       id="description"
                       name="description"
@@ -225,7 +230,7 @@ export default function Places() {
                   </div>
                   
                   <div>
-                    <Label>صورة المكان</Label>
+                    <Label>{language === 'ar' ? 'صورة المكان' : 'Place Image'}</Label>
                     <ImageUploader
                       value={placeImageUrl}
                       onChange={setPlaceImageUrl}
@@ -235,7 +240,7 @@ export default function Places() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="location">الموقع</Label>
+                    <Label htmlFor="location">{t('location')}</Label>
                     <Input
                       id="location"
                       name="location"
@@ -245,7 +250,7 @@ export default function Places() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="category">الفئة</Label>
+                    <Label htmlFor="category">{t('category')}</Label>
                     <Input
                       id="category"
                       name="category"
