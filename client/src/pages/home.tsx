@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Place, Guide, Booking } from "@shared/schema";
-import heroVideo from "@assets/واجهت الموقع_1757794048716.mp4";
+import newHeroVideo from "@assets/فديو جديد 2_1759000332280.mp4";
 import videoPoster from "@assets/رغدان_1757793151105.jpg";
 
 export default function Home() {
@@ -200,27 +200,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Video Section */}
-      <section className="py-12 bg-card">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-4">{t('welcomeTitle')}</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {language === 'ar' ? 'تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة' : 'Enjoy watching the most beautiful natural landscapes and tourist attractions in Al Bahah region'}
-            </p>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
-              <video 
-                controls 
-                className="w-full h-full object-cover"
-                poster={videoPoster}
-                data-testid="hero-video"
-              >
-                <source src={heroVideo} type="video/mp4" />
-                {language === 'ar' ? 'متصفحك لا يدعم تشغيل الفيديو' : 'Your browser does not support video playback'}
-              </video>
-            </div>
+      {/* Hero Video Section */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Video */}
+        <div className="absolute inset-0">
+          <video 
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+            data-testid="hero-background-video"
+          >
+            <source src={newHeroVideo} type="video/mp4" />
+          </video>
+          {/* Video Overlay */}
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+        
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
+            {language === 'ar' ? 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين' : 'Discover the beauty of Al Bahah with the best tour guides'}
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-8 drop-shadow-lg">
+            {language === 'ar' ? 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة' : 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in Al Bahah region'}
+          </p>
+          
+          {/* Call to Action Buttons */}
+          <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+            <Link href="/places">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 min-w-[200px]" data-testid="button-explore-places-hero">
+                {language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}
+              </Button>
+            </Link>
+            <Link href="/guides">
+              <Button size="lg" variant="outline" className="bg-white/20 hover:bg-white/30 text-white border-white hover:border-white shadow-lg hover:shadow-xl transition-all duration-300 min-w-[200px]" data-testid="button-find-guides-hero">
+                {language === 'ar' ? 'اختر مرشدك' : 'Find Your Guide'}
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
