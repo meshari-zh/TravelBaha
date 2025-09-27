@@ -197,7 +197,7 @@ export default function Places() {
                   {language === 'ar' ? 'إضافة مكان جديد' : 'Add New Place'}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[85vh]">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold mb-2">
                     {editingPlace ? 
@@ -207,8 +207,9 @@ export default function Places() {
                   </DialogTitle>
                 </DialogHeader>
                 
-                <ScrollArea className="h-full max-h-[calc(85vh-120px)]">
-                  <form onSubmit={handleSubmit} className="space-y-6 p-1">
+                <div className="flex flex-col h-[calc(90vh-80px)]">
+                  <ScrollArea className="flex-1 pr-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                     {/* القسم الأساسي */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold border-b pb-2">
@@ -308,8 +309,9 @@ export default function Places() {
                         {t('cancel')}
                       </Button>
                     </div>
-                  </form>
-                </ScrollArea>
+                    </form>
+                  </ScrollArea>
+                </div>
               </DialogContent>
             </Dialog>
           )}
