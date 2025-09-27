@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
@@ -13,6 +14,7 @@ import videoPoster from "@assets/رغدان_1757793151105.jpg";
 
 export default function Home() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   
   const { data: places = [] } = useQuery<Place[]>({
     queryKey: ["/api/places"],
@@ -39,12 +41,12 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              أهلاً وسهلاً {user?.firstName || "بك"}!
+              {language === 'ar' ? `أهلاً وسهلاً ${user?.firstName || "بك"}!` : `Welcome ${user?.firstName || ""}!`}
             </h1>
             <p className="text-lg text-muted-foreground">
-              {user?.role === 'tourist' && "اكتشف جمال الباحة مع أفضل المرشدين السياحيين"}
-              {user?.role === 'guide' && "مرحباً بك في لوحة التحكم الخاصة بك"}
-              {user?.role === 'admin' && "مرحباً بك في لوحة تحكم المشرف"}
+              {user?.role === 'tourist' && (language === 'ar' ? "اكتشف جمال الباحة مع أفضل المرشدين السياحيين" : "Discover the beauty of Al Bahah with the best tour guides")}
+              {user?.role === 'guide' && (language === 'ar' ? "مرحباً بك في لوحة التحكم الخاصة بك" : "Welcome to your control panel")}
+              {user?.role === 'admin' && (language === 'ar' ? "مرحباً بك في لوحة تحكم المشرف" : "Welcome to admin control panel")}
             </p>
           </div>
 
@@ -57,11 +59,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">🗺️</span>
                     </div>
-                    <h3 className="font-semibold mb-2">استكشف الأماكن</h3>
-                    <p className="text-sm text-muted-foreground mb-4">اكتشف أجمل الوجهات السياحية في الباحة</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in Al Bahah'}</p>
                     <Link href="/places">
                       <Button size="sm" className="w-full" data-testid="button-explore-places">
-                        تصفح الأماكن
+                        {language === 'ar' ? 'تصفح الأماكن' : 'Browse Places'}
                       </Button>
                     </Link>
                   </CardContent>
@@ -72,11 +74,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">👨‍🏫</span>
                     </div>
-                    <h3 className="font-semibold mb-2">اختر مرشدك</h3>
-                    <p className="text-sm text-muted-foreground mb-4">تعرف على المرشدين المحليين الخبراء</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'اختر مرشدك' : 'Choose Your Guide'}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'تعرف على المرشدين المحليين الخبراء' : 'Meet expert local guides'}</p>
                     <Link href="/guides">
                       <Button size="sm" variant="secondary" className="w-full" data-testid="button-find-guides">
-                        البحث عن مرشد
+                        {language === 'ar' ? 'البحث عن مرشد' : 'Find a Guide'}
                       </Button>
                     </Link>
                   </CardContent>
@@ -87,11 +89,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">💬</span>
                     </div>
-                    <h3 className="font-semibold mb-2">الرسائل</h3>
-                    <p className="text-sm text-muted-foreground mb-4">تواصل مع المرشدين واحجز رحلتك</p>
+                    <h3 className="font-semibold mb-2">{t('messages')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'تواصل مع المرشدين واحجز رحلتك' : 'Communicate with guides and book your trip'}</p>
                     <Link href="/messages">
                       <Button size="sm" variant="outline" className="w-full" data-testid="button-view-messages">
-                        المحادثات
+                        {language === 'ar' ? 'المحادثات' : 'Conversations'}
                       </Button>
                     </Link>
                   </CardContent>
@@ -106,11 +108,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">👤</span>
                     </div>
-                    <h3 className="font-semibold mb-2">الملف الشخصي</h3>
-                    <p className="text-sm text-muted-foreground mb-4">إدارة معلوماتك وتخصصاتك</p>
+                    <h3 className="font-semibold mb-2">{t('profile')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة معلوماتك وتخصصاتك' : 'Manage your information and specialties'}</p>
                     <Link href="/dashboard">
                       <Button size="sm" className="w-full" data-testid="button-manage-profile">
-                        إدارة الملف
+                        {language === 'ar' ? 'إدارة الملف' : 'Manage Profile'}
                       </Button>
                     </Link>
                   </CardContent>
@@ -121,10 +123,10 @@ export default function Home() {
                     <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">📅</span>
                     </div>
-                    <h3 className="font-semibold mb-2">الحجوزات</h3>
-                    <p className="text-sm text-muted-foreground mb-4">متابعة طلبات الحجز والجولات</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'متابعة طلبات الحجز والجولات' : 'Track booking requests and tours'}</p>
                     <Button size="sm" variant="secondary" className="w-full" data-testid="button-view-bookings">
-                      عرض الحجوزات
+                      {language === 'ar' ? 'عرض الحجوزات' : 'View Bookings'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -134,11 +136,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">💬</span>
                     </div>
-                    <h3 className="font-semibold mb-2">الرسائل</h3>
-                    <p className="text-sm text-muted-foreground mb-4">التواصل مع العملاء</p>
+                    <h3 className="font-semibold mb-2">{t('messages')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'التواصل مع العملاء' : 'Communicate with customers'}</p>
                     <Link href="/messages">
                       <Button size="sm" variant="outline" className="w-full" data-testid="button-guide-messages">
-                        المحادثات
+                        {language === 'ar' ? 'المحادثات' : 'Conversations'}
                       </Button>
                     </Link>
                   </CardContent>
@@ -153,11 +155,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">⚙️</span>
                     </div>
-                    <h3 className="font-semibold mb-2">لوحة التحكم</h3>
-                    <p className="text-sm text-muted-foreground mb-4">إدارة المنصة والمحتوى</p>
+                    <h3 className="font-semibold mb-2">{t('dashboard')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة المنصة والمحتوى' : 'Manage platform and content'}</p>
                     <Link href="/admin">
                       <Button size="sm" className="w-full" data-testid="button-admin-dashboard">
-                        لوحة الإدارة
+                        {t('adminDashboard')}
                       </Button>
                     </Link>
                   </CardContent>
@@ -168,11 +170,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">🗺️</span>
                     </div>
-                    <h3 className="font-semibold mb-2">الأماكن السياحية</h3>
-                    <p className="text-sm text-muted-foreground mb-4">إدارة الوجهات والمعالم</p>
+                    <h3 className="font-semibold mb-2">{t('places')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة الوجهات والمعالم' : 'Manage destinations and landmarks'}</p>
                     <Link href="/places">
                       <Button size="sm" variant="secondary" className="w-full" data-testid="button-manage-places">
-                        إدارة الأماكن
+                        {t('managePlaces')}
                       </Button>
                     </Link>
                   </CardContent>
@@ -183,11 +185,11 @@ export default function Home() {
                     <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">👥</span>
                     </div>
-                    <h3 className="font-semibold mb-2">المرشدين</h3>
-                    <p className="text-sm text-muted-foreground mb-4">إدارة المرشدين السياحيين</p>
+                    <h3 className="font-semibold mb-2">{t('guides')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة المرشدين السياحيين' : 'Manage tour guides'}</p>
                     <Link href="/guides">
                       <Button size="sm" variant="outline" className="w-full" data-testid="button-manage-guides">
-                        إدارة المرشدين
+                        {t('manageGuides')}
                       </Button>
                     </Link>
                   </CardContent>
@@ -202,9 +204,9 @@ export default function Home() {
       <section className="py-12 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-4">اكتشف جمال منطقة الباحة</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('welcomeTitle')}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة
+              {language === 'ar' ? 'تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة' : 'Enjoy watching the most beautiful natural landscapes and tourist attractions in Al Bahah region'}
             </p>
           </div>
           <div className="max-w-4xl mx-auto">
@@ -216,7 +218,7 @@ export default function Home() {
                 data-testid="hero-video"
               >
                 <source src={heroVideo} type="video/mp4" />
-                متصفحك لا يدعم تشغيل الفيديو
+                {language === 'ar' ? 'متصفحك لا يدعم تشغيل الفيديو' : 'Your browser does not support video playback'}
               </video>
             </div>
           </div>
@@ -228,10 +230,10 @@ export default function Home() {
         <section className="py-12 bg-background">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-foreground">أحدث الأماكن السياحية</h2>
+              <h2 className="text-2xl font-bold text-foreground">{language === 'ar' ? 'أحدث الأماكن السياحية' : 'Latest Tourist Places'}</h2>
               <Link href="/places">
                 <Button variant="outline" size="sm" data-testid="button-view-all-places">
-                  عرض الكل
+                  {language === 'ar' ? 'عرض الكل' : 'View All'}
                 </Button>
               </Link>
             </div>
@@ -250,10 +252,10 @@ export default function Home() {
         <section className="py-12 bg-muted">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-foreground">أفضل المرشدين السياحيين</h2>
+              <h2 className="text-2xl font-bold text-foreground">{language === 'ar' ? 'أفضل المرشدين السياحيين' : 'Top Tour Guides'}</h2>
               <Link href="/guides">
                 <Button variant="outline" size="sm" data-testid="button-view-all-guides">
-                  عرض الكل
+                  {language === 'ar' ? 'عرض الكل' : 'View All'}
                 </Button>
               </Link>
             </div>
