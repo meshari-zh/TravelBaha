@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function ProfileEdit() {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { language, t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
@@ -59,8 +61,8 @@ export default function ProfileEdit() {
     },
     onSuccess: (updatedUser) => {
       toast({
-        title: "تم تحديث الملف الشخصي!",
-        description: "تم حفظ تغييراتك بنجاح",
+        title: language === 'ar' ? "تم تحديث الملف الشخصي!" : "Profile Updated!",
+        description: language === 'ar' ? "تم حفظ تغييراتك بنجاح" : "Your changes have been saved successfully",
       });
       
       // Update the cached user data

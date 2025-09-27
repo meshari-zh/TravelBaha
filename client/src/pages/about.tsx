@@ -201,7 +201,7 @@ interface EditAboutFormProps {
 }
 
 function EditAboutForm({ content, onSave }: EditAboutFormProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [title, setTitle] = useState(content?.title || (language === 'ar' ? 'نبذة عنا' : 'About Us'));
   const [contentText, setContentText] = useState(content?.content || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
