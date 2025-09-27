@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/navbar";
 import GuideCard from "@/components/guide-card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import type { Guide } from "@shared/schema";
 
 export default function Guides() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
@@ -30,8 +32,8 @@ export default function Guides() {
         <div className="container mx-auto px-4 py-8">
           <Card className="text-center py-12">
             <CardContent>
-              <h3 className="font-semibold mb-2">خطأ في تحميل البيانات</h3>
-              <p className="text-muted-foreground">حدث خطأ أثناء تحميل المرشدين السياحيين</p>
+              <h3 className="font-semibold mb-2">{t('error')}</h3>
+              <p className="text-muted-foreground">{language === 'ar' ? 'حدث خطأ أثناء تحميل المرشدين السياحيين' : 'Error loading tourist guides'}</p>
             </CardContent>
           </Card>
         </div>
@@ -81,8 +83,8 @@ export default function Guides() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">المرشدين السياحيين</h1>
-          <p className="text-lg text-muted-foreground">تعرف على فريق المرشدين المحليين الخبراء في منطقة الباحة</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{t('guidesTitle')}</h1>
+          <p className="text-lg text-muted-foreground">{t('guidesSubtitle')}</p>
         </div>
 
         {/* Filters */}
@@ -93,7 +95,7 @@ export default function Guides() {
               <div className="relative lg:col-span-2">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="البحث عن مرشد..."
+                  placeholder={t('searchGuides')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pr-10"
@@ -104,10 +106,10 @@ export default function Guides() {
               {/* Specialty Filter */}
               <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
                 <SelectTrigger data-testid="select-specialty">
-                  <SelectValue placeholder="التخصص: الكل" />
+                  <SelectValue placeholder={language === 'ar' ? 'التخصص: الكل' : 'Specialty: All'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="all">{language === 'ar' ? 'الكل' : 'All'}</SelectItem>
                   {allSpecialties.map((specialty) => (
                     <SelectItem key={specialty} value={specialty}>
                       {specialty}
@@ -119,10 +121,10 @@ export default function Guides() {
               {/* Language Filter */}
               <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                 <SelectTrigger data-testid="select-language">
-                  <SelectValue placeholder="اللغة: الكل" />
+                  <SelectValue placeholder={language === 'ar' ? 'اللغة: الكل' : 'Language: All'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="all">{language === 'ar' ? 'الكل' : 'All'}</SelectItem>
                   {allLanguages.map((language) => (
                     <SelectItem key={language} value={language}>
                       {language}
@@ -134,13 +136,13 @@ export default function Guides() {
               {/* Sort */}
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger data-testid="select-sort">
-                  <SelectValue placeholder="ترتيب حسب" />
+                  <SelectValue placeholder={language === 'ar' ? 'ترتيب حسب' : 'Sort by'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rating">الأعلى تقييماً</SelectItem>
-                  <SelectItem value="price_low">السعر من الأقل للأعلى</SelectItem>
-                  <SelectItem value="price_high">السعر من الأعلى للأقل</SelectItem>
-                  <SelectItem value="reviews">الأكثر تقييماً</SelectItem>
+                  <SelectItem value="rating">{language === 'ar' ? 'الأعلى تقييماً' : 'Highest Rated'}</SelectItem>
+                  <SelectItem value="price_low">{language === 'ar' ? 'السعر من الأقل للأعلى' : 'Price Low to High'}</SelectItem>
+                  <SelectItem value="price_high">{language === 'ar' ? 'السعر من الأعلى للأقل' : 'Price High to Low'}</SelectItem>
+                  <SelectItem value="reviews">{language === 'ar' ? 'الأكثر تقييماً' : 'Most Reviews'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -150,7 +152,7 @@ export default function Guides() {
               <div className="flex flex-wrap gap-2 mt-4">
                 {searchTerm && (
                   <Badge variant="secondary" className="flex items-center gap-1">
-                    البحث: {searchTerm}
+{language === 'ar' ? 'البحث:' : 'Search:'} {searchTerm}
                     <button 
                       onClick={() => setSearchTerm("")}
                       className="text-xs hover:text-foreground"
@@ -194,7 +196,7 @@ export default function Guides() {
                   }}
                   data-testid="button-clear-all-filters"
                 >
-                  مسح الكل
+{language === 'ar' ? 'مسح الكل' : 'Clear All'}
                 </Button>
               </div>
             )}
@@ -204,7 +206,10 @@ export default function Guides() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            عرض {filteredGuides.length} من {guides.length} مرشد سياحي
+{language === 'ar' ? 
+              `عرض ${filteredGuides.length} من ${guides.length} مرشد سياحي` : 
+              `Showing ${filteredGuides.length} of ${guides.length} tourist guides`
+            }
           </p>
         </div>
 
@@ -232,11 +237,11 @@ export default function Guides() {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-2">لا يوجد مرشدين</h3>
+              <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا يوجد مرشدين' : 'No Guides Found'}</h3>
               <p className="text-muted-foreground">
                 {searchTerm || selectedSpecialty || selectedLanguage 
-                  ? 'لم يتم العثور على مرشدين يطابقون البحث' 
-                  : 'لا يوجد مرشدين سياحيين متاحين حالياً'}
+                  ? (language === 'ar' ? 'لم يتم العثور على مرشدين يطابقون البحث' : 'No guides found matching your search criteria')
+                  : (language === 'ar' ? 'لا يوجد مرشدين سياحيين متاحين حالياً' : 'No tourist guides are currently available')}
               </p>
               {(searchTerm || selectedSpecialty || selectedLanguage) && (
                 <Button 
@@ -249,7 +254,7 @@ export default function Guides() {
                   }}
                   data-testid="button-reset-filters"
                 >
-                  إعادة تعيين البحث
+{language === 'ar' ? 'إعادة تعيين البحث' : 'Reset Search'}
                 </Button>
               )}
             </CardContent>
