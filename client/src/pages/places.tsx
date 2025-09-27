@@ -255,7 +255,7 @@ export default function Places() {
                       id="category"
                       name="category"
                       defaultValue={editingPlace?.category || ""}
-                      placeholder="مثال: طبيعة، تراث، جبال"
+                      placeholder={language === 'ar' ? "مثال: طبيعة، تراث، جبال" : "Example: Nature, Heritage, Mountains"}
                       data-testid="input-place-category"
                     />
                   </div>
@@ -266,8 +266,9 @@ export default function Places() {
                       disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
                       data-testid="button-save-place"
                     >
-                      {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 'جاري الحفظ...' : 
-                       editingPlace ? 'تحديث' : 'إضافة'}
+                      {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 
+                        (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
+                        editingPlace ? t('edit') : t('add')}
                     </Button>
                     <Button 
                       type="button" 
@@ -275,7 +276,7 @@ export default function Places() {
                       onClick={() => setIsDialogOpen(false)}
                       data-testid="button-cancel-place"
                     >
-                      إلغاء
+                      {t('cancel')}
                     </Button>
                   </div>
                 </form>
@@ -288,7 +289,7 @@ export default function Places() {
         <div className="relative mb-8">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="البحث في الأماكن السياحية..."
+            placeholder={t('searchPlaces')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pr-10"
@@ -316,9 +317,12 @@ export default function Places() {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-2">لا توجد أماكن</h3>
+              <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد أماكن' : 'No Places Found'}</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'لم يتم العثور على أماكن تطابق البحث' : 'لا توجد أماكن سياحية متاحة حالياً'}
+                {searchTerm ? 
+                  (language === 'ar' ? 'لم يتم العثور على أماكن تطابق البحث' : 'No places found matching your search') : 
+                  t('noPlacesFound')
+                }
               </p>
             </CardContent>
           </Card>
