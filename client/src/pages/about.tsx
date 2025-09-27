@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import type { SiteContent, TeamMember } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ import Navbar from "@/components/navbar";
 
 export default function About() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: aboutContent, isLoading, refetch } = useQuery<SiteContent>({
@@ -38,10 +40,10 @@ export default function About() {
           <div className="flex justify-between items-start mb-8">
             <div>
               <h1 className="text-4xl font-bold text-foreground mb-4">
-                نبذة عنا
+                {t('aboutTitle')}
               </h1>
               <p className="text-lg text-muted-foreground">
-                تعرف على فريق منصة الباحة السياحية ورسالتنا
+                {t('aboutSubtitle')}
               </p>
             </div>
             
@@ -51,7 +53,10 @@ export default function About() {
                 onClick={() => setIsEditing(!isEditing)}
                 data-testid="button-edit-about"
               >
-                {isEditing ? 'إلغاء التعديل' : 'تعديل المحتوى'}
+{isEditing ? 
+                  (language === 'ar' ? 'إلغاء التعديل' : 'Cancel Edit') : 
+                  (language === 'ar' ? 'تعديل المحتوى' : 'Edit Content')
+                }
               </Button>
             )}
           </div>
@@ -62,7 +67,7 @@ export default function About() {
               <CardHeader>
                 <CardTitle className="text-2xl text-right flex items-center gap-3">
                   <Users className="w-6 h-6" />
-                  فريق العمل
+{language === 'ar' ? 'فريق العمل' : 'Our Team'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -108,9 +113,9 @@ export default function About() {
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>لم يتم إضافة أعضاء الفريق بعد.</p>
+                    <p>{language === 'ar' ? 'لم يتم إضافة أعضاء الفريق بعد.' : 'No team members have been added yet.'}</p>
                     {isAdmin && (
-                      <p className="mt-2 text-sm">يمكنك إضافة أعضاء الفريق من لوحة الإدارة.</p>
+                      <p className="mt-2 text-sm">{language === 'ar' ? 'يمكنك إضافة أعضاء الفريق من لوحة الإدارة.' : 'You can add team members from the admin panel.'}</p>
                     )}
                   </div>
                 )}
@@ -122,7 +127,7 @@ export default function About() {
               <CardHeader>
                 <CardTitle className="text-2xl text-right flex items-center gap-3">
                   <Building2 className="w-6 h-6" />
-                  نبذة عن المشروع
+{language === 'ar' ? 'نبذة عن المشروع' : 'About the Project'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -140,25 +145,33 @@ export default function About() {
                   </div>
                 ) : (
                   <div className="bg-muted/50 p-6 rounded-lg text-right" dir="rtl">
-                    <h3 className="text-xl font-semibold mb-4">عن منصة الباحة السياحية</h3>
+                    <h3 className="text-xl font-semibold mb-4">
+                      {language === 'ar' ? 'عن منصة الباحة السياحية' : 'About Al Bahah Tourism Platform'}
+                    </h3>
                     <p className="mb-4">
-                      منصة الباحة السياحية هي منصة رقمية مبتكرة تهدف إلى الربط بين السياح والمرشدين السياحيين المحليين 
-                      في منطقة الباحة الخلابة بالمملكة العربية السعودية.
+                      {language === 'ar' ? 
+                        'منصة الباحة السياحية هي منصة رقمية مبتكرة تهدف إلى الربط بين السياح والمرشدين السياحيين المحليين في منطقة الباحة الخلابة بالمملكة العربية السعودية.' :
+                        'Al Bahah Tourism Platform is an innovative digital platform that aims to connect tourists with local tour guides in the beautiful Al Bahah region of Saudi Arabia.'
+                      }
                     </p>
                     <p className="mb-4">
-                      نحن نؤمن بأن السياحة الأصيلة تبدأ من التواصل مع أهل المنطقة الذين يعرفون تفاصيلها وأسرارها. 
-                      لذلك نوفر منصة آمنة وموثوقة تضمن تجربة سياحية لا تُنسى تجمع بين جمال الطبيعة وأصالة التراث.
+                      {language === 'ar' ? 
+                        'نحن نؤمن بأن السياحة الأصيلة تبدأ من التواصل مع أهل المنطقة الذين يعرفون تفاصيلها وأسرارها. لذلك نوفر منصة آمنة وموثوقة تضمن تجربة سياحية لا تُنسى تجمع بين جمال الطبيعة وأصالة التراث.' :
+                        'We believe that authentic tourism starts with connecting with the local people who know the region\'s details and secrets. Therefore, we provide a safe and reliable platform that ensures an unforgettable tourism experience that combines natural beauty with heritage authenticity.'
+                      }
                     </p>
                     <p>
-                      من خلال منصتنا، يمكن للسياح اكتشاف أجمل الأماكن في الباحة، والتواصل مع مرشدين محليين خبراء، 
-                      وحجز جولات سياحية مخصصة تناسب اهتماماتهم وميزانيتهم.
+                      {language === 'ar' ? 
+                        'من خلال منصتنا، يمكن للسياح اكتشاف أجمل الأماكن في الباحة، والتواصل مع مرشدين محليين خبراء، وحجز جولات سياحية مخصصة تناسب اهتماماتهم وميزانيتهم.' :
+                        'Through our platform, tourists can discover the most beautiful places in Al Bahah, communicate with expert local guides, and book customized tours that suit their interests and budget.'
+                      }
                     </p>
                   </div>
                 )}
                 
                 {!aboutContent && !isLoading && isAdmin && (
                   <div className="text-center text-muted-foreground">
-                    <p>يمكنك إضافة محتوى المشروع من خلال زر "تعديل المحتوى" أعلاه.</p>
+                    <p>{language === 'ar' ? 'يمكنك إضافة محتوى المشروع من خلال زر "تعديل المحتوى" أعلاه.' : 'You can add project content using the "Edit Content" button above.'}</p>
                   </div>
                 )}
               </CardContent>
@@ -188,7 +201,8 @@ interface EditAboutFormProps {
 }
 
 function EditAboutForm({ content, onSave }: EditAboutFormProps) {
-  const [title, setTitle] = useState(content?.title || 'نبذة عنا');
+  const { language } = useLanguage();
+  const [title, setTitle] = useState(content?.title || (language === 'ar' ? 'نبذة عنا' : 'About Us'));
   const [contentText, setContentText] = useState(content?.content || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -216,7 +230,7 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
       onSave();
     } catch (error) {
       console.error('Error saving content:', error);
-      alert('حدث خطأ أثناء حفظ المحتوى');
+      alert(language === 'ar' ? 'حدث خطأ أثناء حفظ المحتوى' : 'An error occurred while saving content');
     } finally {
       setIsSubmitting(false);
     }
@@ -225,13 +239,13 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
   return (
     <Card className="mt-8">
       <CardHeader>
-        <CardTitle>تعديل محتوى "نبذة عنا"</CardTitle>
+        <CardTitle>{language === 'ar' ? 'تعديل محتوى "نبذة عنا"' : 'Edit "About Us" Content'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-2">
-              العنوان
+              {language === 'ar' ? 'العنوان' : 'Title'}
             </label>
             <input
               id="title"
@@ -240,7 +254,7 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
               dir="rtl"
-              placeholder="عنوان الصفحة"
+              placeholder={language === 'ar' ? 'عنوان الصفحة' : 'Page Title'}
               required
               data-testid="input-about-title"
             />
@@ -248,7 +262,7 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
           
           <div>
             <label htmlFor="content" className="block text-sm font-medium mb-2">
-              المحتوى
+              {t('content')}
             </label>
             <textarea
               id="content"
@@ -257,7 +271,7 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
               rows={12}
               className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
               dir="rtl"
-              placeholder="محتوى صفحة نبذة عنا..."
+              placeholder={language === 'ar' ? 'محتوى صفحة نبذة عنا...' : 'About us page content...'}
               required
               data-testid="textarea-about-content"
             />
@@ -269,7 +283,10 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
               disabled={isSubmitting}
               data-testid="button-save-about"
             >
-              {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+{isSubmitting ? 
+                (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
+                (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')
+              }
             </Button>
           </div>
         </form>
