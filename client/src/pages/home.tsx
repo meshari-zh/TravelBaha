@@ -247,6 +247,33 @@ export default function Home() {
         </section>
       )}
 
+      {/* Video Section - For logged in users */}
+      {user && (
+        <section className="py-12 bg-card">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">{t('welcomeTitle')}</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                {language === 'ar' ? 'تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة' : 'Enjoy watching the most beautiful natural landscapes and tourist attractions in Al Bahah region'}
+              </p>
+            </div>
+            <div className="max-w-4xl mx-auto">
+              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
+                <video 
+                  controls 
+                  className="w-full h-full object-cover"
+                  poster={videoPoster}
+                  data-testid="hero-video"
+                >
+                  <source src={newHeroVideo} type="video/mp4" />
+                  {language === 'ar' ? 'متصفحك لا يدعم تشغيل الفيديو' : 'Your browser does not support video playback'}
+                </video>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Recent Places */}
       {recentPlaces.length > 0 && (
         <section className="py-12 bg-background">
