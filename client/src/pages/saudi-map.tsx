@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, Polygon } fro
 import L, { LatLngExpression, LatLngTuple } from 'leaflet'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useLanguage } from '@/context/LanguageContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,6 +49,7 @@ const riyadhIcon = createIcon('green')
 const touristIcon = createIcon('orange')
 
 export default function SaudiMap() {
+  const { language, t } = useLanguage()
   const [selectedPlace, setSelectedPlace] = useState<any>(null)
   const [editingPlace, setEditingPlace] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -136,7 +138,7 @@ export default function SaudiMap() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-red-500" />
-              الخريطة التفاعلية
+              {language === 'ar' ? 'الخريطة التفاعلية' : 'Interactive Map'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -249,7 +251,7 @@ export default function SaudiMap() {
                                   data-testid={`button-view-place-${place.id}`}
                                 >
                                   <ExternalLink className="w-3 h-3 ml-1" />
-                                  عرض التفاصيل
+                                  {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                                 </Button>
                               </div>
                             </div>
