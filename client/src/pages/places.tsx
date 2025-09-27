@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, InsertPlace } from "@shared/schema";
 
@@ -25,6 +26,7 @@ export default function Places() {
   const { language, t } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [placeImageUrl, setPlaceImageUrl] = useState("");
@@ -130,10 +132,15 @@ export default function Places() {
     },
   });
 
-  const filteredPlaces = places.filter(place =>
-    place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    place.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique categories from places
+  const categories = Array.from(new Set(places.map(place => place.category).filter(Boolean))).sort();
+
+  const filteredPlaces = places.filter(place => {
+    const matchesSearch = place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         place.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || place.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   // Update image URL when editing place
   useEffect(() => {
@@ -317,16 +324,88 @@ export default function Places() {
           )}
         </div>
 
-        {/* Search */}
-        <div className="relative mb-8">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder={t('searchPlaces')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10"
-            data-testid="input-search-places"
-          />
+        {/* Search and Filter */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder={t('searchPlaces')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10"
+                data-testid="input-search-places"
+              />
+            </div>
+            
+            {/* Category Filter */}
+            <div className="md:w-64">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full" data-testid="select-category-filter">
+                  <Filter className="w-4 h-4 ml-2" />
+                  <SelectValue placeholder={language === 'ar' ? 'جميع الفئات' : 'All Categories'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    {language === 'ar' ? 'جميع الفئات' : 'All Categories'}
+                  </SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category || ""}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {/* Active Filters Display */}
+          {(searchTerm || selectedCategory !== "all") && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-muted-foreground">
+                {language === 'ar' ? 'المرشحات النشطة:' : 'Active filters:'}
+              </span>
+              {searchTerm && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Search className="w-3 h-3" />
+                  {searchTerm}
+                  <button 
+                    onClick={() => setSearchTerm("")}
+                    className="ml-1 hover:text-destructive"
+                    data-testid="clear-search"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {selectedCategory !== "all" && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Filter className="w-3 h-3" />
+                  {selectedCategory}
+                  <button 
+                    onClick={() => setSelectedCategory("all")}
+                    className="ml-1 hover:text-destructive"
+                    data-testid="clear-category"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                }}
+                className="text-muted-foreground hover:text-foreground"
+                data-testid="clear-all-filters"
+              >
+                {language === 'ar' ? 'مسح الكل' : 'Clear All'}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Places Grid */}
