@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map } from "lucide-react";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
 export default function Navbar() {
@@ -142,6 +142,20 @@ export default function Navbar() {
                         >
                           <Info className="w-4 h-4" />
                           نبذة عنا
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                    
+                    <SheetClose asChild>
+                      <Link href="/map">
+                        <Button 
+                          variant={isActive("/map") ? "default" : "ghost"} 
+                          size="sm"
+                          className="w-full justify-start flex items-center gap-3"
+                          data-testid="mobile-nav-map"
+                        >
+                          <Map className="w-4 h-4" />
+                          خريطة المملكة
                         </Button>
                       </Link>
                     </SheetClose>
@@ -287,6 +301,18 @@ export default function Navbar() {
               >
                 <Info className="w-4 h-4" />
                 نبذة عنا
+              </Button>
+            </Link>
+            
+            <Link href="/map">
+              <Button 
+                variant={isActive("/map") ? "default" : "ghost"} 
+                size="sm"
+                className="flex items-center gap-2"
+                data-testid="nav-map"
+              >
+                <Map className="w-4 h-4" />
+                خريطة المملكة
               </Button>
             </Link>
             

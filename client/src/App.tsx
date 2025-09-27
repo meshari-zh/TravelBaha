@@ -17,6 +17,7 @@ import GuideProfile from "@/pages/guide-profile";
 import InviteRedemption from "@/pages/invite-redemption";
 import ProfileEdit from "@/pages/profile-edit";
 import About from "@/pages/about";
+import SaudiMap from "@/pages/saudi-map";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
           <Route path="/places" component={Places} />
           <Route path="/places/:id" component={PlaceDetails} />
           <Route path="/about" component={About} />
+          <Route path="/map" component={SaudiMap} />
           <Route path="/profile" component={ProfileEdit} />
           <Route path="/login">
             {() => {
@@ -61,6 +63,7 @@ function Router() {
           <Route path="/invite" component={InviteRedemption} />
           <Route path="/profile" component={ProfileEdit} />
           <Route path="/about" component={About} />
+          <Route path="/map" component={SaudiMap} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/admin/invites">
