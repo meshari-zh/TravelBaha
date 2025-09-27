@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { MapPin, ExternalLink, Plus } from 'lucide-react'
+import Navbar from '@/components/navbar'
 import 'leaflet/dist/leaflet.css'
 
 // إحداثيات المدن
@@ -56,6 +57,22 @@ export default function SaudiMap() {
     queryKey: ['/api/places'],
   })
   
+  // جلب المحتوى القابل للتعديل للخريطة
+  const { data: mapTitle = '' } = useQuery({
+    queryKey: ['/api/site-content/map_title'],
+    select: (data: any) => data?.content || 'خريطة المملكة التفاعلية'
+  })
+  
+  const { data: mapSubtitle = '' } = useQuery({
+    queryKey: ['/api/site-content/map_subtitle'],
+    select: (data: any) => data?.content || 'استكشف جمال منطقة الباحة والمدن السعودية'
+  })
+  
+  const { data: mapDescription = '' } = useQuery({
+    queryKey: ['/api/site-content/map_description'],
+    select: (data: any) => data?.content || 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة'
+  })
+  
   // التأكد من أن places هو مصفوفة
   const placesArray = Array.isArray(places) ? places : []
 
@@ -96,19 +113,20 @@ export default function SaudiMap() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-green-950 dark:to-gray-900 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-green-950 dark:to-gray-900">
+      <Navbar />
+      <div className="max-w-7xl mx-auto p-4">
         <div className="text-center mb-8">
           <div className="hero-gradient text-white p-8 rounded-2xl shadow-lg mb-6">
             <div className="max-w-4xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                🗺️ خريطة المملكة التفاعلية
+                🗺️ {mapTitle}
               </h1>
               <p className="text-xl md:text-2xl opacity-90 mb-2">
-                استكشف جمال منطقة الباحة والمدن السعودية
+                {mapSubtitle}
               </p>
               <p className="text-lg opacity-75">
-                تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة
+                {mapDescription}
               </p>
             </div>
           </div>

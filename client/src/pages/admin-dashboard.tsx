@@ -22,6 +22,190 @@ import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember } from "@shared/schema";
 
+// مكون تعديل محتوى الخريطة
+function MapContentEditorComponent() {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
+
+  // جلب المحتوى الحالي للخريطة
+  const { data: mapTitle = '', refetch: refetchTitle } = useQuery({
+    queryKey: ['/api/site-content/map_title'],
+    select: (data: any) => data?.content || 'خريطة المملكة التفاعلية'
+  });
+
+  const { data: mapSubtitle = '', refetch: refetchSubtitle } = useQuery({
+    queryKey: ['/api/site-content/map_subtitle'],
+    select: (data: any) => data?.content || 'استكشف جمال منطقة الباحة والمدن السعودية'
+  });
+
+  const { data: mapDescription = '', refetch: refetchDescription } = useQuery({
+    queryKey: ['/api/site-content/map_description'],
+    select: (data: any) => data?.content || 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة'
+  });
+
+  // Mutation لتحديث المحتوى
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ key, title, content }: { key: string; title: string; content: string }) => {
+      const response = await fetch('/api/site-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key, title, content }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update content');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "تم التحديث بنجاح",
+        description: "تم حفظ التغييرات على المحتوى",
+      });
+      setIsEditing(prev => ({ ...prev, [variables.key]: false }));
+      
+      // Refresh the queries
+      if (variables.key === 'map_title') refetchTitle();
+      if (variables.key === 'map_subtitle') refetchSubtitle();  
+      if (variables.key === 'map_description') refetchDescription();
+      
+      // أيضا refresh cache للخريطة
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
+      toast({
+        title: "خطأ في التحديث",
+        description: "لم يتم حفظ التغييرات",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = (key: string, title: string) => (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const content = formData.get('content') as string;
+    
+    if (!content.trim()) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "المحتوى لا يمكن أن يكون فارغاً",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    updateContentMutation.mutate({ key, title, content });
+  };
+
+  const contentItems = [
+    {
+      key: 'map_title',
+      title: 'عنوان الخريطة',
+      description: 'العنوان الرئيسي المعروض في أعلى صفحة الخريطة',
+      currentValue: mapTitle,
+      icon: '🗺️'
+    },
+    {
+      key: 'map_subtitle', 
+      title: 'العنوان الفرعي للخريطة',
+      description: 'النص الثانوي المعروض تحت العنوان الرئيسي',
+      currentValue: mapSubtitle,
+      icon: '📍'
+    },
+    {
+      key: 'map_description',
+      title: 'وصف الخريطة',
+      description: 'النص التوضيحي الذي يوضح فائدة الخريطة',
+      currentValue: mapDescription,
+      icon: '📝'
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {contentItems.map((item) => (
+        <Card key={item.key} className="border-l-4 border-l-blue-500">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{item.icon}</span>
+                <div>
+                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
+                data-testid={`button-edit-${item.key}`}
+              >
+                <Edit className="w-4 h-4 ml-1" />
+                {isEditing[item.key] ? 'إلغاء' : 'تعديل'}
+              </Button>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {!isEditing[item.key] ? (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-foreground">{item.currentValue}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit(item.key, item.title)} className="space-y-4">
+                <div>
+                  <Label htmlFor={`content-${item.key}`}>المحتوى الجديد</Label>
+                  <Textarea
+                    id={`content-${item.key}`}
+                    name="content"
+                    defaultValue={item.currentValue}
+                    rows={3}
+                    className="mt-1"
+                    data-testid={`input-${item.key}`}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={updateContentMutation.isPending}
+                    data-testid={`button-save-${item.key}`}
+                  >
+                    {updateContentMutation.isPending ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: false }))}
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+      
+      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <MessageCircle className="w-5 h-5 text-blue-600" />
+          <h4 className="font-medium text-blue-900 dark:text-blue-100">ملاحظة مهمة</h4>
+        </div>
+        <p className="text-sm text-blue-700 dark:text-blue-300">
+          التغييرات المحفوظة ستظهر فوراً على صفحة الخريطة للمستخدمين. تأكد من مراجعة المحتوى قبل الحفظ.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -39,7 +223,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'invites'].includes(tab)) {
+    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'content', 'invites'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -620,6 +804,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="bookings" data-testid="tab-bookings" className="shrink-0 whitespace-nowrap">الحجوزات</TabsTrigger>
             <TabsTrigger value="users" data-testid="tab-users" className="shrink-0 whitespace-nowrap">إدارة المستخدمين</TabsTrigger>
             <TabsTrigger value="team" data-testid="tab-team" className="shrink-0 whitespace-nowrap">فريق العمل</TabsTrigger>
+            <TabsTrigger value="content" data-testid="tab-content" className="shrink-0 whitespace-nowrap">محتوى الموقع</TabsTrigger>
             <TabsTrigger value="invites" data-testid="tab-invites" className="shrink-0 whitespace-nowrap">رموز الدعوة</TabsTrigger>
           </TabsList>
 
@@ -1126,6 +1311,22 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Site Content Management */}
+          <TabsContent value="content">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit className="w-5 h-5 text-blue-600" />
+                  إدارة محتوى الموقع
+                </CardTitle>
+                <p className="text-muted-foreground">تعديل النصوص والمحتوى القابل للتحرير في الموقع</p>
+              </CardHeader>
+              <CardContent>
+                <MapContentEditorComponent />
               </CardContent>
             </Card>
           </TabsContent>
