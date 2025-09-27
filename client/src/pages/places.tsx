@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
@@ -196,9 +197,9 @@ export default function Places() {
                   {language === 'ar' ? 'إضافة مكان جديد' : 'Add New Place'}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-2xl max-h-[85vh]">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="text-xl font-semibold mb-2">
                     {editingPlace ? 
                       (language === 'ar' ? 'تعديل المكان السياحي' : 'Edit Tourist Place') : 
                       (language === 'ar' ? 'إضافة مكان سياحي جديد' : 'Add New Tourist Place')
@@ -206,80 +207,109 @@ export default function Places() {
                   </DialogTitle>
                 </DialogHeader>
                 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">{t('name')}</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      defaultValue={editingPlace?.name || ""}
-                      required
-                      data-testid="input-place-name"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="description">{t('description')}</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      defaultValue={editingPlace?.description || ""}
-                      required
-                      data-testid="input-place-description"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>{language === 'ar' ? 'صورة المكان' : 'Place Image'}</Label>
-                    <ImageUploader
-                      value={placeImageUrl}
-                      onChange={setPlaceImageUrl}
-                      preview={true}
-                      className="w-full mt-2"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="location">{t('location')}</Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      defaultValue={editingPlace?.location || ""}
-                      data-testid="input-place-location"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="category">{t('category')}</Label>
-                    <Input
-                      id="category"
-                      name="category"
-                      defaultValue={editingPlace?.category || ""}
-                      placeholder={language === 'ar' ? "مثال: طبيعة، تراث، جبال" : "Example: Nature, Heritage, Mountains"}
-                      data-testid="input-place-category"
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      type="submit" 
-                      disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
-                      data-testid="button-save-place"
-                    >
-                      {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 
-                        (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
-                        editingPlace ? t('edit') : t('add')}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsDialogOpen(false)}
-                      data-testid="button-cancel-place"
-                    >
-                      {t('cancel')}
-                    </Button>
-                  </div>
-                </form>
+                <ScrollArea className="h-full max-h-[calc(85vh-120px)]">
+                  <form onSubmit={handleSubmit} className="space-y-6 p-1">
+                    {/* القسم الأساسي */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold border-b pb-2">
+                        {language === 'ar' ? 'المعلومات الأساسية' : 'Basic Information'}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="name" className="text-sm font-medium">{t('name')}</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            defaultValue={editingPlace?.name || ""}
+                            placeholder={language === 'ar' ? 'اسم المكان السياحي' : 'Tourist place name'}
+                            required
+                            className="mt-1"
+                            data-testid="input-place-name"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="location" className="text-sm font-medium">{t('location')}</Label>
+                          <Input
+                            id="location"
+                            name="location"
+                            defaultValue={editingPlace?.location || ""}
+                            placeholder={language === 'ar' ? 'الموقع الجغرافي' : 'Geographic location'}
+                            className="mt-1"
+                            data-testid="input-place-location"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="category" className="text-sm font-medium">{t('category')}</Label>
+                        <Input
+                          id="category"
+                          name="category"
+                          defaultValue={editingPlace?.category || ""}
+                          placeholder={language === 'ar' ? "مثال: طبيعة، تراث، جبال" : "Example: Nature, Heritage, Mountains"}
+                          className="mt-1"
+                          data-testid="input-place-category"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="description" className="text-sm font-medium">{t('description')}</Label>
+                        <Textarea
+                          id="description"
+                          name="description"
+                          defaultValue={editingPlace?.description || ""}
+                          placeholder={language === 'ar' ? 'وصف تفصيلي للمكان...' : 'Detailed description of the place...'}
+                          rows={4}
+                          required
+                          className="mt-1"
+                          data-testid="input-place-description"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* قسم الصورة */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold border-b pb-2">
+                        {language === 'ar' ? 'الصورة' : 'Image'}
+                      </h3>
+                      
+                      <div>
+                        <Label className="text-sm font-medium">{language === 'ar' ? 'صورة المكان' : 'Place Image'}</Label>
+                        <ImageUploader
+                          value={placeImageUrl}
+                          onChange={setPlaceImageUrl}
+                          preview={true}
+                          className="w-full mt-2"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* أزرار التحكم */}
+                    <div className="flex gap-3 pt-4 border-t">
+                      <Button 
+                        type="submit" 
+                        disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
+                        className="flex-1"
+                        data-testid="button-save-place"
+                      >
+                        {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 
+                          (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
+                          editingPlace ? t('edit') : t('add')}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsDialogOpen(false)}
+                        className="flex-1"
+                        data-testid="button-cancel-place"
+                      >
+                        {t('cancel')}
+                      </Button>
+                    </div>
+                  </form>
+                </ScrollArea>
               </DialogContent>
             </Dialog>
           )}
