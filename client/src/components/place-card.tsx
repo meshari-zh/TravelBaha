@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { Place } from "@shared/schema";
 import { resolveAssetUrl } from "@/utils/assets";
 
@@ -13,9 +13,13 @@ interface PlaceCardProps {
 }
 
 export default function PlaceCard({ place, showGuideCount = false, onSelect }: PlaceCardProps) {
+  const [, setLocation] = useLocation();
+  
   const handleClick = () => {
     if (onSelect) {
       onSelect(place);
+    } else {
+      setLocation(`/places/${place.id}`);
     }
   };
 
@@ -54,26 +58,14 @@ export default function PlaceCard({ place, showGuideCount = false, onSelect }: P
           </div>
         )}
         
-        <div className="flex justify-between items-center">
-          {showGuideCount && (
+        {showGuideCount && (
+          <div className="flex justify-start">
             <span className="text-primary font-semibold flex items-center gap-1">
               <Users className="w-4 h-4" />
               متاح للحجز
             </span>
-          )}
-          
-          <Link href={`/places/${place.id}`}>
-            <Button 
-              size="sm" 
-              variant="outline"
-              className="text-accent hover:text-accent/80"
-              data-testid={`place-details-${place.id}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              عرض التفاصيل
-            </Button>
-          </Link>
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
