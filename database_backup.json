@@ -1,0 +1,64 @@
+{
+  "backup_date": "2025-11-27",
+  "database_name": "منصة الباحة السياحية",
+  
+  "places": [
+    {"id": "37d96e8b-6d00-4a65-8297-2af31ca42765", "name": "حديقة الأمير سلطان بن سلمان", "location": "مدينة الباحة", "category": "حديقة"},
+    {"id": "052dd3a9-3f47-4910-b20e-1dabbf99a796", "name": "حديقة اللافندر", "location": "مدينة الباحة", "category": "حديقة"},
+    {"id": "fe09c2e1-0140-4321-882a-432561a361bb", "name": "منتزه الدانة", "location": "محافظة بلجرشي", "category": "منتزه"},
+    {"id": "4f6041e0-d7e6-4b63-a1b5-bee3862c66f2", "name": "القرية الأثرية بالأطاولة", "location": "القرى.الباحة", "category": "قرى", "latitude": "20.249999", "longitude": "41.359802"},
+    {"id": "73f539ff-ef74-42aa-a0a4-057d1c7e0556", "name": "منتزه سد الجنابين", "location": "محافظة بلجرشي", "category": "منتزه"},
+    {"id": "bd3289be-84b0-43b5-ae9d-01222134fef4", "name": "منتزه الشروق", "location": "محافظة العقيق", "category": "منتزه"},
+    {"id": "69ff1c51-ce97-47fc-9f11-64e735c47e75", "name": "منتزه الشلال", "location": "محافظة بني حسن", "category": "منتزه"},
+    {"id": "617dc9e7-6aa8-4ba1-9725-28708d635816", "name": "شلال صفا البراق", "location": "مدينة الباحة", "category": "شلال"},
+    {"id": "79833d74-7800-45a4-9ddb-c5864f0d2a16", "name": "شلال أم الدقيق", "location": "مدينة الباحة", "category": "شلال"},
+    {"id": "7b6780c8-712f-4fe5-8303-1a0fbb558811", "name": "شلال الغدير", "location": "مدينة الباحة", "category": "شلال"},
+    {"id": "a2c90f22-5977-4b10-acb1-c62fc3034fbc", "name": "وادي ثراد", "location": "محافظة العقيق", "category": "وادي"},
+    {"id": "fc13c5fd-f8a1-448b-8368-28ff8d86d7a6", "name": "منتزه الخلب", "location": "محافظة المندق", "category": "منتزه"},
+    {"id": "d4651c7a-6e3b-4003-b92f-76c786087343", "name": "نزل العائد التراثي", "location": "بني كبير", "category": "تراث"},
+    {"id": "2a59d04c-f3f4-454e-8e3a-c2a01c772bdf", "name": "متحف الأخوين", "location": "مدينة الباحة", "category": "متحف"},
+    {"id": "b70ed881-a99b-4140-808f-5c6b4c4ca14e", "name": "قرية ذي عين الأثرية", "location": "محافظة المخواة", "category": "تراث"},
+    {"id": "7bd0bc08-717f-4f5e-b8ae-3466e0b235f4", "name": "غابة رغدان", "location": "مدينة الباحة", "category": "غابة"},
+    {"id": "d40580a0-a49c-4692-af0c-a4f6368d2c12", "name": "قلعة بخروش بن علاس", "location": "محافظة القرى", "category": "تراث"},
+    {"id": "e85bf22a-be3d-4d69-a03c-73b3ed1b10a7", "name": "منتزه الأمير حسام", "location": "مدينة الباحة", "category": "منتزه"},
+    {"id": "9fa6b945-08d0-4a16-9d0f-4276ffecb6ef", "name": "سد وادي العقيق", "location": "محافظة العقيق", "category": "سد"},
+    {"id": "80f64067-2897-47ca-b395-f91dc835e946", "name": "وادي القدحة بمسير", "location": "محافظة المندق", "category": "وادي"},
+    {"id": "5b6f5cfc-d581-4c2e-b69d-a10cb6aeb827", "name": "وادي تربة زهران", "location": "محافظة المندق", "category": "وادي"},
+    {"id": "d33684ce-2f2c-42c6-b526-cdc47a3aac57", "name": "شلال الشولة", "location": "محافظة بني حسن", "category": "شلال"},
+    {"id": "1279be38-9752-4794-a486-f3b821713b93", "name": "شلال الشراشير", "location": "محافظة بني حسن", "category": "شلال"},
+    {"id": "72335b4f-57c0-4c8a-9f2d-8e6864a75588", "name": "شلال الحمده", "location": "مدينة الباحة", "category": "شلال"},
+    {"id": "96b7d16d-e231-4ca1-a89c-86c745513a41", "name": "شلال خيرة", "location": "محافظة بني حسن", "category": "شلال"},
+    {"id": "a20d6a69-f477-4929-bbb2-2d18cc685f43", "name": "شلال عين الجمل", "location": "محافظة بني حسن", "category": "شلال"},
+    {"id": "7a3f9688-f929-41f3-9863-bdaa89b84d86", "name": "غابة خيرة", "location": "محافظة بني حسن", "category": "غابة"},
+    {"id": "1919ccc0-60a2-4e6f-9148-857a29f78757", "name": "فندق الشهبة انترنشونال", "category": "فندق"},
+    {"id": "9885ff87-9664-4f5f-aba5-8455be77bad3", "name": "فندق السحاب", "category": "فندق"},
+    {"id": "93b12594-d6a4-475f-9f67-31b99fd67746", "name": "فندق الفاضل", "category": "فندق"},
+    {"id": "c316dad0-4a40-4d97-88a6-74ee57f3c194", "name": "مطعم مشراق", "category": "مطعم"},
+    {"id": "3d16d397-8314-443b-bdfb-eb84ec03ac71", "name": "فيفث سيزون", "category": "مطعم"},
+    {"id": "63fdfed1-e320-41c5-9b4a-e78558f15650", "name": "مطعم ومقهى سول", "category": "مطعم"}
+  ],
+  
+  "admin_users": [
+    {"id": "47518653", "email": "sms.rubaie@gmail.com", "name": "MESHARI Alzahrani"},
+    {"id": "47821321", "email": "ah12d.050@gmail.com", "name": "احمد الغامدي"},
+    {"id": "47630307", "email": "anst.saad@gmail.com", "name": "سعد الزهراني"},
+    {"id": "47630370", "email": "wkb5gnpjx9@privaterelay.appleid.com", "name": "مبارك الغامدي"},
+    {"id": "cfddbec9-48b2-48a9-9336-c9c990e4d2b6", "email": "admin@albahah.com", "name": "Admin User"}
+  ],
+  
+  "team_members": [
+    {"name": "احمد الغامدي", "role": "طالب جامعي"},
+    {"name": "سعد نايف خميس الزهراني", "role": "طالب جامعي"},
+    {"name": "مبارك الغامدي", "role": "طالب جامعي"},
+    {"name": "مشاري سلطان الزهراني", "role": "طالب جامعي"},
+    {"name": "نواف محمد الغامدي", "role": "طالب جامعي"}
+  ],
+  
+  "statistics": {
+    "total_places": 32,
+    "total_users": 34,
+    "total_guides": 1,
+    "total_bookings": 0,
+    "categories": ["حديقة", "منتزه", "شلال", "غابة", "وادي", "تراث", "قرى", "متحف", "سد", "فندق", "مطعم"]
+  }
+}
