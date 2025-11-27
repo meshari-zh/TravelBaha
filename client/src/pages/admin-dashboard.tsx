@@ -835,14 +835,14 @@ export default function AdminDashboard() {
                           إضافة مكان جديد
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-md">
+                      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>
                           {editingPlace ? 'تعديل المكان السياحي' : 'إضافة مكان سياحي جديد'}
                         </DialogTitle>
                       </DialogHeader>
                       
-                      <form onSubmit={handleSubmitPlace} className="space-y-4">
+                      <form onSubmit={handleSubmitPlace} className="space-y-4 pb-4">
                         <div>
                           <Label htmlFor="name">اسم المكان</Label>
                           <Input
