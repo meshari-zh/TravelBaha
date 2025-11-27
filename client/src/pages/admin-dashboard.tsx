@@ -864,13 +864,46 @@ export default function AdminDashboard() {
                           />
                         </div>
                         
-                        <div>
+                        <div className="space-y-3">
+                          <Label>صورة المكان</Label>
                           <ImageUploader
                             value={placeImageUrl}
                             onChange={setPlaceImageUrl}
                             preview={true}
                             className="w-full"
                           />
+                          <div className="text-center text-sm text-muted-foreground">أو</div>
+                          <div>
+                            <Label htmlFor="imageUrl">رابط الصورة (URL)</Label>
+                            <Input
+                              id="imageUrl"
+                              name="imageUrl"
+                              type="url"
+                              value={placeImageUrl}
+                              onChange={(e) => setPlaceImageUrl(e.target.value)}
+                              placeholder="https://example.com/image.jpg"
+                              className="mt-1"
+                              dir="ltr"
+                              data-testid="input-place-image-url"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              يمكنك إدخال رابط صورة من الإنترنت مباشرة
+                            </p>
+                          </div>
+                          {placeImageUrl && (
+                            <div className="mt-2 p-2 border rounded-lg">
+                              <p className="text-xs text-muted-foreground mb-2">معاينة الصورة:</p>
+                              <img 
+                                src={placeImageUrl} 
+                                alt="معاينة" 
+                                className="w-full h-32 object-cover rounded"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                         
                         <div>

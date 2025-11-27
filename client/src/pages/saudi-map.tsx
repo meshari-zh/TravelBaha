@@ -93,18 +93,35 @@ const getPlaceCoordinates = (placeName: string, defaultLat?: number, defaultLng?
   };
 };
 
-// حدود منطقة الباحة التقريبية
+// حدود منطقة الباحة الدقيقة (مطابقة للخريطة الرسمية)
 const albahaRegionBounds: LatLngTuple[] = [
-  [20.5, 41.0],
-  [20.6, 41.3],
-  [20.4, 41.7],
-  [20.1, 41.8],
-  [19.8, 41.6],
-  [19.6, 41.3],
-  [19.7, 41.0],
-  [19.9, 40.8],
-  [20.2, 40.9],
-  [20.5, 41.0]
+  // الجزء الشمالي الغربي
+  [20.35, 41.05],
+  [20.40, 41.15],
+  [20.42, 41.25],
+  // الجزء الشمالي الشرقي  
+  [20.38, 41.45],
+  [20.30, 41.55],
+  [20.25, 41.65],
+  // الجزء الشرقي
+  [20.10, 41.70],
+  [19.95, 41.68],
+  // الجزء الجنوبي الشرقي
+  [19.80, 41.60],
+  [19.70, 41.50],
+  // الجزء الجنوبي
+  [19.55, 41.35],
+  [19.50, 41.25],
+  // الجزء الجنوبي الغربي
+  [19.55, 41.10],
+  [19.65, 41.00],
+  // الجزء الغربي
+  [19.80, 40.95],
+  [19.95, 40.90],
+  [20.10, 40.92],
+  [20.25, 40.98],
+  // العودة للبداية
+  [20.35, 41.05]
 ]
 
 // إنشاء أيقونات مخصصة
@@ -116,6 +133,24 @@ const createIcon = (color: string) => new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 })
+
+// إنشاء أيقونة مخصصة مع اسم المكان مدمج
+const createLabeledIcon = (name: string, color: string = '#f97316') => {
+  return L.divIcon({
+    className: 'labeled-marker',
+    html: `
+      <div class="marker-container">
+        <div class="marker-pin" style="background-color: ${color};">
+          <span class="marker-icon">📍</span>
+        </div>
+        <div class="marker-label">${name}</div>
+      </div>
+    `,
+    iconSize: [100, 60],
+    iconAnchor: [50, 45],
+    popupAnchor: [0, -45]
+  });
+};
 
 const albahaIcon = createIcon('red')
 const meccaIcon = createIcon('blue')
@@ -298,29 +333,29 @@ export default function SaudiMap() {
                       );
                       const drivingTime = calculateDrivingTime(distanceFromAlbaha);
                       
+                      // استخدام الأيقونة المخصصة مع الاسم المدمج
+                      const labeledIcon = createLabeledIcon(place.name);
+                      
                       return (
-                        <Marker key={place.id} position={[lat, lng]} icon={touristIcon}>
-                          {/* اسم المكان تحت العلامة */}
-                          <Tooltip 
-                            direction="bottom" 
-                            offset={[0, 20]} 
-                            permanent
-                            className="place-name-tooltip"
-                          >
-                            <span className="font-bold text-sm">{place.name}</span>
-                          </Tooltip>
-                          
+                        <Marker key={place.id} position={[lat, lng]} icon={labeledIcon}>
                           <Popup>
                             <div className="p-3 min-w-[280px] text-right" dir="rtl">
                               <h3 className="font-bold text-lg mb-2 text-green-800">{place.name}</h3>
                               <p className="text-sm text-gray-600 mb-3">{place.description}</p>
                               
-                              {place.imageUrl && (
-                                <img 
-                                  src={place.imageUrl} 
-                                  alt={place.name}
-                                  className="w-full h-28 object-cover rounded-md mb-3"
-                                />
+                              {/* عرض الصورة من الرابط */}
+                              {place.imageUrl && place.imageUrl.trim() !== '' && (
+                                <div className="mb-3">
+                                  <img 
+                                    src={place.imageUrl} 
+                                    alt={place.name}
+                                    className="w-full h-32 object-cover rounded-lg shadow-md"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
                               )}
                               
                               {/* معلومات المسافة والوقت */}
