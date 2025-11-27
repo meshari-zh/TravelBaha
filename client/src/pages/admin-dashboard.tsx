@@ -963,8 +963,9 @@ export default function AdminDashboard() {
                               <Input
                                 id="latitude"
                                 name="latitude"
-                                type="number"
-                                step="0.000001"
+                                type="text"
+                                inputMode="decimal"
+                                pattern="[0-9.-]*"
                                 defaultValue={editingPlace?.latitude || ""}
                                 placeholder="20.0127"
                                 className="mt-1"
@@ -977,8 +978,9 @@ export default function AdminDashboard() {
                               <Input
                                 id="longitude"
                                 name="longitude"
-                                type="number"
-                                step="0.000001"
+                                type="text"
+                                inputMode="decimal"
+                                pattern="[0-9.-]*"
                                 defaultValue={editingPlace?.longitude || ""}
                                 placeholder="41.4676"
                                 className="mt-1"
