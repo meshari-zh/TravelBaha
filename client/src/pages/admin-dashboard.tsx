@@ -677,6 +677,9 @@ export default function AdminDashboard() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
+    const latitudeStr = formData.get("latitude") as string;
+    const longitudeStr = formData.get("longitude") as string;
+    
     const data: InsertPlace = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
@@ -684,6 +687,8 @@ export default function AdminDashboard() {
       location: formData.get("location") as string,
       category: formData.get("category") as string,
       websiteUrl: formData.get("websiteUrl") as string || null,
+      latitude: latitudeStr ? latitudeStr : null,
+      longitude: longitudeStr ? longitudeStr : null,
     };
 
     if (editingPlace) {
@@ -943,6 +948,45 @@ export default function AdminDashboard() {
                           <p className="text-xs text-muted-foreground mt-1">
                             رابط الموقع الإلكتروني الرسمي للمكان (اختياري)
                           </p>
+                        </div>
+                        
+                        <div className="border rounded-lg p-3 bg-blue-50 dark:bg-blue-950">
+                          <Label className="text-blue-800 dark:text-blue-200 font-semibold mb-2 block">
+                            📍 إحداثيات الموقع على الخريطة
+                          </Label>
+                          <p className="text-xs text-blue-600 dark:text-blue-300 mb-3">
+                            يمكنك الحصول على الإحداثيات من Google Maps بالضغط بزر الماوس الأيمن على الموقع
+                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label htmlFor="latitude" className="text-sm">خط العرض (Latitude)</Label>
+                              <Input
+                                id="latitude"
+                                name="latitude"
+                                type="number"
+                                step="0.000001"
+                                defaultValue={editingPlace?.latitude || ""}
+                                placeholder="20.0127"
+                                className="mt-1"
+                                dir="ltr"
+                                data-testid="input-place-latitude"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="longitude" className="text-sm">خط الطول (Longitude)</Label>
+                              <Input
+                                id="longitude"
+                                name="longitude"
+                                type="number"
+                                step="0.000001"
+                                defaultValue={editingPlace?.longitude || ""}
+                                placeholder="41.4676"
+                                className="mt-1"
+                                dir="ltr"
+                                data-testid="input-place-longitude"
+                              />
+                            </div>
+                          </div>
                         </div>
                         
                         <div className="flex gap-2">

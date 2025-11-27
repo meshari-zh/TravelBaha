@@ -45,6 +45,8 @@ export const places = pgTable("places", {
   location: text("location"),
   category: varchar("category"),
   websiteUrl: text("website_url"),
+  latitude: decimal("latitude", { precision: 10, scale: 6 }),
+  longitude: decimal("longitude", { precision: 10, scale: 6 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

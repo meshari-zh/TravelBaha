@@ -78,18 +78,28 @@ const knownPlacesCoordinates: { [key: string]: { lat: number; lng: number } } = 
   'قلوة': { lat: 19.8200, lng: 41.2500 },
 };
 
-// الحصول على إحداثيات المكان (من القائمة المعروفة أو القيم الافتراضية)
-const getPlaceCoordinates = (placeName: string, defaultLat?: number, defaultLng?: number): { lat: number; lng: number } => {
-  // البحث عن اسم مطابق أو جزئي
+// الحصول على إحداثيات المكان (أولوية للإحداثيات المحفوظة ثم القائمة المعروفة)
+const getPlaceCoordinates = (placeName: string, savedLat?: string | number | null, savedLng?: string | number | null): { lat: number; lng: number } => {
+  // أولاً: استخدم الإحداثيات المحفوظة في قاعدة البيانات إذا كانت موجودة
+  if (savedLat && savedLng) {
+    const lat = typeof savedLat === 'string' ? parseFloat(savedLat) : savedLat;
+    const lng = typeof savedLng === 'string' ? parseFloat(savedLng) : savedLng;
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return { lat, lng };
+    }
+  }
+  
+  // ثانياً: البحث عن اسم مطابق أو جزئي في القائمة المعروفة
   for (const [name, coords] of Object.entries(knownPlacesCoordinates)) {
     if (placeName.includes(name) || name.includes(placeName)) {
       return coords;
     }
   }
-  // إذا لم يوجد، استخدم القيم المعطاة أو إحداثيات عشوائية قريبة من الباحة
+  
+  // أخيراً: استخدم إحداثيات عشوائية قريبة من الباحة
   return {
-    lat: defaultLat || (20.0127 + (Math.random() - 0.5) * 0.2),
-    lng: defaultLng || (41.4676 + (Math.random() - 0.5) * 0.2)
+    lat: 20.0127 + (Math.random() - 0.5) * 0.2,
+    lng: 41.4676 + (Math.random() - 0.5) * 0.2
   };
 };
 
