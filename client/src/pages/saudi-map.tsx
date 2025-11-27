@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, Polygon } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, Polygon, Tooltip } from 'react-leaflet'
 import L, { LatLngExpression, LatLngTuple } from 'leaflet'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -8,9 +8,41 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { MapPin, ExternalLink, Plus } from 'lucide-react'
+import { MapPin, ExternalLink, Plus, Navigation, Car, Clock } from 'lucide-react'
 import Navbar from '@/components/navbar'
 import 'leaflet/dist/leaflet.css'
+
+// حساب المسافة بين نقطتين (صيغة Haversine)
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // نصف قطر الأرض بالكيلومترات
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+// حساب وقت الوصول التقريبي (بافتراض سرعة 80 كم/ساعة)
+const calculateDrivingTime = (distance: number): string => {
+  const hours = Math.floor(distance / 80);
+  const minutes = Math.round((distance % 80) / 80 * 60);
+  if (hours === 0) return `${minutes} دقيقة`;
+  if (minutes === 0) return `${hours} ساعة`;
+  return `${hours} ساعة و ${minutes} دقيقة`;
+};
+
+// إنشاء رابط Google Maps للتوجيه
+const getGoogleMapsDirectionsUrl = (lat: number, lng: number, placeName: string): string => {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(placeName)}`;
+};
+
+// إنشاء رابط Google Maps للموقع
+const getGoogleMapsUrl = (lat: number, lng: number, placeName: string): string => {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(placeName)}`;
+};
 
 // إحداثيات المدن
 const cities = {
@@ -18,6 +50,48 @@ const cities = {
   mecca: { lat: 21.3891, lng: 39.8579, name: 'مكة المكرمة' },
   riyadh: { lat: 24.7136, lng: 46.6753, name: 'الرياض' }
 }
+
+// إحداثيات دقيقة للأماكن السياحية المشهورة في الباحة (من Google Maps)
+const knownPlacesCoordinates: { [key: string]: { lat: number; lng: number } } = {
+  'غابة رغدان': { lat: 20.0089, lng: 41.4553 },
+  'رغدان': { lat: 20.0089, lng: 41.4553 },
+  'منتزه رغدان': { lat: 20.0089, lng: 41.4553 },
+  'قرية ذي عين': { lat: 19.9297, lng: 41.4422 },
+  'ذي عين': { lat: 19.9297, lng: 41.4422 },
+  'قرية ذي عين الأثرية': { lat: 19.9297, lng: 41.4422 },
+  'جبل شدا الأعلى': { lat: 19.8500, lng: 41.3000 },
+  'شدا الأعلى': { lat: 19.8500, lng: 41.3000 },
+  'وادي الخيطان': { lat: 20.0500, lng: 41.5000 },
+  'غابة خيرة': { lat: 20.1200, lng: 41.4800 },
+  'منتزه الأمير حسام': { lat: 20.0150, lng: 41.4700 },
+  'سوق الخميس': { lat: 20.0100, lng: 41.4650 },
+  'قلعة شمسان': { lat: 20.0180, lng: 41.4620 },
+  'جبل أثرب': { lat: 19.9800, lng: 41.4200 },
+  'وادي تربة': { lat: 20.1000, lng: 41.6000 },
+  'العقيق': { lat: 20.2700, lng: 41.6400 },
+  'بلجرشي': { lat: 19.8500, lng: 41.5500 },
+  'المندق': { lat: 20.2300, lng: 41.3200 },
+  'القرى': { lat: 20.0800, lng: 41.2800 },
+  'بني حسن': { lat: 20.1500, lng: 41.3500 },
+  'غامد الزناد': { lat: 19.9000, lng: 41.6000 },
+  'الحجرة': { lat: 19.7500, lng: 41.4000 },
+  'قلوة': { lat: 19.8200, lng: 41.2500 },
+};
+
+// الحصول على إحداثيات المكان (من القائمة المعروفة أو القيم الافتراضية)
+const getPlaceCoordinates = (placeName: string, defaultLat?: number, defaultLng?: number): { lat: number; lng: number } => {
+  // البحث عن اسم مطابق أو جزئي
+  for (const [name, coords] of Object.entries(knownPlacesCoordinates)) {
+    if (placeName.includes(name) || name.includes(placeName)) {
+      return coords;
+    }
+  }
+  // إذا لم يوجد، استخدم القيم المعطاة أو إحداثيات عشوائية قريبة من الباحة
+  return {
+    lat: defaultLat || (20.0127 + (Math.random() - 0.5) * 0.2),
+    lng: defaultLng || (41.4676 + (Math.random() - 0.5) * 0.2)
+  };
+};
 
 // حدود منطقة الباحة التقريبية
 const albahaRegionBounds: LatLngTuple[] = [
@@ -212,47 +286,112 @@ export default function SaudiMap() {
 
                     {/* علامات الأماكن السياحية من قاعدة البيانات */}
                     {!placesLoading && placesArray.map((place: any) => {
-                      // استخدام إحداثيات عشوائية قريبة من الباحة للأماكن بدون إحداثيات
-                      const lat = place.latitude || (20.0127 + (Math.random() - 0.5) * 0.3)
-                      const lng = place.longitude || (41.4676 + (Math.random() - 0.5) * 0.3)
+                      // استخدام الإحداثيات الدقيقة من القائمة المعروفة
+                      const coords = getPlaceCoordinates(place.name, place.latitude, place.longitude);
+                      const lat = coords.lat;
+                      const lng = coords.lng;
+                      
+                      // حساب المسافة من الباحة
+                      const distanceFromAlbaha = calculateDistance(
+                        cities.albaha.lat, cities.albaha.lng,
+                        lat, lng
+                      );
+                      const drivingTime = calculateDrivingTime(distanceFromAlbaha);
                       
                       return (
                         <Marker key={place.id} position={[lat, lng]} icon={touristIcon}>
+                          {/* اسم المكان تحت العلامة */}
+                          <Tooltip 
+                            direction="bottom" 
+                            offset={[0, 20]} 
+                            permanent
+                            className="place-name-tooltip"
+                          >
+                            <span className="font-bold text-sm">{place.name}</span>
+                          </Tooltip>
+                          
                           <Popup>
-                            <div className="p-3 min-w-[250px] text-right">
+                            <div className="p-3 min-w-[280px] text-right" dir="rtl">
                               <h3 className="font-bold text-lg mb-2 text-green-800">{place.name}</h3>
-                              <p className="text-sm text-gray-600 mb-2">{place.description}</p>
+                              <p className="text-sm text-gray-600 mb-3">{place.description}</p>
                               
                               {place.imageUrl && (
                                 <img 
                                   src={place.imageUrl} 
                                   alt={place.name}
-                                  className="w-full h-24 object-cover rounded-md mb-2"
+                                  className="w-full h-28 object-cover rounded-md mb-3"
                                 />
                               )}
                               
+                              {/* معلومات المسافة والوقت */}
+                              <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Car className="w-4 h-4 text-blue-600" />
+                                  <span className="font-semibold text-blue-800">المسافة من الباحة:</span>
+                                </div>
+                                <div className="text-lg font-bold text-blue-900 mb-1">
+                                  {distanceFromAlbaha.toFixed(1)} كم
+                                </div>
+                                <div className="flex items-center gap-1 text-sm text-blue-700">
+                                  <Clock className="w-3 h-3" />
+                                  <span>وقت الوصول التقريبي: {drivingTime}</span>
+                                </div>
+                              </div>
+                              
                               <div className="flex flex-col gap-2">
-                                <div className="text-xs text-gray-500">
-                                  📍 {place.location}
+                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {place.location}
                                 </div>
                                 
                                 {place.category && (
-                                  <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                  <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded inline-block">
                                     {place.category}
                                   </div>
                                 )}
                                 
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white"
-                                  onClick={() => {
-                                    window.open(`/places/${place.id}`, '_blank')
-                                  }}
-                                  data-testid={`button-view-place-${place.id}`}
-                                >
-                                  <ExternalLink className="w-3 h-3 ml-1" />
-                                  {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
-                                </Button>
+                                {/* أزرار التنقل */}
+                                <div className="flex flex-col gap-2 mt-2">
+                                  {/* زر التوجه لـ Google Maps */}
+                                  <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                                    onClick={() => {
+                                      window.open(getGoogleMapsDirectionsUrl(lat, lng, place.name), '_blank')
+                                    }}
+                                    data-testid={`button-directions-${place.id}`}
+                                  >
+                                    <Navigation className="w-4 h-4 ml-2" />
+                                    {language === 'ar' ? 'التوجه عبر Google Maps' : 'Get Directions'}
+                                  </Button>
+                                  
+                                  {/* زر عرض الموقع في Google Maps */}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-green-600 text-green-600 hover:bg-green-50 w-full"
+                                    onClick={() => {
+                                      window.open(getGoogleMapsUrl(lat, lng, place.name), '_blank')
+                                    }}
+                                    data-testid={`button-google-map-${place.id}`}
+                                  >
+                                    <MapPin className="w-4 h-4 ml-2" />
+                                    {language === 'ar' ? 'عرض في Google Maps' : 'View on Google Maps'}
+                                  </Button>
+                                  
+                                  {/* زر عرض التفاصيل */}
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700 text-white w-full"
+                                    onClick={() => {
+                                      window.open(`/places/${place.id}`, '_blank')
+                                    }}
+                                    data-testid={`button-view-place-${place.id}`}
+                                  >
+                                    <ExternalLink className="w-4 h-4 ml-2" />
+                                    {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </Popup>
