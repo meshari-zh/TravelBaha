@@ -44,6 +44,7 @@ export const places = pgTable("places", {
   imageUrl: text("image_url"),
   location: text("location"),
   category: varchar("category"),
+  websiteUrl: text("website_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

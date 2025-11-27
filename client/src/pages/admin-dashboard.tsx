@@ -683,6 +683,7 @@ export default function AdminDashboard() {
       imageUrl: placeImageUrl,
       location: formData.get("location") as string,
       category: formData.get("category") as string,
+      websiteUrl: formData.get("websiteUrl") as string || null,
     };
 
     if (editingPlace) {
@@ -925,6 +926,23 @@ export default function AdminDashboard() {
                             placeholder="مثال: طبيعة، تراث، جبال"
                             data-testid="input-place-category"
                           />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="websiteUrl">رابط الموقع الإلكتروني</Label>
+                          <Input
+                            id="websiteUrl"
+                            name="websiteUrl"
+                            type="url"
+                            defaultValue={editingPlace?.websiteUrl || ""}
+                            placeholder="https://example.com"
+                            className="mt-1"
+                            dir="ltr"
+                            data-testid="input-place-website-url"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            رابط الموقع الإلكتروني الرسمي للمكان (اختياري)
+                          </p>
                         </div>
                         
                         <div className="flex gap-2">
