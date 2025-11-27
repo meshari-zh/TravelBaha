@@ -966,7 +966,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 inputMode="decimal"
                                 pattern="[0-9.-]*"
-                                defaultValue={editingPlace?.latitude || ""}
+                                defaultValue={editingPlace?.latitude ? parseFloat(editingPlace.latitude).toString() : ""}
                                 placeholder="20.0127"
                                 className="mt-1"
                                 dir="ltr"
@@ -981,7 +981,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 inputMode="decimal"
                                 pattern="[0-9.-]*"
-                                defaultValue={editingPlace?.longitude || ""}
+                                defaultValue={editingPlace?.longitude ? parseFloat(editingPlace.longitude).toString() : ""}
                                 placeholder="41.4676"
                                 className="mt-1"
                                 dir="ltr"
