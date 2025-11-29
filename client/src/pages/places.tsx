@@ -77,8 +77,8 @@ export default function Places() {
       setIsDialogOpen(false);
       setEditingPlace(null);
       toast({
-        title: "تم تحديث المكان بنجاح",
-        description: "تم حفظ التغييرات",
+        title: language === 'ar' ? "تم تحديث المكان بنجاح" : "Place updated successfully",
+        description: language === 'ar' ? "تم حفظ التغييرات" : "Changes have been saved",
       });
     },
     onError: (error) => {
@@ -94,8 +94,8 @@ export default function Places() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث المكان",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث المكان" : "Failed to update place",
         variant: "destructive",
       });
     },
@@ -108,8 +108,8 @@ export default function Places() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
       toast({
-        title: "تم حذف المكان",
-        description: "تم حذف المكان السياحي بنجاح",
+        title: language === 'ar' ? "تم حذف المكان" : "Place deleted",
+        description: language === 'ar' ? "تم حذف المكان السياحي بنجاح" : "Tourist place has been deleted successfully",
       });
     },
     onError: (error) => {
@@ -125,8 +125,8 @@ export default function Places() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في حذف المكان",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف المكان" : "Failed to delete place",
         variant: "destructive",
       });
     },

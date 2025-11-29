@@ -26,6 +26,7 @@ import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, Inse
 // مكون تعديل محتوى الخريطة
 function MapContentEditorComponent() {
   const { toast } = useToast();
+  const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
 
   // جلب المحتوى الحالي للخريطة
@@ -63,8 +64,8 @@ function MapContentEditorComponent() {
     },
     onSuccess: (_, variables) => {
       toast({
-        title: "تم التحديث بنجاح",
-        description: "تم حفظ التغييرات على المحتوى",
+        title: language === 'ar' ? "تم التحديث بنجاح" : "Updated Successfully",
+        description: language === 'ar' ? "تم حفظ التغييرات على المحتوى" : "Content changes have been saved",
       });
       setIsEditing(prev => ({ ...prev, [variables.key]: false }));
       
@@ -79,8 +80,8 @@ function MapContentEditorComponent() {
     onError: (error) => {
       console.error('Update error:', error);
       toast({
-        title: "خطأ في التحديث",
-        description: "لم يتم حفظ التغييرات",
+        title: language === 'ar' ? "خطأ في التحديث" : "Update Error",
+        description: language === 'ar' ? "لم يتم حفظ التغييرات" : "Changes could not be saved",
         variant: "destructive"
       });
     }
@@ -93,8 +94,8 @@ function MapContentEditorComponent() {
     
     if (!content.trim()) {
       toast({
-        title: "خطأ في البيانات",
-        description: "المحتوى لا يمكن أن يكون فارغاً",
+        title: language === 'ar' ? "خطأ في البيانات" : "Data Error",
+        description: language === 'ar' ? "المحتوى لا يمكن أن يكون فارغاً" : "Content cannot be empty",
         variant: "destructive"
       });
       return;
@@ -106,22 +107,22 @@ function MapContentEditorComponent() {
   const contentItems = [
     {
       key: 'map_title',
-      title: 'عنوان الخريطة',
-      description: 'العنوان الرئيسي المعروض في أعلى صفحة الخريطة',
+      title: language === 'ar' ? 'عنوان الخريطة' : 'Map Title',
+      description: language === 'ar' ? 'العنوان الرئيسي المعروض في أعلى صفحة الخريطة' : 'Main title displayed at the top of the map page',
       currentValue: mapTitle,
       icon: '🗺️'
     },
     {
       key: 'map_subtitle', 
-      title: 'العنوان الفرعي للخريطة',
-      description: 'النص الثانوي المعروض تحت العنوان الرئيسي',
+      title: language === 'ar' ? 'العنوان الفرعي للخريطة' : 'Map Subtitle',
+      description: language === 'ar' ? 'النص الثانوي المعروض تحت العنوان الرئيسي' : 'Secondary text displayed under the main title',
       currentValue: mapSubtitle,
       icon: '📍'
     },
     {
       key: 'map_description',
-      title: 'وصف الخريطة',
-      description: 'النص التوضيحي الذي يوضح فائدة الخريطة',
+      title: language === 'ar' ? 'وصف الخريطة' : 'Map Description',
+      description: language === 'ar' ? 'النص التوضيحي الذي يوضح فائدة الخريطة' : 'Explanatory text describing the map benefits',
       currentValue: mapDescription,
       icon: '📝'
     }
@@ -148,7 +149,7 @@ function MapContentEditorComponent() {
                 data-testid={`button-edit-${item.key}`}
               >
                 <Edit className="w-4 h-4 ml-1" />
-                {isEditing[item.key] ? 'إلغاء' : 'تعديل'}
+                {isEditing[item.key] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
               </Button>
             </div>
           </CardHeader>
@@ -161,7 +162,7 @@ function MapContentEditorComponent() {
             ) : (
               <form onSubmit={handleSubmit(item.key, item.title)} className="space-y-4">
                 <div>
-                  <Label htmlFor={`content-${item.key}`}>المحتوى الجديد</Label>
+                  <Label htmlFor={`content-${item.key}`}>{language === 'ar' ? 'المحتوى الجديد' : 'New Content'}</Label>
                   <Textarea
                     id={`content-${item.key}`}
                     name="content"
@@ -178,14 +179,14 @@ function MapContentEditorComponent() {
                     disabled={updateContentMutation.isPending}
                     data-testid={`button-save-${item.key}`}
                   >
-                    {updateContentMutation.isPending ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                    {updateContentMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')}
                   </Button>
                   <Button 
                     type="button" 
                     variant="outline"
                     onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: false }))}
                   >
-                    إلغاء
+                    {language === 'ar' ? 'إلغاء' : 'Cancel'}
                   </Button>
                 </div>
               </form>
@@ -197,10 +198,12 @@ function MapContentEditorComponent() {
       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
           <MessageCircle className="w-5 h-5 text-blue-600" />
-          <h4 className="font-medium text-blue-900 dark:text-blue-100">ملاحظة مهمة</h4>
+          <h4 className="font-medium text-blue-900 dark:text-blue-100">{language === 'ar' ? 'ملاحظة مهمة' : 'Important Note'}</h4>
         </div>
         <p className="text-sm text-blue-700 dark:text-blue-300">
-          التغييرات المحفوظة ستظهر فوراً على صفحة الخريطة للمستخدمين. تأكد من مراجعة المحتوى قبل الحفظ.
+          {language === 'ar' 
+            ? 'التغييرات المحفوظة ستظهر فوراً على صفحة الخريطة للمستخدمين. تأكد من مراجعة المحتوى قبل الحفظ.'
+            : 'Saved changes will appear immediately on the map page for users. Make sure to review the content before saving.'}
         </p>
       </div>
     </div>
@@ -209,6 +212,7 @@ function MapContentEditorComponent() {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [isPlaceDialogOpen, setIsPlaceDialogOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
@@ -254,8 +258,8 @@ export default function AdminDashboard() {
         <div className="container mx-auto px-4 py-8">
           <Card className="text-center py-12">
             <CardContent>
-              <h2 className="text-2xl font-bold mb-4">غير مصرح</h2>
-              <p className="text-muted-foreground">هذه الصفحة مخصصة للمشرفين فقط</p>
+              <h2 className="text-2xl font-bold mb-4">{language === 'ar' ? 'غير مصرح' : 'Unauthorized'}</h2>
+              <p className="text-muted-foreground">{language === 'ar' ? 'هذه الصفحة مخصصة للمشرفين فقط' : 'This page is for administrators only'}</p>
             </CardContent>
           </Card>
         </div>
@@ -304,15 +308,15 @@ export default function AdminDashboard() {
       setIsPlaceDialogOpen(false);
       setEditingPlace(null);
       toast({
-        title: "تم إنشاء المكان بنجاح",
-        description: "تم إضافة المكان السياحي الجديد",
+        title: language === 'ar' ? "تم إنشاء المكان بنجاح" : "Place Created Successfully",
+        description: language === 'ar' ? "تم إضافة المكان السياحي الجديد" : "New tourist place has been added",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -321,8 +325,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إنشاء المكان",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إنشاء المكان" : "Failed to create place",
         variant: "destructive",
       });
     },
@@ -337,15 +341,15 @@ export default function AdminDashboard() {
       setIsPlaceDialogOpen(false);
       setEditingPlace(null);
       toast({
-        title: "تم تحديث المكان بنجاح",
-        description: "تم حفظ التغييرات",
+        title: language === 'ar' ? "تم تحديث المكان بنجاح" : "Place Updated Successfully",
+        description: language === 'ar' ? "تم حفظ التغييرات" : "Changes have been saved",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -354,8 +358,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث المكان",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث المكان" : "Failed to update place",
         variant: "destructive",
       });
     },
@@ -368,15 +372,15 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
       toast({
-        title: "تم حذف المكان",
-        description: "تم حذف المكان السياحي بنجاح",
+        title: language === 'ar' ? "تم حذف المكان" : "Place Deleted",
+        description: language === 'ar' ? "تم حذف المكان السياحي بنجاح" : "Tourist place has been deleted successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -385,8 +389,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في حذف المكان",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف المكان" : "Failed to delete place",
         variant: "destructive",
       });
     },
@@ -399,15 +403,15 @@ export default function AdminDashboard() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
       toast({
-        title: "تم إضافة معالم الباحة بنجاح",
-        description: `تم إضافة ${data?.places?.length || 28} معلم سياحي بنجاح`,
+        title: language === 'ar' ? "تم إضافة معالم الباحة بنجاح" : "Al Bahah Landmarks Added Successfully",
+        description: language === 'ar' ? `تم إضافة ${data?.places?.length || 28} معلم سياحي بنجاح` : `${data?.places?.length || 28} tourist landmarks added successfully`,
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -416,8 +420,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إضافة معالم الباحة",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إضافة معالم الباحة" : "Failed to add Al Bahah landmarks",
         variant: "destructive",
       });
     },
@@ -439,15 +443,17 @@ export default function AdminDashboard() {
       setGeneratedInviteCode(data.code);
       setIsInviteDialogOpen(true);
       toast({
-        title: "تم إنشاء رمز الدعوة",
-        description: `تم إنشاء رمز دعوة جديد لدور ${data.role === 'guide' ? 'مرشد' : 'مشرف'}`,
+        title: language === 'ar' ? "تم إنشاء رمز الدعوة" : "Invite Code Created",
+        description: language === 'ar' 
+          ? `تم إنشاء رمز دعوة جديد لدور ${data.role === 'guide' ? 'مرشد' : 'مشرف'}`
+          : `New invite code created for ${data.role === 'guide' ? 'guide' : 'admin'} role`,
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -456,8 +462,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إنشاء رمز الدعوة",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إنشاء رمز الدعوة" : "Failed to create invite code",
         variant: "destructive",
       });
     },
@@ -470,15 +476,15 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
       toast({
-        title: "تم حذف رمز الدعوة",
-        description: "تم حذف رمز الدعوة بنجاح",
+        title: language === 'ar' ? "تم حذف رمز الدعوة" : "Invite Code Deleted",
+        description: language === 'ar' ? "تم حذف رمز الدعوة بنجاح" : "Invite code has been deleted successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -487,8 +493,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في حذف رمز الدعوة",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف رمز الدعوة" : "Failed to delete invite code",
         variant: "destructive",
       });
     },
@@ -501,15 +507,15 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
-        title: "تم تحديث الدور",
-        description: "تم تحديث دور المستخدم بنجاح",
+        title: language === 'ar' ? "تم تحديث الدور" : "Role Updated",
+        description: language === 'ar' ? "تم تحديث دور المستخدم بنجاح" : "User role has been updated successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -518,8 +524,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث دور المستخدم",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث دور المستخدم" : "Failed to update user role",
         variant: "destructive",
       });
     },
@@ -535,15 +541,15 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
       toast({
-        title: "تم حذف المستخدم",
-        description: "تم حذف المستخدم وجميع بياناته بنجاح",
+        title: language === 'ar' ? "تم حذف المستخدم" : "User Deleted",
+        description: language === 'ar' ? "تم حذف المستخدم وجميع بياناته بنجاح" : "User and all their data have been deleted successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -552,8 +558,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في حذف المستخدم",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف المستخدم" : "Failed to delete user",
         variant: "destructive",
       });
     },
@@ -569,15 +575,15 @@ export default function AdminDashboard() {
       setIsTeamDialogOpen(false);
       setEditingTeamMember(null);
       toast({
-        title: "تم إضافة عضو الفريق",
-        description: "تم إضافة عضو جديد لفريق العمل بنجاح",
+        title: language === 'ar' ? "تم إضافة عضو الفريق" : "Team Member Added",
+        description: language === 'ar' ? "تم إضافة عضو جديد لفريق العمل بنجاح" : "New team member has been added successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -586,8 +592,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إضافة عضو الفريق",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إضافة عضو الفريق" : "Failed to add team member",
         variant: "destructive",
       });
     },
@@ -602,15 +608,15 @@ export default function AdminDashboard() {
       setIsTeamDialogOpen(false);
       setEditingTeamMember(null);
       toast({
-        title: "تم تحديث عضو الفريق",
-        description: "تم تحديث بيانات عضو الفريق بنجاح",
+        title: language === 'ar' ? "تم تحديث عضو الفريق" : "Team Member Updated",
+        description: language === 'ar' ? "تم تحديث بيانات عضو الفريق بنجاح" : "Team member data has been updated successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -619,8 +625,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث عضو الفريق",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث عضو الفريق" : "Failed to update team member",
         variant: "destructive",
       });
     },
@@ -633,15 +639,15 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-members"] });
       toast({
-        title: "تم حذف عضو الفريق",
-        description: "تم حذف عضو الفريق بنجاح",
+        title: language === 'ar' ? "تم حذف عضو الفريق" : "Team Member Deleted",
+        description: language === 'ar' ? "تم حذف عضو الفريق بنجاح" : "Team member has been deleted successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -650,8 +656,8 @@ export default function AdminDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في حذف عضو الفريق",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف عضو الفريق" : "Failed to delete team member",
         variant: "destructive",
       });
     },
@@ -661,13 +667,13 @@ export default function AdminDashboard() {
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: "تم النسخ",
-        description: "تم نسخ رمز الدعوة إلى الحافظة",
+        title: language === 'ar' ? "تم النسخ" : "Copied",
+        description: language === 'ar' ? "تم نسخ رمز الدعوة إلى الحافظة" : "Invite code copied to clipboard",
       });
     } catch (err) {
       toast({
-        title: "خطأ في النسخ",
-        description: "فشل في نسخ رمز الدعوة",
+        title: language === 'ar' ? "خطأ في النسخ" : "Copy Error",
+        description: language === 'ar' ? "فشل في نسخ رمز الدعوة" : "Failed to copy invite code",
         variant: "destructive",
       });
     }
@@ -704,13 +710,19 @@ export default function AdminDashboard() {
   };
 
   const handleSeedPlaces = () => {
-    if (confirm("هل أنت متأكد من إضافة جميع معالم الباحة السياحية؟ سيتم إضافة 28 معلم سياحي.")) {
+    const confirmMsg = language === 'ar' 
+      ? "هل أنت متأكد من إضافة جميع معالم الباحة السياحية؟ سيتم إضافة 28 معلم سياحي."
+      : "Are you sure you want to add all Al Bahah tourist landmarks? 28 landmarks will be added.";
+    if (confirm(confirmMsg)) {
       seedPlacesMutation.mutate();
     }
   };
 
   const handleDeletePlace = (place: Place) => {
-    if (confirm(`هل أنت متأكد من حذف "${place.name}"؟`)) {
+    const confirmMsg = language === 'ar' 
+      ? `هل أنت متأكد من حذف "${place.name}"؟`
+      : `Are you sure you want to delete "${place.name}"?`;
+    if (confirm(confirmMsg)) {
       deletePlaceMutation.mutate(place.id);
     }
   };
@@ -744,7 +756,10 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteTeamMember = (member: TeamMember) => {
-    if (confirm(`هل أنت متأكد من حذف "${member.name}"؟`)) {
+    const confirmMsg = language === 'ar' 
+      ? `هل أنت متأكد من حذف "${member.name}"؟`
+      : `Are you sure you want to delete "${member.name}"?`;
+    if (confirm(confirmMsg)) {
       deleteTeamMemberMutation.mutate(member.id);
     }
   };
@@ -756,8 +771,8 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">لوحة تحكم المشرف</h1>
-          <p className="text-muted-foreground">إدارة المنصة والمحتوى والمستخدمين</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</h1>
+          <p className="text-muted-foreground">{language === 'ar' ? 'إدارة المنصة والمحتوى والمستخدمين' : 'Manage platform, content, and users'}</p>
         </div>
 
         {/* Statistics */}
@@ -768,7 +783,7 @@ export default function AdminDashboard() {
                 <MapPin className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-places">{stats.totalPlaces}</h3>
-              <p className="text-muted-foreground">الأماكن السياحية</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'الأماكن السياحية' : 'Tourist Places'}</p>
             </CardContent>
           </Card>
 
@@ -778,7 +793,7 @@ export default function AdminDashboard() {
                 <Users className="w-6 h-6 text-secondary" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-guides">{stats.totalGuides}</h3>
-              <p className="text-muted-foreground">المرشدين السياحيين</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'المرشدين السياحيين' : 'Tour Guides'}</p>
             </CardContent>
           </Card>
 
@@ -788,7 +803,7 @@ export default function AdminDashboard() {
                 <TrendingUp className="w-6 h-6 text-accent" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-bookings">{stats.totalBookings}</h3>
-              <p className="text-muted-foreground">إجمالي الحجوزات</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'إجمالي الحجوزات' : 'Total Bookings'}</p>
             </CardContent>
           </Card>
 
@@ -798,7 +813,7 @@ export default function AdminDashboard() {
                 <MessageCircle className="w-6 h-6 text-orange-600" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-pending">{stats.pendingBookings}</h3>
-              <p className="text-muted-foreground">حجوزات في الانتظار</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'حجوزات في الانتظار' : 'Pending Bookings'}</p>
             </CardContent>
           </Card>
         </div>
@@ -806,13 +821,13 @@ export default function AdminDashboard() {
         {/* Management Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="w-full overflow-x-auto -mx-4 px-4">
-            <TabsTrigger value="places" data-testid="tab-places" className="shrink-0 whitespace-nowrap">الأماكن السياحية</TabsTrigger>
-            <TabsTrigger value="guides" data-testid="tab-guides" className="shrink-0 whitespace-nowrap">المرشدين السياحيين</TabsTrigger>
-            <TabsTrigger value="bookings" data-testid="tab-bookings" className="shrink-0 whitespace-nowrap">الحجوزات</TabsTrigger>
-            <TabsTrigger value="users" data-testid="tab-users" className="shrink-0 whitespace-nowrap">إدارة المستخدمين</TabsTrigger>
-            <TabsTrigger value="team" data-testid="tab-team" className="shrink-0 whitespace-nowrap">فريق العمل</TabsTrigger>
-            <TabsTrigger value="content" data-testid="tab-content" className="shrink-0 whitespace-nowrap">محتوى الموقع</TabsTrigger>
-            <TabsTrigger value="invites" data-testid="tab-invites" className="shrink-0 whitespace-nowrap">رموز الدعوة</TabsTrigger>
+            <TabsTrigger value="places" data-testid="tab-places" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'الأماكن السياحية' : 'Tourist Places'}</TabsTrigger>
+            <TabsTrigger value="guides" data-testid="tab-guides" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'المرشدين السياحيين' : 'Tour Guides'}</TabsTrigger>
+            <TabsTrigger value="bookings" data-testid="tab-bookings" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</TabsTrigger>
+            <TabsTrigger value="users" data-testid="tab-users" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'إدارة المستخدمين' : 'User Management'}</TabsTrigger>
+            <TabsTrigger value="team" data-testid="tab-team" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'فريق العمل' : 'Team'}</TabsTrigger>
+            <TabsTrigger value="content" data-testid="tab-content" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'محتوى الموقع' : 'Website Content'}</TabsTrigger>
+            <TabsTrigger value="invites" data-testid="tab-invites" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'رموز الدعوة' : 'Invite Codes'}</TabsTrigger>
           </TabsList>
 
           {/* Places Management */}
@@ -820,7 +835,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>إدارة الأماكن السياحية</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'إدارة الأماكن السياحية' : 'Tourist Places Management'}</CardTitle>
                   <div className="flex gap-2">
                     <Button 
                       onClick={handleSeedPlaces}
@@ -828,7 +843,9 @@ export default function AdminDashboard() {
                       disabled={seedPlacesMutation.isPending}
                       data-testid="button-seed-places"
                     >
-                      {seedPlacesMutation.isPending ? 'جاري إضافة المعالم...' : 'إضافة معالم الباحة'}
+                      {seedPlacesMutation.isPending 
+                        ? (language === 'ar' ? 'جاري إضافة المعالم...' : 'Adding landmarks...') 
+                        : (language === 'ar' ? 'إضافة معالم الباحة' : 'Add Al Bahah Landmarks')}
                     </Button>
                     <Dialog open={isPlaceDialogOpen} onOpenChange={setIsPlaceDialogOpen}>
                       <DialogTrigger asChild>
@@ -837,19 +854,21 @@ export default function AdminDashboard() {
                           data-testid="button-add-place"
                         >
                           <Plus className="w-4 h-4 ml-2" />
-                          إضافة مكان جديد
+                          {language === 'ar' ? 'إضافة مكان جديد' : 'Add New Place'}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>
-                          {editingPlace ? 'تعديل المكان السياحي' : 'إضافة مكان سياحي جديد'}
+                          {editingPlace 
+                            ? (language === 'ar' ? 'تعديل المكان السياحي' : 'Edit Tourist Place') 
+                            : (language === 'ar' ? 'إضافة مكان سياحي جديد' : 'Add New Tourist Place')}
                         </DialogTitle>
                       </DialogHeader>
                       
                       <form onSubmit={handleSubmitPlace} className="space-y-4 pb-4">
                         <div>
-                          <Label htmlFor="name">اسم المكان</Label>
+                          <Label htmlFor="name">{language === 'ar' ? 'اسم المكان' : 'Place Name'}</Label>
                           <Input
                             id="name"
                             name="name"
@@ -860,7 +879,7 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="description">الوصف</Label>
+                          <Label htmlFor="description">{language === 'ar' ? 'الوصف' : 'Description'}</Label>
                           <Textarea
                             id="description"
                             name="description"
@@ -871,16 +890,16 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div className="space-y-3">
-                          <Label>صورة المكان</Label>
+                          <Label>{language === 'ar' ? 'صورة المكان' : 'Place Image'}</Label>
                           <ImageUploader
                             value={placeImageUrl}
                             onChange={setPlaceImageUrl}
                             preview={true}
                             className="w-full"
                           />
-                          <div className="text-center text-sm text-muted-foreground">أو</div>
+                          <div className="text-center text-sm text-muted-foreground">{language === 'ar' ? 'أو' : 'or'}</div>
                           <div>
-                            <Label htmlFor="imageUrl">رابط الصورة (URL)</Label>
+                            <Label htmlFor="imageUrl">{language === 'ar' ? 'رابط الصورة (URL)' : 'Image URL'}</Label>
                             <Input
                               id="imageUrl"
                               name="imageUrl"
@@ -893,15 +912,15 @@ export default function AdminDashboard() {
                               data-testid="input-place-image-url"
                             />
                             <p className="text-xs text-muted-foreground mt-1">
-                              يمكنك إدخال رابط صورة من الإنترنت مباشرة
+                              {language === 'ar' ? 'يمكنك إدخال رابط صورة من الإنترنت مباشرة' : 'You can enter an image URL directly from the internet'}
                             </p>
                           </div>
                           {placeImageUrl && (
                             <div className="mt-2 p-2 border rounded-lg">
-                              <p className="text-xs text-muted-foreground mb-2">معاينة الصورة:</p>
+                              <p className="text-xs text-muted-foreground mb-2">{language === 'ar' ? 'معاينة الصورة:' : 'Image Preview:'}</p>
                               <img 
                                 src={placeImageUrl} 
-                                alt="معاينة" 
+                                alt={language === 'ar' ? 'معاينة' : 'Preview'} 
                                 className="w-full h-32 object-cover rounded"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
@@ -913,7 +932,7 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="location">الموقع</Label>
+                          <Label htmlFor="location">{language === 'ar' ? 'الموقع' : 'Location'}</Label>
                           <Input
                             id="location"
                             name="location"
@@ -923,18 +942,18 @@ export default function AdminDashboard() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="category">الفئة</Label>
+                          <Label htmlFor="category">{language === 'ar' ? 'الفئة' : 'Category'}</Label>
                           <Input
                             id="category"
                             name="category"
                             defaultValue={editingPlace?.category || ""}
-                            placeholder="مثال: طبيعة، تراث، جبال"
+                            placeholder={language === 'ar' ? 'مثال: طبيعة، تراث، جبال' : 'e.g., Nature, Heritage, Mountains'}
                             data-testid="input-place-category"
                           />
                         </div>
                         
                         <div>
-                          <Label htmlFor="websiteUrl">رابط الموقع الإلكتروني</Label>
+                          <Label htmlFor="websiteUrl">{language === 'ar' ? 'رابط الموقع الإلكتروني' : 'Website URL'}</Label>
                           <Input
                             id="websiteUrl"
                             name="websiteUrl"
@@ -946,16 +965,18 @@ export default function AdminDashboard() {
                             data-testid="input-place-website-url"
                           />
                           <p className="text-xs text-muted-foreground mt-1">
-                            رابط الموقع الإلكتروني الرسمي للمكان (اختياري)
+                            {language === 'ar' ? 'رابط الموقع الإلكتروني الرسمي للمكان (اختياري)' : 'Official website URL for the place (optional)'}
                           </p>
                         </div>
                         
                         <div className="border rounded-lg p-3 bg-blue-50 dark:bg-blue-950">
                           <Label className="text-blue-800 dark:text-blue-200 font-semibold mb-2 block">
-                            📍 إحداثيات الموقع على الخريطة
+                            📍 {language === 'ar' ? 'إحداثيات الموقع على الخريطة' : 'Map Coordinates'}
                           </Label>
                           <p className="text-xs text-blue-600 dark:text-blue-300 mb-3">
-                            يمكنك الحصول على الإحداثيات من Google Maps بالضغط بزر الماوس الأيمن على الموقع
+                            {language === 'ar' 
+                              ? 'يمكنك الحصول على الإحداثيات من Google Maps بالضغط بزر الماوس الأيمن على الموقع'
+                              : 'You can get coordinates from Google Maps by right-clicking on the location'}
                           </p>
                           <div className="grid grid-cols-2 gap-3">
                             <div>
@@ -997,8 +1018,11 @@ export default function AdminDashboard() {
                             disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
                             data-testid="button-save-place"
                           >
-                            {createPlaceMutation.isPending || updatePlaceMutation.isPending ? 'جاري الحفظ...' : 
-                             editingPlace ? 'تحديث' : 'إضافة'}
+                            {createPlaceMutation.isPending || updatePlaceMutation.isPending 
+                              ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+                              : editingPlace 
+                                ? (language === 'ar' ? 'تحديث' : 'Update') 
+                                : (language === 'ar' ? 'إضافة' : 'Add')}
                           </Button>
                           <Button 
                             type="button" 
@@ -1006,7 +1030,7 @@ export default function AdminDashboard() {
                             onClick={() => setIsPlaceDialogOpen(false)}
                             data-testid="button-cancel-place"
                           >
-                            إلغاء
+                            {language === 'ar' ? 'إلغاء' : 'Cancel'}
                           </Button>
                         </div>
                       </form>
@@ -1019,7 +1043,7 @@ export default function AdminDashboard() {
               <CardContent>
                 {places.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">لا توجد أماكن سياحية</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا توجد أماكن سياحية' : 'No tourist places'}</p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1058,13 +1082,13 @@ export default function AdminDashboard() {
           <TabsContent value="guides">
             <Card>
               <CardHeader>
-                <CardTitle>إدارة المرشدين السياحيين</CardTitle>
+                <CardTitle>{language === 'ar' ? 'إدارة المرشدين السياحيين' : 'Tour Guides Management'}</CardTitle>
               </CardHeader>
               
               <CardContent>
                 {guides.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">لا يوجد مرشدين سياحيين</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا يوجد مرشدين سياحيين' : 'No tour guides'}</p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1081,13 +1105,13 @@ export default function AdminDashboard() {
           <TabsContent value="bookings">
             <Card>
               <CardHeader>
-                <CardTitle>إدارة الحجوزات</CardTitle>
+                <CardTitle>{language === 'ar' ? 'إدارة الحجوزات' : 'Bookings Management'}</CardTitle>
               </CardHeader>
               
               <CardContent>
                 {bookings.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">لا توجد حجوزات</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا توجد حجوزات' : 'No bookings'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1097,15 +1121,16 @@ export default function AdminDashboard() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
-                                حجز رقم: {booking.id.slice(-6)}
+                                {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
                               </h4>
                               <p className="text-sm text-muted-foreground">
-                                من {new Date(booking.startDate).toLocaleDateString('ar-SA')} 
-                                إلى {new Date(booking.endDate).toLocaleDateString('ar-SA')}
+                                {language === 'ar' 
+                                  ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                                  : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
                               </p>
                               {booking.notes && (
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  ملاحظات: {booking.notes}
+                                  {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
                                 </p>
                               )}
                             </div>
@@ -1119,13 +1144,16 @@ export default function AdminDashboard() {
                                 }
                                 data-testid={`booking-status-${booking.id}`}
                               >
-                                {booking.status === 'confirmed' ? 'مؤكد' :
-                                 booking.status === 'pending' ? 'في الانتظار' :
-                                 booking.status === 'completed' ? 'مكتمل' :
-                                 'ملغي'}
+                                {language === 'ar'
+                                  ? (booking.status === 'confirmed' ? 'مؤكد' :
+                                     booking.status === 'pending' ? 'في الانتظار' :
+                                     booking.status === 'completed' ? 'مكتمل' : 'ملغي')
+                                  : (booking.status === 'confirmed' ? 'Confirmed' :
+                                     booking.status === 'pending' ? 'Pending' :
+                                     booking.status === 'completed' ? 'Completed' : 'Cancelled')}
                               </Badge>
                               <p className="text-sm font-semibold mt-2" data-testid={`booking-amount-${booking.id}`}>
-                                {booking.totalAmount} ر.س
+                                {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
                               </p>
                             </div>
                           </div>
@@ -1142,12 +1170,12 @@ export default function AdminDashboard() {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle>إدارة المستخدمين</CardTitle>
+                <CardTitle>{language === 'ar' ? 'إدارة المستخدمين' : 'User Management'}</CardTitle>
               </CardHeader>
               <CardContent>
                 {users.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">لا يوجد مستخدمين</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا يوجد مستخدمين' : 'No users'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1163,7 +1191,9 @@ export default function AdminDashboard() {
                                 {u.email}
                               </p>
                               <Badge variant="outline" className="mt-1" data-testid={`user-role-${u.id}`}>
-                                {u.role === 'tourist' ? 'سائح' : u.role === 'guide' ? 'مرشد' : 'مشرف'}
+                                {language === 'ar'
+                                  ? (u.role === 'tourist' ? 'سائح' : u.role === 'guide' ? 'مرشد' : 'مشرف')
+                                  : (u.role === 'tourist' ? 'Tourist' : u.role === 'guide' ? 'Guide' : 'Admin')}
                               </Badge>
                             </div>
                             <div className="flex gap-2 flex-wrap">
@@ -1175,7 +1205,7 @@ export default function AdminDashboard() {
                                   disabled={u.role === "tourist"}
                                   data-testid={`button-role-tourist-${u.id}`}
                                 >
-                                  سائح
+                                  {language === 'ar' ? 'سائح' : 'Tourist'}
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -1184,7 +1214,7 @@ export default function AdminDashboard() {
                                   disabled={u.role === "guide"}
                                   data-testid={`button-role-guide-${u.id}`}
                                 >
-                                  مرشد
+                                  {language === 'ar' ? 'مرشد' : 'Guide'}
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -1193,7 +1223,7 @@ export default function AdminDashboard() {
                                   disabled={u.role === "admin"}
                                   data-testid={`button-role-admin-${u.id}`}
                                 >
-                                  مشرف
+                                  {language === 'ar' ? 'مشرف' : 'Admin'}
                                 </Button>
                               </div>
                               
@@ -1209,20 +1239,21 @@ export default function AdminDashboard() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                                    <AlertDialogTitle>{language === 'ar' ? 'تأكيد الحذف' : 'Confirm Deletion'}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      هل أنت متأكد من حذف المستخدم "{u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email}"؟
-                                      سيتم حذف جميع البيانات المرتبطة به (الحجوزات، الرسائل، التقييمات) ولا يمكن التراجع عن هذا الإجراء.
+                                      {language === 'ar' 
+                                        ? `هل أنت متأكد من حذف المستخدم "${u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email}"؟ سيتم حذف جميع البيانات المرتبطة به (الحجوزات، الرسائل، التقييمات) ولا يمكن التراجع عن هذا الإجراء.`
+                                        : `Are you sure you want to delete user "${u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email}"? All associated data (bookings, messages, reviews) will be deleted and this action cannot be undone.`}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                    <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => deleteUserMutation.mutate(u.id)}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       data-testid={`button-confirm-delete-user-${u.id}`}
                                     >
-                                      حذف نهائي
+                                      {language === 'ar' ? 'حذف نهائي' : 'Delete Permanently'}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -1243,7 +1274,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>إدارة فريق العمل</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'إدارة فريق العمل' : 'Team Management'}</CardTitle>
                   <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
@@ -1251,20 +1282,22 @@ export default function AdminDashboard() {
                         data-testid="button-add-team-member"
                       >
                         <Plus className="w-4 h-4 ml-2" />
-                        إضافة عضو جديد
+                        {language === 'ar' ? 'إضافة عضو جديد' : 'Add New Member'}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-lg w-[95vw] h-[95vh] p-0 flex flex-col">
                       <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                         <DialogTitle>
-                          {editingTeamMember ? 'تعديل عضو الفريق' : 'إضافة عضو جديد للفريق'}
+                          {editingTeamMember 
+                            ? (language === 'ar' ? 'تعديل عضو الفريق' : 'Edit Team Member') 
+                            : (language === 'ar' ? 'إضافة عضو جديد للفريق' : 'Add New Team Member')}
                         </DialogTitle>
                       </DialogHeader>
                       
                       <div className="flex-1 overflow-y-auto px-6 pb-4" style={{minHeight: 0}}>
                           <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-24">
                             <div className="space-y-2">
-                              <Label htmlFor="name">اسم العضو</Label>
+                              <Label htmlFor="name">{language === 'ar' ? 'اسم العضو' : 'Member Name'}</Label>
                               <Input
                                 id="name"
                                 name="name"
@@ -1275,7 +1308,7 @@ export default function AdminDashboard() {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor="role">المنصب</Label>
+                              <Label htmlFor="role">{language === 'ar' ? 'المنصب' : 'Position'}</Label>
                               <Input
                                 id="role"
                                 name="role"
@@ -1286,7 +1319,7 @@ export default function AdminDashboard() {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor="description">الوصف</Label>
+                              <Label htmlFor="description">{language === 'ar' ? 'الوصف' : 'Description'}</Label>
                               <Textarea
                                 id="description"
                                 name="description"
@@ -1297,7 +1330,7 @@ export default function AdminDashboard() {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label>صورة العضو</Label>
+                              <Label>{language === 'ar' ? 'صورة العضو' : 'Member Photo'}</Label>
                               <ImageUploader
                                 value={teamMemberImageUrl}
                                 onChange={setTeamMemberImageUrl}
@@ -1307,7 +1340,7 @@ export default function AdminDashboard() {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor="orderIndex">ترتيب العرض</Label>
+                              <Label htmlFor="orderIndex">{language === 'ar' ? 'ترتيب العرض' : 'Display Order'}</Label>
                               <Input
                                 id="orderIndex"
                                 name="orderIndex"
@@ -1326,7 +1359,7 @@ export default function AdminDashboard() {
                           onClick={() => setIsTeamDialogOpen(false)}
                           data-testid="button-cancel-team-member"
                         >
-                          إلغاء
+                          {language === 'ar' ? 'إلغاء' : 'Cancel'}
                         </Button>
                         <Button 
                           type="submit" 
@@ -1335,8 +1368,10 @@ export default function AdminDashboard() {
                           data-testid="button-save-team-member"
                         >
                           {createTeamMemberMutation.isPending || updateTeamMemberMutation.isPending 
-                            ? 'جاري الحفظ...' 
-                            : editingTeamMember ? 'تحديث' : 'إضافة'
+                            ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+                            : editingTeamMember 
+                              ? (language === 'ar' ? 'تحديث' : 'Update') 
+                              : (language === 'ar' ? 'إضافة' : 'Add')
                           }
                         </Button>
                       </div>
@@ -1349,7 +1384,7 @@ export default function AdminDashboard() {
                 {teamMembers.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-muted-foreground">لا يوجد أعضاء في الفريق</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا يوجد أعضاء في الفريق' : 'No team members'}</p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1419,9 +1454,9 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Edit className="w-5 h-5 text-blue-600" />
-                  إدارة محتوى الموقع
+                  {language === 'ar' ? 'إدارة محتوى الموقع' : 'Website Content Management'}
                 </CardTitle>
-                <p className="text-muted-foreground">تعديل النصوص والمحتوى القابل للتحرير في الموقع</p>
+                <p className="text-muted-foreground">{language === 'ar' ? 'تعديل النصوص والمحتوى القابل للتحرير في الموقع' : 'Edit texts and editable content on the website'}</p>
               </CardHeader>
               <CardContent>
                 <MapContentEditorComponent />
@@ -1434,7 +1469,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>إدارة رموز الدعوة</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'إدارة رموز الدعوة' : 'Invite Codes Management'}</CardTitle>
                   <div className="flex gap-2">
                     <Button
                       onClick={() => createInviteMutation.mutate("guide")}
@@ -1442,7 +1477,7 @@ export default function AdminDashboard() {
                       data-testid="button-create-guide-invite"
                     >
                       <Key className="w-4 h-4 ml-2" />
-                      رمز دعوة مرشد
+                      {language === 'ar' ? 'رمز دعوة مرشد' : 'Guide Invite Code'}
                     </Button>
                     <Button
                       onClick={() => createInviteMutation.mutate("admin")}
@@ -1450,7 +1485,7 @@ export default function AdminDashboard() {
                       data-testid="button-create-admin-invite"
                     >
                       <UserCheck className="w-4 h-4 ml-2" />
-                      رمز دعوة مشرف
+                      {language === 'ar' ? 'رمز دعوة مشرف' : 'Admin Invite Code'}
                     </Button>
                   </div>
                 </div>
@@ -1458,7 +1493,7 @@ export default function AdminDashboard() {
               <CardContent>
                 {invites.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">لا توجد رموز دعوة</p>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'لا توجد رموز دعوة' : 'No invite codes'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1481,12 +1516,15 @@ export default function AdminDashboard() {
                                 </Button>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
-                                نوع الدور: {invite.role === 'guide' ? 'مرشد' : 'مشرف'} • 
-                                تم الإنشاء: {invite.createdAt ? new Date(invite.createdAt).toLocaleDateString('ar-SA') : 'غير معروف'}
+                                {language === 'ar' 
+                                  ? `نوع الدور: ${invite.role === 'guide' ? 'مرشد' : 'مشرف'} • تم الإنشاء: ${invite.createdAt ? new Date(invite.createdAt).toLocaleDateString('ar-SA') : 'غير معروف'}`
+                                  : `Role: ${invite.role === 'guide' ? 'Guide' : 'Admin'} • Created: ${invite.createdAt ? new Date(invite.createdAt).toLocaleDateString('en-US') : 'Unknown'}`}
                               </p>
                               {invite.isUsed && (
                                 <p className="text-sm text-green-600 mt-1" data-testid={`invite-used-${invite.id}`}>
-                                  تم الاستخدام في: {invite.usedAt ? new Date(invite.usedAt).toLocaleDateString('ar-SA') : 'غير معروف'}
+                                  {language === 'ar' 
+                                    ? `تم الاستخدام في: ${invite.usedAt ? new Date(invite.usedAt).toLocaleDateString('ar-SA') : 'غير معروف'}`
+                                    : `Used on: ${invite.usedAt ? new Date(invite.usedAt).toLocaleDateString('en-US') : 'Unknown'}`}
                                 </p>
                               )}
                             </div>
@@ -1495,7 +1533,9 @@ export default function AdminDashboard() {
                                 variant={invite.isUsed ? "secondary" : "default"}
                                 data-testid={`invite-status-${invite.id}`}
                               >
-                                {invite.isUsed ? 'مستخدم' : 'متاح'}
+                                {language === 'ar' 
+                                  ? (invite.isUsed ? 'مستخدم' : 'متاح')
+                                  : (invite.isUsed ? 'Used' : 'Available')}
                               </Badge>
                               <Button
                                 variant="ghost"
@@ -1523,11 +1563,11 @@ export default function AdminDashboard() {
         <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>رمز الدعوة الجديد</DialogTitle>
+              <DialogTitle>{language === 'ar' ? 'رمز الدعوة الجديد' : 'New Invite Code'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground mb-2">رمز الدعوة:</p>
+                <p className="text-sm text-muted-foreground mb-2">{language === 'ar' ? 'رمز الدعوة:' : 'Invite Code:'}</p>
                 <div className="flex items-center gap-2">
                   <code className="bg-background px-3 py-2 rounded border flex-1 text-center font-mono">
                     {generatedInviteCode}
@@ -1543,14 +1583,16 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                شارك هذا الرمز مع الشخص المناسب لتحديث دوره في المنصة
+                {language === 'ar' 
+                  ? 'شارك هذا الرمز مع الشخص المناسب لتحديث دوره في المنصة'
+                  : 'Share this code with the appropriate person to update their role on the platform'}
               </p>
               <Button 
                 onClick={() => setIsInviteDialogOpen(false)} 
                 className="w-full"
                 data-testid="button-close-invite-dialog"
               >
-                حسناً
+                {language === 'ar' ? 'حسناً' : 'OK'}
               </Button>
             </div>
           </DialogContent>
