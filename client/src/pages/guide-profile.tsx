@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -23,24 +24,34 @@ import type { Guide, Review } from "@shared/schema";
 import { insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
-const bookingFormSchema = z.object({
+const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
   startDate: z.date({
-    required_error: "يرجى تحديد تاريخ البداية",
+    required_error: language === 'ar' ? "يرجى تحديد تاريخ البداية" : "Please select a start date",
   }),
   endDate: z.date({
-    required_error: "يرجى تحديد تاريخ النهاية",
+    required_error: language === 'ar' ? "يرجى تحديد تاريخ النهاية" : "Please select an end date",
   }),
-  guests: z.coerce.number().min(1, "يجب أن يكون عدد الضيوف على الأقل 1").max(50, "الحد الأقصى 50 ضيف"),
+  guests: z.coerce.number()
+    .min(1, language === 'ar' ? "يجب أن يكون عدد الضيوف على الأقل 1" : "At least 1 guest is required")
+    .max(50, language === 'ar' ? "الحد الأقصى 50 ضيف" : "Maximum 50 guests"),
   notes: z.string().optional(),
 });
 
-type BookingFormData = z.infer<typeof bookingFormSchema>;
+type BookingFormData = {
+  startDate: Date;
+  endDate: Date;
+  guests: number;
+  notes?: string;
+};
 
 export default function GuideProfile() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [showBookingForm, setShowBookingForm] = useState(false);
+  
+  const bookingFormSchema = getBookingFormSchema(language);
 
   const { data: guide, isLoading, error } = useQuery<Guide>({
     queryKey: ["/api/guides", id],
@@ -71,8 +82,8 @@ export default function GuideProfile() {
       }),
     onSuccess: () => {
       toast({
-        title: "تم إرسال طلب الحجز!",
-        description: "سيتم التواصل معك قريباً لتأكيد الحجز",
+        title: language === 'ar' ? "تم إرسال طلب الحجز!" : "Booking Request Sent!",
+        description: language === 'ar' ? "سيتم التواصل معك قريباً لتأكيد الحجز" : "We will contact you soon to confirm the booking",
       });
       form.reset();
       setShowBookingForm(false);
@@ -80,8 +91,8 @@ export default function GuideProfile() {
     },
     onError: (error: any) => {
       toast({
-        title: "خطأ في إرسال الطلب",
-        description: error.message || "حدث خطأ أثناء إرسال طلب الحجز",
+        title: language === 'ar' ? "خطأ في إرسال الطلب" : "Request Error",
+        description: error.message || (language === 'ar' ? "حدث خطأ أثناء إرسال طلب الحجز" : "An error occurred while sending the booking request"),
         variant: "destructive",
       });
     },
@@ -92,15 +103,15 @@ export default function GuideProfile() {
   };
 
   const getUserDisplayName = () => {
-    if (!guide?.user) return 'مرشد سياحي';
-    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || 'مرشد سياحي';
+    if (!guide?.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
+    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
   };
 
   const getUserInitials = () => {
-    if (!guide?.user) return 'م';
+    if (!guide?.user) return language === 'ar' ? 'م' : 'G';
     const firstName = guide.user.firstName || '';
     const lastName = guide.user.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || 'م';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'G');
   };
 
   if (isLoading) {
@@ -131,10 +142,10 @@ export default function GuideProfile() {
         <div className="container mx-auto px-4 py-8">
           <Card className="text-center py-12">
             <CardContent>
-              <h3 className="font-semibold mb-2">المرشد غير موجود</h3>
-              <p className="text-muted-foreground mb-4">لم يتم العثور على المرشد المطلوب</p>
+              <h3 className="font-semibold mb-2">{language === 'ar' ? 'المرشد غير موجود' : 'Guide Not Found'}</h3>
+              <p className="text-muted-foreground mb-4">{language === 'ar' ? 'لم يتم العثور على المرشد المطلوب' : 'The requested guide could not be found'}</p>
               <Link href="/guides">
-                <Button variant="outline">العودة للمرشدين</Button>
+                <Button variant="outline">{language === 'ar' ? 'العودة للمرشدين' : 'Back to Guides'}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -150,7 +161,7 @@ export default function GuideProfile() {
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/guides" className="hover:text-foreground">المرشدين السياحيين</Link>
+          <Link href="/guides" className="hover:text-foreground">{language === 'ar' ? 'المرشدين السياحيين' : 'Tour Guides'}</Link>
           <ArrowRight className="w-4 h-4" />
           <span>{getUserDisplayName()}</span>
         </div>
@@ -187,13 +198,13 @@ export default function GuideProfile() {
                           {guide.rating ? parseFloat(guide.rating).toFixed(1) : '0.0'}
                         </span>
                         <span className="text-muted-foreground">
-                          ({guide.reviewCount || 0} تقييم)
+                          ({guide.reviewCount || 0} {language === 'ar' ? 'تقييم' : 'reviews'})
                         </span>
                       </div>
                       
                       {guide.dailyRate && (
                         <div className="text-xl font-bold text-secondary" data-testid="guide-profile-rate">
-                          {guide.dailyRate} ر.س/يوم
+                          {guide.dailyRate} {language === 'ar' ? 'ر.س/يوم' : 'SAR/day'}
                         </div>
                       )}
                     </div>
@@ -205,11 +216,11 @@ export default function GuideProfile() {
                             onClick={() => setShowBookingForm(true)}
                             data-testid="button-book-guide"
                           >
-                            احجز الآن
+                            {language === 'ar' ? 'احجز الآن' : 'Book Now'}
                           </Button>
                           <Button variant="outline" className="flex items-center gap-2">
                             <MessageCircle className="w-4 h-4" />
-                            تواصل
+                            {language === 'ar' ? 'تواصل' : 'Contact'}
                           </Button>
                         </>
                       )}
@@ -223,7 +234,7 @@ export default function GuideProfile() {
             {guide.specialties && guide.specialties.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>التخصصات</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'التخصصات' : 'Specialties'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -241,13 +252,13 @@ export default function GuideProfile() {
             {guide.languages && guide.languages.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>اللغات</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'اللغات' : 'Languages'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {guide.languages.map((language, index) => (
+                    {guide.languages.map((lang, index) => (
                       <Badge key={index} variant="outline">
-                        {language}
+                        {lang}
                       </Badge>
                     ))}
                   </div>
@@ -258,7 +269,7 @@ export default function GuideProfile() {
             {/* Reviews Section */}
             <Card>
               <CardHeader>
-                <CardTitle>التقييمات والمراجعات</CardTitle>
+                <CardTitle>{language === 'ar' ? 'التقييمات والمراجعات' : 'Ratings & Reviews'}</CardTitle>
               </CardHeader>
               <CardContent>
                 {reviewsLoading ? (
@@ -273,8 +284,8 @@ export default function GuideProfile() {
                 ) : reviews.length === 0 ? (
                   <div className="text-center py-8">
                     <Star className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">لا توجد تقييمات</h3>
-                    <p className="text-muted-foreground">كن أول من يقيم هذا المرشد</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد تقييمات' : 'No Reviews'}</h3>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'كن أول من يقيم هذا المرشد' : 'Be the first to review this guide'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -296,7 +307,7 @@ export default function GuideProfile() {
                               </span>
                             </div>
                             <span className="text-sm text-muted-foreground">
-                              {new Date(review.createdAt!).toLocaleDateString('ar-SA')}
+                              {new Date(review.createdAt!).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
                             </span>
                           </div>
                           {review.comment && (
@@ -318,21 +329,23 @@ export default function GuideProfile() {
             {user?.role === 'tourist' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>احجز جولة</CardTitle>
+                  <CardTitle>{language === 'ar' ? 'احجز جولة' : 'Book a Tour'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {!showBookingForm ? (
                     <div className="text-center py-8">
                       <CalendarIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground mb-4">
-                        احجز جولة مع {getUserDisplayName()} واكتشف جمال الباحة
+                        {language === 'ar' 
+                          ? `احجز جولة مع ${getUserDisplayName()} واكتشف جمال الباحة`
+                          : `Book a tour with ${getUserDisplayName()} and discover the beauty of Al Bahah`}
                       </p>
                       <Button 
                         onClick={() => setShowBookingForm(true)}
                         className="w-full"
                         data-testid="button-show-booking-form"
                       >
-                        ابدأ الحجز
+                        {language === 'ar' ? 'ابدأ الحجز' : 'Start Booking'}
                       </Button>
                     </div>
                   ) : (
@@ -344,7 +357,7 @@ export default function GuideProfile() {
                           name="startDate"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>تاريخ البداية</FormLabel>
+                              <FormLabel>{language === 'ar' ? 'تاريخ البداية' : 'Start Date'}</FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -360,7 +373,7 @@ export default function GuideProfile() {
                                       {field.value ? (
                                         format(field.value, "PPP")
                                       ) : (
-                                        <span>اختر التاريخ</span>
+                                        <span>{language === 'ar' ? 'اختر التاريخ' : 'Select date'}</span>
                                       )}
                                     </Button>
                                   </FormControl>
@@ -386,7 +399,7 @@ export default function GuideProfile() {
                           name="endDate"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>تاريخ النهاية</FormLabel>
+                              <FormLabel>{language === 'ar' ? 'تاريخ النهاية' : 'End Date'}</FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -402,7 +415,7 @@ export default function GuideProfile() {
                                       {field.value ? (
                                         format(field.value, "PPP")
                                       ) : (
-                                        <span>اختر التاريخ</span>
+                                        <span>{language === 'ar' ? 'اختر التاريخ' : 'Select date'}</span>
                                       )}
                                     </Button>
                                   </FormControl>
@@ -431,7 +444,7 @@ export default function GuideProfile() {
                           name="guests"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>عدد الضيوف</FormLabel>
+                              <FormLabel>{language === 'ar' ? 'عدد الضيوف' : 'Number of Guests'}</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -456,10 +469,10 @@ export default function GuideProfile() {
                           name="notes"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>ملاحظات خاصة (اختياري)</FormLabel>
+                              <FormLabel>{language === 'ar' ? 'ملاحظات خاصة (اختياري)' : 'Special Notes (Optional)'}</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="أي ملاحظات أو طلبات خاصة للمرشد..."
+                                  placeholder={language === 'ar' ? "أي ملاحظات أو طلبات خاصة للمرشد..." : "Any special notes or requests for the guide..."}
                                   className="resize-none"
                                   data-testid="input-notes"
                                   {...field}
@@ -477,7 +490,9 @@ export default function GuideProfile() {
                             disabled={bookingMutation.isPending}
                             data-testid="button-submit-booking"
                           >
-                            {bookingMutation.isPending ? "جاري الإرسال..." : "إرسال طلب الحجز"}
+                            {bookingMutation.isPending 
+                              ? (language === 'ar' ? "جاري الإرسال..." : "Sending...") 
+                              : (language === 'ar' ? "إرسال طلب الحجز" : "Submit Booking Request")}
                           </Button>
                           <Button 
                             type="button" 
@@ -485,7 +500,7 @@ export default function GuideProfile() {
                             onClick={() => setShowBookingForm(false)}
                             data-testid="button-cancel-booking"
                           >
-                            إلغاء
+                            {language === 'ar' ? 'إلغاء' : 'Cancel'}
                           </Button>
                         </div>
                       </form>

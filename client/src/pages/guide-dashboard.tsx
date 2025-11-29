@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,6 +21,7 @@ import type { Guide, InsertGuide, Booking, Review } from "@shared/schema";
 
 export default function GuideDashboard() {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [specialtyInput, setSpecialtyInput] = useState("");
   const [languageInput, setLanguageInput] = useState("");
@@ -32,8 +34,8 @@ export default function GuideDashboard() {
         <div className="container mx-auto px-4 py-8">
           <Card className="text-center py-12">
             <CardContent>
-              <h2 className="text-2xl font-bold mb-4">غير مصرح</h2>
-              <p className="text-muted-foreground">هذه الصفحة مخصصة للمرشدين السياحيين فقط</p>
+              <h2 className="text-2xl font-bold mb-4">{language === 'ar' ? 'غير مصرح' : 'Unauthorized'}</h2>
+              <p className="text-muted-foreground">{language === 'ar' ? 'هذه الصفحة مخصصة للمرشدين السياحيين فقط' : 'This page is only for tour guides'}</p>
             </CardContent>
           </Card>
         </div>
@@ -75,15 +77,15 @@ export default function GuideDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/guides/user", user?.id] });
       toast({
-        title: "تم إنشاء الملف الشخصي",
-        description: "تم إنشاء ملفك الشخصي كمرشد سياحي بنجاح",
+        title: language === 'ar' ? "تم إنشاء الملف الشخصي" : "Profile Created",
+        description: language === 'ar' ? "تم إنشاء ملفك الشخصي كمرشد سياحي بنجاح" : "Your tour guide profile has been created successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -92,8 +94,8 @@ export default function GuideDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إنشاء الملف الشخصي",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إنشاء الملف الشخصي" : "Failed to create profile",
         variant: "destructive",
       });
     },
@@ -106,15 +108,15 @@ export default function GuideDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/guides/user", user?.id] });
       toast({
-        title: "تم تحديث الملف الشخصي",
-        description: "تم حفظ التغييرات بنجاح",
+        title: language === 'ar' ? "تم تحديث الملف الشخصي" : "Profile Updated",
+        description: language === 'ar' ? "تم حفظ التغييرات بنجاح" : "Changes saved successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -123,8 +125,8 @@ export default function GuideDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث الملف الشخصي",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث الملف الشخصي" : "Failed to update profile",
         variant: "destructive",
       });
     },
@@ -137,15 +139,15 @@ export default function GuideDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       toast({
-        title: "تم تحديث الحجز",
-        description: "تم تحديث حالة الحجز بنجاح",
+        title: language === 'ar' ? "تم تحديث الحجز" : "Booking Updated",
+        description: language === 'ar' ? "تم تحديث حالة الحجز بنجاح" : "Booking status updated successfully",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -154,8 +156,8 @@ export default function GuideDashboard() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في تحديث الحجز",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث الحجز" : "Failed to update booking",
         variant: "destructive",
       });
     },
@@ -221,13 +223,13 @@ export default function GuideDashboard() {
   };
 
   const getUserDisplayName = () => {
-    return [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'مرشد سياحي';
+    return [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
   };
 
   const getUserInitials = () => {
     const firstName = user?.firstName || '';
     const lastName = user?.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'م';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || user?.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'G');
   };
 
   if (guideLoading) {
@@ -237,7 +239,7 @@ export default function GuideDashboard() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">جاري التحميل...</p>
+            <p className="text-muted-foreground">{language === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
           </div>
         </div>
       </div>
@@ -259,14 +261,14 @@ export default function GuideDashboard() {
             <h1 className="text-3xl font-bold text-foreground" data-testid="guide-display-name">
               {getUserDisplayName()}
             </h1>
-            <p className="text-muted-foreground">مرشد سياحي في منطقة الباحة</p>
+            <p className="text-muted-foreground">{language === 'ar' ? 'مرشد سياحي في منطقة الباحة' : 'Tour Guide in Al Bahah Region'}</p>
             {guide && (
               <div className="flex items-center gap-2 mt-2">
                 <Star className="w-4 h-4 text-yellow-500 fill-current" />
                 <span className="font-medium" data-testid="guide-rating">
                   {stats.averageRating.toFixed(1)}
                 </span>
-                <span className="text-muted-foreground">({stats.totalReviews} تقييم)</span>
+                <span className="text-muted-foreground">({stats.totalReviews} {language === 'ar' ? 'تقييم' : 'reviews'})</span>
               </div>
             )}
           </div>
@@ -280,7 +282,7 @@ export default function GuideDashboard() {
                 <Calendar className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-total-bookings">{stats.totalBookings}</h3>
-              <p className="text-muted-foreground">إجمالي الحجوزات</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'إجمالي الحجوزات' : 'Total Bookings'}</p>
             </CardContent>
           </Card>
 
@@ -290,7 +292,7 @@ export default function GuideDashboard() {
                 <MessageCircle className="w-6 h-6 text-secondary" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-pending-bookings">{stats.pendingBookings}</h3>
-              <p className="text-muted-foreground">حجوزات في الانتظار</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'حجوزات في الانتظار' : 'Pending Bookings'}</p>
             </CardContent>
           </Card>
 
@@ -300,7 +302,7 @@ export default function GuideDashboard() {
                 <Star className="w-6 h-6 text-accent" />
               </div>
               <h3 className="text-2xl font-bold" data-testid="stat-completed-bookings">{stats.completedBookings}</h3>
-              <p className="text-muted-foreground">جولات مكتملة</p>
+              <p className="text-muted-foreground">{language === 'ar' ? 'جولات مكتملة' : 'Completed Tours'}</p>
             </CardContent>
           </Card>
 
@@ -309,8 +311,8 @@ export default function GuideDashboard() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="text-2xl font-bold" data-testid="stat-total-earnings">{stats.totalEarnings.toFixed(2)} ر.س</h3>
-              <p className="text-muted-foreground">إجمالي الأرباح</p>
+              <h3 className="text-2xl font-bold" data-testid="stat-total-earnings">{stats.totalEarnings.toFixed(2)} {language === 'ar' ? 'ر.س' : 'SAR'}</h3>
+              <p className="text-muted-foreground">{language === 'ar' ? 'إجمالي الأرباح' : 'Total Earnings'}</p>
             </CardContent>
           </Card>
         </div>
@@ -318,40 +320,40 @@ export default function GuideDashboard() {
         {/* Main Content */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile" data-testid="tab-profile">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="bookings" data-testid="tab-bookings">الحجوزات</TabsTrigger>
-            <TabsTrigger value="reviews" data-testid="tab-reviews">التقييمات</TabsTrigger>
+            <TabsTrigger value="profile" data-testid="tab-profile">{language === 'ar' ? 'الملف الشخصي' : 'Profile'}</TabsTrigger>
+            <TabsTrigger value="bookings" data-testid="tab-bookings">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</TabsTrigger>
+            <TabsTrigger value="reviews" data-testid="tab-reviews">{language === 'ar' ? 'التقييمات' : 'Reviews'}</TabsTrigger>
           </TabsList>
 
           {/* Profile Management */}
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle>إدارة الملف الشخصي</CardTitle>
+                <CardTitle>{language === 'ar' ? 'إدارة الملف الشخصي' : 'Profile Management'}</CardTitle>
               </CardHeader>
               
               <CardContent className="space-y-6">
                 <form onSubmit={handleProfileSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="bio">نبذة عني</Label>
+                    <Label htmlFor="bio">{language === 'ar' ? 'نبذة عني' : 'About Me'}</Label>
                     <Textarea
                       id="bio"
                       name="bio"
-                      placeholder="اكتب نبذة عن خبرتك ومعرفتك بمنطقة الباحة..."
+                      placeholder={language === 'ar' ? "اكتب نبذة عن خبرتك ومعرفتك بمنطقة الباحة..." : "Write about your experience and knowledge of Al Bahah region..."}
                       defaultValue={guide?.bio || ""}
                       data-testid="input-bio"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="dailyRate">السعر اليومي (ريال سعودي)</Label>
+                    <Label htmlFor="dailyRate">{language === 'ar' ? 'السعر اليومي (ريال سعودي)' : 'Daily Rate (SAR)'}</Label>
                     <Input
                       id="dailyRate"
                       name="dailyRate"
                       type="number"
                       step="0.01"
                       min="0"
-                      placeholder="مثال: 250.00"
+                      placeholder={language === 'ar' ? "مثال: 250.00" : "Example: 250.00"}
                       defaultValue={guide?.dailyRate || ""}
                       data-testid="input-daily-rate"
                     />
@@ -362,8 +364,8 @@ export default function GuideDashboard() {
                     disabled={createGuideMutation.isPending || updateGuideMutation.isPending}
                     data-testid="button-save-profile"
                   >
-                    {createGuideMutation.isPending || updateGuideMutation.isPending ? 'جاري الحفظ...' : 
-                     guide ? 'تحديث الملف الشخصي' : 'إنشاء الملف الشخصي'}
+                    {createGuideMutation.isPending || updateGuideMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
+                     guide ? (language === 'ar' ? 'تحديث الملف الشخصي' : 'Update Profile') : (language === 'ar' ? 'إنشاء الملف الشخصي' : 'Create Profile')}
                   </Button>
                 </form>
                 
@@ -371,7 +373,7 @@ export default function GuideDashboard() {
                 
                 {/* Specialties */}
                 <div>
-                  <Label>التخصصات</Label>
+                  <Label>{language === 'ar' ? 'التخصصات' : 'Specialties'}</Label>
                   <div className="flex flex-wrap gap-2 mt-2 mb-3">
                     {guide?.specialties?.map((specialty) => (
                       <Badge key={specialty} variant="secondary" className="flex items-center gap-1">
@@ -390,7 +392,7 @@ export default function GuideDashboard() {
                     <Input
                       value={specialtyInput}
                       onChange={(e) => setSpecialtyInput(e.target.value)}
-                      placeholder="أضف تخصص جديد..."
+                      placeholder={language === 'ar' ? "أضف تخصص جديد..." : "Add new specialty..."}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialty())}
                       data-testid="input-specialty"
                     />
@@ -402,15 +404,15 @@ export default function GuideDashboard() {
                 
                 {/* Languages */}
                 <div>
-                  <Label>اللغات</Label>
+                  <Label>{language === 'ar' ? 'اللغات' : 'Languages'}</Label>
                   <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                    {guide?.languages?.map((language) => (
-                      <Badge key={language} variant="outline" className="flex items-center gap-1">
-                        {language}
+                    {guide?.languages?.map((lang) => (
+                      <Badge key={lang} variant="outline" className="flex items-center gap-1">
+                        {lang}
                         <button 
-                          onClick={() => removeLanguage(language)}
+                          onClick={() => removeLanguage(lang)}
                           className="hover:text-destructive"
-                          data-testid={`remove-language-${language}`}
+                          data-testid={`remove-language-${lang}`}
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -421,7 +423,7 @@ export default function GuideDashboard() {
                     <Input
                       value={languageInput}
                       onChange={(e) => setLanguageInput(e.target.value)}
-                      placeholder="أضف لغة جديدة..."
+                      placeholder={language === 'ar' ? "أضف لغة جديدة..." : "Add new language..."}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLanguage())}
                       data-testid="input-language"
                     />
@@ -438,15 +440,15 @@ export default function GuideDashboard() {
           <TabsContent value="bookings">
             <Card>
               <CardHeader>
-                <CardTitle>إدارة الحجوزات</CardTitle>
+                <CardTitle>{language === 'ar' ? 'إدارة الحجوزات' : 'Bookings Management'}</CardTitle>
               </CardHeader>
               
               <CardContent>
                 {bookings.length === 0 ? (
                   <div className="text-center py-8">
                     <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">لا توجد حجوزات</h3>
-                    <p className="text-muted-foreground">ستظهر هنا الحجوزات المطلوبة من السياح</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد حجوزات' : 'No Bookings'}</h3>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'ستظهر هنا الحجوزات المطلوبة من السياح' : 'Booking requests from tourists will appear here'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -456,19 +458,20 @@ export default function GuideDashboard() {
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
-                                حجز رقم: {booking.id.slice(-6)}
+                                {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
                               </h4>
                               <p className="text-sm text-muted-foreground">
-                                من {new Date(booking.startDate).toLocaleDateString('ar-SA')} 
-                                إلى {new Date(booking.endDate).toLocaleDateString('ar-SA')}
+                                {language === 'ar' 
+                                  ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                                  : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
                               </p>
                               {booking.notes && (
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  ملاحظات: {booking.notes}
+                                  {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
                                 </p>
                               )}
                               <p className="text-sm font-semibold mt-2" data-testid={`booking-amount-${booking.id}`}>
-                                المبلغ: {booking.totalAmount} ر.س
+                                {language === 'ar' ? `المبلغ: ${booking.totalAmount} ر.س` : `Amount: ${booking.totalAmount} SAR`}
                               </p>
                             </div>
                             
@@ -482,10 +485,13 @@ export default function GuideDashboard() {
                                 }
                                 data-testid={`booking-status-${booking.id}`}
                               >
-                                {booking.status === 'confirmed' ? 'مؤكد' :
-                                 booking.status === 'pending' ? 'في الانتظار' :
-                                 booking.status === 'completed' ? 'مكتمل' :
-                                 'ملغي'}
+                                {language === 'ar' 
+                                  ? (booking.status === 'confirmed' ? 'مؤكد' :
+                                     booking.status === 'pending' ? 'في الانتظار' :
+                                     booking.status === 'completed' ? 'مكتمل' : 'ملغي')
+                                  : (booking.status === 'confirmed' ? 'Confirmed' :
+                                     booking.status === 'pending' ? 'Pending' :
+                                     booking.status === 'completed' ? 'Completed' : 'Cancelled')}
                               </Badge>
                               
                               {booking.status === 'pending' && (
@@ -495,7 +501,7 @@ export default function GuideDashboard() {
                                     onClick={() => updateBookingStatus(booking.id, 'confirmed')}
                                     data-testid={`button-confirm-${booking.id}`}
                                   >
-                                    قبول
+                                    {language === 'ar' ? 'قبول' : 'Accept'}
                                   </Button>
                                   <Button 
                                     size="sm" 
@@ -503,7 +509,7 @@ export default function GuideDashboard() {
                                     onClick={() => updateBookingStatus(booking.id, 'cancelled')}
                                     data-testid={`button-cancel-${booking.id}`}
                                   >
-                                    رفض
+                                    {language === 'ar' ? 'رفض' : 'Reject'}
                                   </Button>
                                 </div>
                               )}
@@ -515,7 +521,7 @@ export default function GuideDashboard() {
                                   onClick={() => updateBookingStatus(booking.id, 'completed')}
                                   data-testid={`button-complete-${booking.id}`}
                                 >
-                                  تم الانتهاء
+                                  {language === 'ar' ? 'تم الانتهاء' : 'Mark Complete'}
                                 </Button>
                               )}
                             </div>
@@ -533,15 +539,15 @@ export default function GuideDashboard() {
           <TabsContent value="reviews">
             <Card>
               <CardHeader>
-                <CardTitle>التقييمات والمراجعات</CardTitle>
+                <CardTitle>{language === 'ar' ? 'التقييمات والمراجعات' : 'Ratings & Reviews'}</CardTitle>
               </CardHeader>
               
               <CardContent>
                 {reviews.length === 0 ? (
                   <div className="text-center py-8">
                     <Star className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">لا توجد تقييمات</h3>
-                    <p className="text-muted-foreground">ستظهر هنا تقييمات السياح بعد إكمال الجولات</p>
+                    <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد تقييمات' : 'No Reviews'}</h3>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'ستظهر هنا تقييمات السياح بعد إكمال الجولات' : 'Tourist reviews will appear here after completing tours'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -563,7 +569,7 @@ export default function GuideDashboard() {
                               </span>
                             </div>
                             <span className="text-sm text-muted-foreground">
-                              {new Date(review.createdAt!).toLocaleDateString('ar-SA')}
+                              {new Date(review.createdAt!).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
                             </span>
                           </div>
                           {review.comment && (
