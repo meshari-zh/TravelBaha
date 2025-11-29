@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
+import { useLanguage } from "@/context/LanguageContext";
 import type { Guide } from "@shared/schema";
 
 interface GuideCardProps {
@@ -13,16 +14,18 @@ interface GuideCardProps {
 }
 
 export default function GuideCard({ guide, showContactButton = false, onContact }: GuideCardProps) {
+  const { language, t } = useLanguage();
+  
   const getUserDisplayName = () => {
-    if (!guide.user) return 'مرشد سياحي';
-    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || 'مرشد سياحي';
+    if (!guide.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
+    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
   };
 
   const getUserInitials = () => {
-    if (!guide.user) return 'م';
+    if (!guide.user) return language === 'ar' ? 'م' : 'G';
     const firstName = guide.user.firstName || '';
     const lastName = guide.user.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || 'م';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'G');
   };
 
   const handleContact = () => {
@@ -97,7 +100,7 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
         <div className="flex justify-between items-center mb-3">
           {guide.dailyRate && (
             <span className="text-secondary font-semibold text-sm" data-testid={`guide-rate-${guide.id}`}>
-              {guide.dailyRate} ر.س/يوم
+              {language === 'ar' ? `${guide.dailyRate} ر.س/يوم` : `${guide.dailyRate} SAR/day`}
             </span>
           )}
           
@@ -120,7 +123,7 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
               size="sm"
               data-testid={`guide-profile-${guide.id}`}
             >
-              عرض الملف الشخصي
+              {language === 'ar' ? 'عرض الملف الشخصي' : 'View Profile'}
             </Button>
           </Link>
           
@@ -133,7 +136,7 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
               data-testid={`guide-contact-${guide.id}`}
             >
               <MessageCircle className="w-4 h-4" />
-              التواصل
+              {language === 'ar' ? 'التواصل' : 'Contact'}
             </Button>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,6 +18,7 @@ import type { Message, User, Guide } from "@shared/schema";
 
 export default function Messages() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,8 +56,8 @@ export default function Messages() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "غير مصرح",
-          description: "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى...",
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -64,8 +66,8 @@ export default function Messages() {
         return;
       }
       toast({
-        title: "خطأ",
-        description: "فشل في إرسال الرسالة",
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إرسال الرسالة" : "Failed to send message",
         variant: "destructive",
       });
     },

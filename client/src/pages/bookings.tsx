@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import Navbar from "@/components/navbar";
 import ReviewForm from "@/components/review-form";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import type { Booking } from "@shared/schema";
 
 export default function Bookings() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [filter, setFilter] = useState<string>("all");
   const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
 
@@ -36,6 +38,15 @@ export default function Bookings() {
   };
 
   const getStatusText = (status: string) => {
+    if (language === 'en') {
+      switch (status) {
+        case "confirmed": return "Confirmed";
+        case "pending": return "Pending";
+        case "completed": return "Completed";
+        case "cancelled": return "Cancelled";
+        default: return status;
+      }
+    }
     switch (status) {
       case "confirmed": return "مؤكد";
       case "pending": return "في الانتظار";
@@ -52,8 +63,8 @@ export default function Bookings() {
         <div className="container mx-auto px-4 py-8">
           <Card className="text-center py-12">
             <CardContent>
-              <h3 className="font-semibold mb-2">خطأ في تحميل البيانات</h3>
-              <p className="text-muted-foreground">حدث خطأ أثناء تحميل الحجوزات</p>
+              <h3 className="font-semibold mb-2">{language === 'ar' ? 'خطأ في تحميل البيانات' : 'Error Loading Data'}</h3>
+              <p className="text-muted-foreground">{language === 'ar' ? 'حدث خطأ أثناء تحميل الحجوزات' : 'An error occurred while loading bookings'}</p>
             </CardContent>
           </Card>
         </div>
@@ -68,8 +79,8 @@ export default function Bookings() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">حجوزاتي</h1>
-          <p className="text-lg text-muted-foreground">إدارة حجوزات الرحلات السياحية</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{language === 'ar' ? 'حجوزاتي' : 'My Bookings'}</h1>
+          <p className="text-lg text-muted-foreground">{language === 'ar' ? 'إدارة حجوزات الرحلات السياحية' : 'Manage your tour bookings'}</p>
         </div>
 
         {/* Filters */}
@@ -82,7 +93,7 @@ export default function Bookings() {
                 onClick={() => setFilter("all")}
                 data-testid="filter-all"
               >
-                جميع الحجوزات
+                {language === 'ar' ? 'جميع الحجوزات' : 'All Bookings'}
               </Button>
               <Button
                 variant={filter === "pending" ? "default" : "outline"}
@@ -90,7 +101,7 @@ export default function Bookings() {
                 onClick={() => setFilter("pending")}
                 data-testid="filter-pending"
               >
-                في الانتظار
+                {language === 'ar' ? 'في الانتظار' : 'Pending'}
               </Button>
               <Button
                 variant={filter === "confirmed" ? "default" : "outline"}
@@ -98,7 +109,7 @@ export default function Bookings() {
                 onClick={() => setFilter("confirmed")}
                 data-testid="filter-confirmed"
               >
-                مؤكدة
+                {language === 'ar' ? 'مؤكدة' : 'Confirmed'}
               </Button>
               <Button
                 variant={filter === "completed" ? "default" : "outline"}
@@ -106,7 +117,7 @@ export default function Bookings() {
                 onClick={() => setFilter("completed")}
                 data-testid="filter-completed"
               >
-                مكتملة
+                {language === 'ar' ? 'مكتملة' : 'Completed'}
               </Button>
             </div>
           </CardContent>
@@ -115,7 +126,9 @@ export default function Bookings() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            عرض {filteredBookings.length} من {bookings.length} حجز
+            {language === 'ar' 
+              ? `عرض ${filteredBookings.length} من ${bookings.length} حجز`
+              : `Showing ${filteredBookings.length} of ${bookings.length} bookings`}
           </p>
         </div>
 
@@ -144,15 +157,15 @@ export default function Bookings() {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <CalendarDays className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-2">لا توجد حجوزات</h3>
+              <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد حجوزات' : 'No Bookings'}</h3>
               <p className="text-muted-foreground mb-4" data-testid="empty-state-message">
                 {filter === "all" 
-                  ? 'لا يوجد لديك أي حجوزات حالياً'
-                  : `لا توجد حجوزات ${getStatusText(filter)}`}
+                  ? (language === 'ar' ? 'لا يوجد لديك أي حجوزات حالياً' : 'You have no bookings at the moment')
+                  : (language === 'ar' ? `لا توجد حجوزات ${getStatusText(filter)}` : `No ${getStatusText(filter).toLowerCase()} bookings`)}
               </p>
               <Button asChild>
                 <a href="/guides" data-testid="button-browse-guides">
-                  تصفح المرشدين
+                  {language === 'ar' ? 'تصفح المرشدين' : 'Browse Guides'}
                 </a>
               </Button>
             </CardContent>
@@ -164,7 +177,7 @@ export default function Bookings() {
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg" data-testid={`booking-title-${booking.id}`}>
-                      رحلة سياحية - {booking.id.slice(0, 8)}
+                      {language === 'ar' ? `رحلة سياحية - ${booking.id.slice(0, 8)}` : `Tour Trip - ${booking.id.slice(0, 8)}`}
                     </CardTitle>
                     <Badge 
                       variant={getStatusBadgeVariant(booking.status || "pending")}
@@ -179,13 +192,13 @@ export default function Bookings() {
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm" data-testid={`booking-dates-${booking.id}`}>
-                        {new Date(booking.startDate).toLocaleDateString('ar-SA')} - {new Date(booking.endDate).toLocaleDateString('ar-SA')}
+                        {new Date(booking.startDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')} - {new Date(booking.endDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
                       </span>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-secondary" data-testid={`booking-amount-${booking.id}`}>
-                        {booking.totalAmount} ر.س
+                        {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
                       </span>
                     </div>
                   </div>
@@ -193,18 +206,18 @@ export default function Bookings() {
                   {booking.notes && (
                     <div className="mb-4">
                       <p className="text-sm text-muted-foreground" data-testid={`booking-notes-${booking.id}`}>
-                        ملاحظات: {booking.notes}
+                        {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
                       </p>
                     </div>
                   )}
 
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" size="sm" data-testid={`booking-details-${booking.id}`}>
-                      عرض التفاصيل
+                      {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                     </Button>
                     {booking.status === "pending" && (
                       <Button variant="destructive" size="sm" data-testid={`booking-cancel-${booking.id}`}>
-                        إلغاء الحجز
+                        {language === 'ar' ? 'إلغاء الحجز' : 'Cancel Booking'}
                       </Button>
                     )}
                     {booking.status === "completed" && (
@@ -217,14 +230,14 @@ export default function Bookings() {
                             data-testid={`booking-review-${booking.id}`}
                           >
                             <Star className="w-4 h-4" />
-                            تقييم المرشد
+                            {language === 'ar' ? 'تقييم المرشد' : 'Rate Guide'}
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-md">
                           <ReviewForm
                             bookingId={booking.id}
                             guideId={booking.guideId}
-                            guideName={`المرشد - ${booking.guideId.slice(0, 8)}`}
+                            guideName={language === 'ar' ? `المرشد - ${booking.guideId.slice(0, 8)}` : `Guide - ${booking.guideId.slice(0, 8)}`}
                             onSuccess={() => setSelectedBookingForReview(null)}
                           />
                         </DialogContent>
