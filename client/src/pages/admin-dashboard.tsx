@@ -31,18 +31,18 @@ function MapContentEditorComponent() {
 
   // جلب المحتوى الحالي للخريطة
   const { data: mapTitle = '', refetch: refetchTitle } = useQuery({
-    queryKey: ['/api/site-content/map_title'],
-    select: (data: any) => data?.content || 'خريطة المملكة التفاعلية'
+    queryKey: ['/api/site-content/map_title', language],
+    select: (data: any) => data?.content || (language === 'ar' ? 'خريطة المملكة التفاعلية' : 'Interactive Kingdom Map')
   });
 
   const { data: mapSubtitle = '', refetch: refetchSubtitle } = useQuery({
-    queryKey: ['/api/site-content/map_subtitle'],
-    select: (data: any) => data?.content || 'استكشف جمال منطقة الباحة والمدن السعودية'
+    queryKey: ['/api/site-content/map_subtitle', language],
+    select: (data: any) => data?.content || (language === 'ar' ? 'استكشف جمال منطقة الباحة والمدن السعودية' : 'Explore the beauty of Al Bahah region and Saudi cities')
   });
 
   const { data: mapDescription = '', refetch: refetchDescription } = useQuery({
-    queryKey: ['/api/site-content/map_description'],
-    select: (data: any) => data?.content || 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة'
+    queryKey: ['/api/site-content/map_description', language],
+    select: (data: any) => data?.content || (language === 'ar' ? 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة' : 'Browse roads and tourist attractions with modern interactive technology')
   });
 
   // Mutation لتحديث المحتوى
