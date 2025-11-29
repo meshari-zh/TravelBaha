@@ -221,6 +221,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>("places");
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
+  const [bookingFilter, setBookingFilter] = useState<string>("all");
   const [placeImageUrl, setPlaceImageUrl] = useState<string>("");
   const [teamMemberImageUrl, setTeamMemberImageUrl] = useState<string>("");
 
@@ -560,6 +561,38 @@ export default function AdminDashboard() {
       toast({
         title: language === 'ar' ? "خطأ" : "Error",
         description: language === 'ar' ? "فشل في حذف المستخدم" : "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Booking status mutation
+  const updateBookingStatusMutation = useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
+      await apiRequest("PUT", `/api/bookings/${bookingId}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      toast({
+        title: language === 'ar' ? "تم تحديث الحجز" : "Booking Updated",
+        description: language === 'ar' ? "تم تحديث حالة الحجز بنجاح" : "Booking status has been updated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: language === 'ar' ? "غير مصرح" : "Unauthorized",
+          description: language === 'ar' ? "تم تسجيل خروجك. جاري تسجيل الدخول مرة أخرى..." : "You have been logged out. Redirecting to login...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في تحديث حالة الحجز" : "Failed to update booking status",
         variant: "destructive",
       });
     },
@@ -1108,61 +1141,191 @@ export default function AdminDashboard() {
           <TabsContent value="bookings">
             <Card>
               <CardHeader>
-                <CardTitle>{language === 'ar' ? 'إدارة الحجوزات' : 'Bookings Management'}</CardTitle>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <CardTitle>{language === 'ar' ? 'إدارة الحجوزات' : 'Bookings Management'}</CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={bookingFilter === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBookingFilter("all")}
+                      data-testid="booking-filter-all"
+                    >
+                      {language === 'ar' ? 'الكل' : 'All'} ({bookings.length})
+                    </Button>
+                    <Button
+                      variant={bookingFilter === "pending" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBookingFilter("pending")}
+                      data-testid="booking-filter-pending"
+                    >
+                      {language === 'ar' ? 'في الانتظار' : 'Pending'} ({bookings.filter(b => b.status === 'pending').length})
+                    </Button>
+                    <Button
+                      variant={bookingFilter === "confirmed" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBookingFilter("confirmed")}
+                      data-testid="booking-filter-confirmed"
+                    >
+                      {language === 'ar' ? 'مؤكدة' : 'Confirmed'} ({bookings.filter(b => b.status === 'confirmed').length})
+                    </Button>
+                    <Button
+                      variant={bookingFilter === "completed" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBookingFilter("completed")}
+                      data-testid="booking-filter-completed"
+                    >
+                      {language === 'ar' ? 'مكتملة' : 'Completed'} ({bookings.filter(b => b.status === 'completed').length})
+                    </Button>
+                    <Button
+                      variant={bookingFilter === "cancelled" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBookingFilter("cancelled")}
+                      data-testid="booking-filter-cancelled"
+                    >
+                      {language === 'ar' ? 'ملغية' : 'Cancelled'} ({bookings.filter(b => b.status === 'cancelled').length})
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               
               <CardContent>
-                {bookings.length === 0 ? (
+                {(bookingFilter === "all" ? bookings : bookings.filter(b => b.status === bookingFilter)).length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">{language === 'ar' ? 'لا توجد حجوزات' : 'No bookings'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {bookings.map((booking) => (
-                      <Card key={booking.id}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
-                                {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">
-                                {language === 'ar' 
-                                  ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
-                                  : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
-                              </p>
-                              {booking.notes && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
-                                </p>
-                              )}
+                    {(bookingFilter === "all" ? bookings : bookings.filter(b => b.status === bookingFilter)).map((booking) => {
+                      const guide = guides.find(g => g.id === booking.guideId);
+                      const tourist = users.find(u => u.id === booking.touristId);
+                      const guideUser = users.find(u => u.id === guide?.userId);
+                      return (
+                        <Card key={booking.id}>
+                          <CardContent className="p-4">
+                            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-semibold" data-testid={`booking-id-${booking.id}`}>
+                                    {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
+                                  </h4>
+                                  <Badge 
+                                    variant={
+                                      booking.status === 'confirmed' ? 'default' :
+                                      booking.status === 'pending' ? 'secondary' :
+                                      booking.status === 'completed' ? 'outline' :
+                                      'destructive'
+                                    }
+                                    data-testid={`booking-status-${booking.id}`}
+                                  >
+                                    {language === 'ar'
+                                      ? (booking.status === 'confirmed' ? 'مؤكد' :
+                                         booking.status === 'pending' ? 'في الانتظار' :
+                                         booking.status === 'completed' ? 'مكتمل' : 'ملغي')
+                                      : (booking.status === 'confirmed' ? 'Confirmed' :
+                                         booking.status === 'pending' ? 'Pending' :
+                                         booking.status === 'completed' ? 'Completed' : 'Cancelled')}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">
+                                      {language === 'ar' ? 'السائح:' : 'Tourist:'} {tourist?.firstName && tourist?.lastName ? `${tourist.firstName} ${tourist.lastName}` : tourist?.email || (language === 'ar' ? 'غير معروف' : 'Unknown')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <UserCheck className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">
+                                      {language === 'ar' ? 'المرشد:' : 'Guide:'} {guideUser?.firstName && guideUser?.lastName 
+                                        ? `${guideUser.firstName} ${guideUser.lastName}` 
+                                        : guideUser?.email || (language === 'ar' ? 'غير معروف' : 'Unknown')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">
+                                      {language === 'ar' 
+                                        ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                                        : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-primary" data-testid={`booking-amount-${booking.id}`}>
+                                      {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                {booking.notes && (
+                                  <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
+                                    {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2">
+                                {booking.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => updateBookingStatusMutation.mutate({ bookingId: booking.id, status: 'confirmed' })}
+                                      disabled={updateBookingStatusMutation.isPending}
+                                      data-testid={`booking-confirm-${booking.id}`}
+                                    >
+                                      {language === 'ar' ? 'تأكيد' : 'Confirm'}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => updateBookingStatusMutation.mutate({ bookingId: booking.id, status: 'cancelled' })}
+                                      disabled={updateBookingStatusMutation.isPending}
+                                      data-testid={`booking-cancel-${booking.id}`}
+                                    >
+                                      {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                    </Button>
+                                  </>
+                                )}
+                                {booking.status === 'confirmed' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => updateBookingStatusMutation.mutate({ bookingId: booking.id, status: 'completed' })}
+                                      disabled={updateBookingStatusMutation.isPending}
+                                      data-testid={`booking-complete-${booking.id}`}
+                                    >
+                                      {language === 'ar' ? 'إكمال' : 'Complete'}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => updateBookingStatusMutation.mutate({ bookingId: booking.id, status: 'cancelled' })}
+                                      disabled={updateBookingStatusMutation.isPending}
+                                      data-testid={`booking-cancel-${booking.id}`}
+                                    >
+                                      {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                    </Button>
+                                  </>
+                                )}
+                                {(booking.status === 'completed' || booking.status === 'cancelled') && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => updateBookingStatusMutation.mutate({ bookingId: booking.id, status: 'pending' })}
+                                    disabled={updateBookingStatusMutation.isPending}
+                                    data-testid={`booking-reopen-${booking.id}`}
+                                  >
+                                    {language === 'ar' ? 'إعادة فتح' : 'Reopen'}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-left">
-                              <Badge 
-                                variant={
-                                  booking.status === 'confirmed' ? 'default' :
-                                  booking.status === 'pending' ? 'secondary' :
-                                  booking.status === 'completed' ? 'outline' :
-                                  'destructive'
-                                }
-                                data-testid={`booking-status-${booking.id}`}
-                              >
-                                {language === 'ar'
-                                  ? (booking.status === 'confirmed' ? 'مؤكد' :
-                                     booking.status === 'pending' ? 'في الانتظار' :
-                                     booking.status === 'completed' ? 'مكتمل' : 'ملغي')
-                                  : (booking.status === 'confirmed' ? 'Confirmed' :
-                                     booking.status === 'pending' ? 'Pending' :
-                                     booking.status === 'completed' ? 'Completed' : 'Cancelled')}
-                              </Badge>
-                              <p className="text-sm font-semibold mt-2" data-testid={`booking-amount-${booking.id}`}>
-                                {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
