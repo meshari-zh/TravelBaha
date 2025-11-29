@@ -26,9 +26,14 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 
 // حساب وقت الوصول التقريبي (بافتراض سرعة 80 كم/ساعة)
-const calculateDrivingTime = (distance: number): string => {
+const calculateDrivingTime = (distance: number, lang: string = 'ar'): string => {
   const hours = Math.floor(distance / 80);
   const minutes = Math.round((distance % 80) / 80 * 60);
+  if (lang === 'en') {
+    if (hours === 0) return `${minutes} min`;
+    if (minutes === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+    return `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} min`;
+  }
   if (hours === 0) return `${minutes} دقيقة`;
   if (minutes === 0) return `${hours} ساعة`;
   return `${hours} ساعة و ${minutes} دقيقة`;
@@ -46,9 +51,9 @@ const getGoogleMapsUrl = (lat: number, lng: number, placeName: string): string =
 
 // إحداثيات المدن
 const cities = {
-  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة' },
-  mecca: { lat: 21.3891, lng: 39.8579, name: 'مكة المكرمة' },
-  riyadh: { lat: 24.7136, lng: 46.6753, name: 'الرياض' }
+  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة', nameEn: 'Al Bahah' },
+  mecca: { lat: 21.3891, lng: 39.8579, name: 'مكة المكرمة', nameEn: 'Mecca' },
+  riyadh: { lat: 24.7136, lng: 46.6753, name: 'الرياض', nameEn: 'Riyadh' }
 }
 
 // إحداثيات دقيقة للأماكن السياحية المشهورة في الباحة (من Google Maps)
@@ -302,9 +307,9 @@ export default function SaudiMap() {
                     <Marker position={[cities.albaha.lat, cities.albaha.lng]} icon={albahaIcon}>
                       <Popup>
                         <div className="text-center p-2">
-                          <h3 className="font-bold text-lg">{cities.albaha.name}</h3>
-                          <p className="text-sm">عاصمة منطقة الباحة</p>
-                          <p className="text-xs text-gray-600">منطقة سياحية رائعة بمناخ معتدل</p>
+                          <h3 className="font-bold text-lg">{language === 'ar' ? cities.albaha.name : cities.albaha.nameEn}</h3>
+                          <p className="text-sm">{t('albahaCapital')}</p>
+                          <p className="text-xs text-gray-600">{t('albahaDescription')}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -312,9 +317,9 @@ export default function SaudiMap() {
                     <Marker position={[cities.mecca.lat, cities.mecca.lng]} icon={meccaIcon}>
                       <Popup>
                         <div className="text-center p-2">
-                          <h3 className="font-bold text-lg">{cities.mecca.name}</h3>
-                          <p className="text-sm">أقدس مدينة في الإسلام</p>
-                          <p className="text-xs text-gray-600">قبلة المسلمين في العالم</p>
+                          <h3 className="font-bold text-lg">{language === 'ar' ? cities.mecca.name : cities.mecca.nameEn}</h3>
+                          <p className="text-sm">{t('meccaHolyCity')}</p>
+                          <p className="text-xs text-gray-600">{t('meccaDescription')}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -322,9 +327,9 @@ export default function SaudiMap() {
                     <Marker position={[cities.riyadh.lat, cities.riyadh.lng]} icon={riyadhIcon}>
                       <Popup>
                         <div className="text-center p-2">
-                          <h3 className="font-bold text-lg">{cities.riyadh.name}</h3>
-                          <p className="text-sm">عاصمة المملكة العربية السعودية</p>
-                          <p className="text-xs text-gray-600">المركز السياسي والاقتصادي</p>
+                          <h3 className="font-bold text-lg">{language === 'ar' ? cities.riyadh.name : cities.riyadh.nameEn}</h3>
+                          <p className="text-sm">{t('riyadhCapital')}</p>
+                          <p className="text-xs text-gray-600">{t('riyadhDescription')}</p>
                         </div>
                       </Popup>
                     </Marker>
@@ -341,24 +346,30 @@ export default function SaudiMap() {
                         cities.albaha.lat, cities.albaha.lng,
                         lat, lng
                       );
-                      const drivingTime = calculateDrivingTime(distanceFromAlbaha);
+                      const drivingTime = calculateDrivingTime(distanceFromAlbaha, language);
+                      
+                      // الحصول على الاسم والوصف حسب اللغة
+                      const placeName = language === 'en' && place.nameEn ? place.nameEn : place.name;
+                      const placeDesc = language === 'en' && place.descriptionEn ? place.descriptionEn : place.description;
+                      const placeLocation = language === 'en' && place.locationEn ? place.locationEn : place.location;
+                      const placeCategory = language === 'en' && place.categoryEn ? place.categoryEn : place.category;
                       
                       // استخدام الأيقونة المخصصة مع الاسم المدمج
-                      const labeledIcon = createLabeledIcon(place.name);
+                      const labeledIcon = createLabeledIcon(placeName);
                       
                       return (
                         <Marker key={place.id} position={[lat, lng]} icon={labeledIcon}>
                           <Popup>
-                            <div className="p-3 min-w-[280px] text-right" dir="rtl">
-                              <h3 className="font-bold text-lg mb-2 text-green-800">{place.name}</h3>
-                              <p className="text-sm text-gray-600 mb-3">{place.description}</p>
+                            <div className={`p-3 min-w-[280px] ${language === 'ar' ? 'text-right' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                              <h3 className="font-bold text-lg mb-2 text-green-800">{placeName}</h3>
+                              <p className="text-sm text-gray-600 mb-3">{placeDesc}</p>
                               
                               {/* عرض الصورة من الرابط */}
                               {place.imageUrl && place.imageUrl.trim() !== '' && (
                                 <div className="mb-3">
                                   <img 
                                     src={place.imageUrl} 
-                                    alt={place.name}
+                                    alt={placeName}
                                     className="w-full h-32 object-cover rounded-lg shadow-md"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
@@ -372,26 +383,26 @@ export default function SaudiMap() {
                               <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
                                 <div className="flex items-center gap-2 mb-2">
                                   <Car className="w-4 h-4 text-blue-600" />
-                                  <span className="font-semibold text-blue-800">المسافة من الباحة:</span>
+                                  <span className="font-semibold text-blue-800">{t('distanceFromAlbaha')}:</span>
                                 </div>
                                 <div className="text-lg font-bold text-blue-900 mb-1">
-                                  {distanceFromAlbaha.toFixed(1)} كم
+                                  {distanceFromAlbaha.toFixed(1)} {t('km')}
                                 </div>
                                 <div className="flex items-center gap-1 text-sm text-blue-700">
                                   <Clock className="w-3 h-3" />
-                                  <span>وقت الوصول التقريبي: {drivingTime}</span>
+                                  <span>{t('estimatedArrivalTime')}: {drivingTime}</span>
                                 </div>
                               </div>
                               
                               <div className="flex flex-col gap-2">
                                 <div className="text-xs text-gray-500 flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
-                                  {place.location}
+                                  {placeLocation}
                                 </div>
                                 
-                                {place.category && (
+                                {placeCategory && (
                                   <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded inline-block">
-                                    {place.category}
+                                    {placeCategory}
                                   </div>
                                 )}
                                 
@@ -402,12 +413,12 @@ export default function SaudiMap() {
                                     size="sm"
                                     className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                                     onClick={() => {
-                                      window.open(getGoogleMapsDirectionsUrl(lat, lng, place.name), '_blank')
+                                      window.open(getGoogleMapsDirectionsUrl(lat, lng, placeName), '_blank')
                                     }}
                                     data-testid={`button-directions-${place.id}`}
                                   >
-                                    <Navigation className="w-4 h-4 ml-2" />
-                                    {language === 'ar' ? 'التوجه عبر Google Maps' : 'Get Directions'}
+                                    <Navigation className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                                    {t('getDirections')}
                                   </Button>
                                   
                                   {/* زر عرض الموقع في Google Maps */}
@@ -416,12 +427,12 @@ export default function SaudiMap() {
                                     variant="outline"
                                     className="border-green-600 text-green-600 hover:bg-green-50 w-full"
                                     onClick={() => {
-                                      window.open(getGoogleMapsUrl(lat, lng, place.name), '_blank')
+                                      window.open(getGoogleMapsUrl(lat, lng, placeName), '_blank')
                                     }}
                                     data-testid={`button-google-map-${place.id}`}
                                   >
-                                    <MapPin className="w-4 h-4 ml-2" />
-                                    {language === 'ar' ? 'عرض في Google Maps' : 'View on Google Maps'}
+                                    <MapPin className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                                    {t('viewOnGoogleMaps')}
                                   </Button>
                                   
                                   {/* زر عرض التفاصيل */}
@@ -433,8 +444,8 @@ export default function SaudiMap() {
                                     }}
                                     data-testid={`button-view-place-${place.id}`}
                                   >
-                                    <ExternalLink className="w-4 h-4 ml-2" />
-                                    {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
+                                    <ExternalLink className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                                    {t('viewDetails')}
                                   </Button>
                                 </div>
                               </div>
@@ -469,74 +480,79 @@ export default function SaudiMap() {
               <div className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">دليل الخريطة</CardTitle>
+                    <CardTitle className="text-lg">{t('mapGuide')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-red-500 rounded"></div>
-                      <span className="text-sm">الباحة (المنطقة المركزية)</span>
+                      <span className="text-sm">{t('albahaCenter')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                      <span className="text-sm">مكة المكرمة</span>
+                      <span className="text-sm">{t('meccaCity')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-green-500 rounded"></div>
-                      <span className="text-sm">الرياض</span>
+                      <span className="text-sm">{t('riyadhCity')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                      <span className="text-sm">أماكن سياحية</span>
+                      <span className="text-sm">{t('touristPlaces')}</span>
                     </div>
                     <hr className="my-3" />
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-1 bg-red-500"></div>
-                      <span className="text-sm">طريق الباحة - مكة</span>
+                      <span className="text-sm">{t('albahaToMeccaRoad')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-1 bg-blue-500"></div>
-                      <span className="text-sm">طريق الباحة - الرياض</span>
+                      <span className="text-sm">{t('albahaToRiyadhRoad')}</span>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">الأماكن السياحية في الباحة</CardTitle>
+                    <CardTitle className="text-lg">{t('touristPlacesInAlbaha')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {placesLoading ? (
                       <div className="text-center py-4">
                         <div className="animate-spin w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-600">جاري تحميل الأماكن...</p>
+                        <p className="text-sm text-gray-600">{t('loading')}</p>
                       </div>
                     ) : (
                       <div className="space-y-3 max-h-60 overflow-y-auto">
                         {placesArray.length === 0 ? (
-                          <p className="text-center text-gray-500 py-4">لا توجد أماكن سياحية</p>
+                          <p className="text-center text-gray-500 py-4">{t('noPlacesFound')}</p>
                         ) : (
-                          placesArray.map((place: any) => (
-                            <div key={place.id} className="p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 rounded-lg border">
-                              <div className="flex items-start gap-3">
-                                {place.imageUrl && (
-                                  <img 
-                                    src={place.imageUrl} 
-                                    alt={place.name}
-                                    className="w-12 h-12 object-cover rounded-md"
-                                  />
-                                )}
-                                <div className="flex-1">
-                                  <div className="font-medium text-green-800 dark:text-green-200">{place.name}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">📍 {place.location}</div>
-                                  {place.category && (
-                                    <div className="text-xs bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-1 rounded mt-1 inline-block">
-                                      {place.category}
-                                    </div>
+                          placesArray.map((place: any) => {
+                            const placeName = language === 'en' && place.nameEn ? place.nameEn : place.name;
+                            const placeLocation = language === 'en' && place.locationEn ? place.locationEn : place.location;
+                            const placeCategory = language === 'en' && place.categoryEn ? place.categoryEn : place.category;
+                            return (
+                              <div key={place.id} className="p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 rounded-lg border">
+                                <div className="flex items-start gap-3">
+                                  {place.imageUrl && (
+                                    <img 
+                                      src={place.imageUrl} 
+                                      alt={placeName}
+                                      className="w-12 h-12 object-cover rounded-md"
+                                    />
                                   )}
+                                  <div className="flex-1">
+                                    <div className="font-medium text-green-800 dark:text-green-200">{placeName}</div>
+                                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">📍 {placeLocation}</div>
+                                    {placeCategory && (
+                                      <div className="text-xs bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 px-2 py-1 rounded mt-1 inline-block">
+                                        {placeCategory}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))
+                            )
+                          })
                         )}
                       </div>
                     )}
