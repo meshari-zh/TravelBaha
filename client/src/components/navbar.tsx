@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
@@ -187,6 +187,22 @@ export default function Navbar() {
                         </Link>
                       </SheetClose>
                       
+                      {user?.role === 'tourist' && (
+                        <SheetClose asChild>
+                          <Link href="/bookings">
+                            <Button 
+                              variant={isActive("/bookings") ? "default" : "ghost"} 
+                              size="sm"
+                              className="w-full justify-start flex items-center gap-3"
+                              data-testid="mobile-nav-bookings"
+                            >
+                              <CalendarCheck className="w-4 h-4" />
+                              {t('myBookings')}
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                      )}
+                      
                       <SheetClose asChild>
                         <Link href="/invite">
                           <Button 
@@ -340,6 +356,20 @@ export default function Navbar() {
                 {t('messages')}
               </Button>
             </Link>
+            
+            {user?.role === 'tourist' && (
+              <Link href="/bookings">
+                <Button 
+                  variant={isActive("/bookings") ? "default" : "ghost"} 
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="nav-bookings"
+                >
+                  <CalendarCheck className="w-4 h-4" />
+                  {t('myBookings')}
+                </Button>
+              </Link>
+            )}
             
             <Link href="/invite">
               <Button 
