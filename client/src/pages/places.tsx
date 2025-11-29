@@ -132,8 +132,23 @@ export default function Places() {
     },
   });
 
-  // Get unique categories from places
-  const categories = Array.from(new Set(places.map(place => place.category).filter(Boolean))).sort();
+  // Get unique categories from places with translation support
+  const getCategoryDisplay = (place: Place) => {
+    return language === 'en' && place.categoryEn ? place.categoryEn : place.category;
+  };
+  
+  // Create category pairs for filtering (original category and its display name)
+  const categoryPairs = places
+    .filter(place => place.category)
+    .map(place => ({
+      value: place.category!, // Use Arabic category as value for consistent filtering
+      display: getCategoryDisplay(place) || place.category!
+    }));
+  
+  // Get unique categories by value
+  const uniqueCategories = Array.from(
+    new Map(categoryPairs.map(item => [item.value, item])).values()
+  ).sort((a, b) => a.display.localeCompare(b.display));
 
   const filteredPlaces = places.filter(place => {
     const matchesSearch = place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -350,9 +365,9 @@ export default function Places() {
                   <SelectItem value="all">
                     {language === 'ar' ? 'جميع الفئات' : 'All Categories'}
                   </SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category || ""}>
-                      {category}
+                  {uniqueCategories.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.display}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -382,7 +397,7 @@ export default function Places() {
               {selectedCategory !== "all" && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <Filter className="w-3 h-3" />
-                  {selectedCategory}
+                  {uniqueCategories.find(c => c.value === selectedCategory)?.display || selectedCategory}
                   <button 
                     onClick={() => setSelectedCategory("all")}
                     className="ml-1 hover:text-destructive"
