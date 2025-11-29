@@ -1,28 +1,131 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
 import GuideCard from "@/components/guide-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Search, Filter, Calendar as CalendarIcon, Users, Star } from "lucide-react";
+import { z } from "zod";
 import type { Guide } from "@shared/schema";
+
+const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
+  startDate: z.date({
+    required_error: language === 'ar' ? "يرجى تحديد تاريخ البداية" : "Please select a start date",
+  }),
+  endDate: z.date({
+    required_error: language === 'ar' ? "يرجى تحديد تاريخ النهاية" : "Please select an end date",
+  }),
+  guests: z.coerce.number()
+    .min(1, language === 'ar' ? "يجب أن يكون عدد الضيوف على الأقل 1" : "At least 1 guest is required")
+    .max(50, language === 'ar' ? "الحد الأقصى 50 ضيف" : "Maximum 50 guests"),
+  notes: z.string().optional(),
+});
+
+type BookingFormData = {
+  startDate: Date;
+  endDate: Date;
+  guests: number;
+  notes?: string;
+};
 
 export default function Guides() {
   const { user } = useAuth();
   const { language, t } = useLanguage();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("rating");
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
+
+  const bookingFormSchema = getBookingFormSchema(language);
+
+  const form = useForm<BookingFormData>({
+    resolver: zodResolver(bookingFormSchema),
+    defaultValues: {
+      guests: 2,
+      notes: "",
+    },
+  });
 
   const { data: guides = [], isLoading, error } = useQuery<Guide[]>({
     queryKey: ["/api/guides"],
   });
+
+  const bookingMutation = useMutation({
+    mutationFn: (data: BookingFormData) => 
+      apiRequest("POST", "/api/bookings", {
+        guideId: selectedGuide?.id,
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate.toISOString(),
+        notes: data.notes || "",
+        totalAmount: "0",
+      }),
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? "تم إرسال طلب الحجز!" : "Booking Request Sent!",
+        description: language === 'ar' ? "سيتم التواصل معك قريباً لتأكيد الحجز" : "We will contact you soon to confirm the booking",
+      });
+      form.reset();
+      setIsBookingDialogOpen(false);
+      setSelectedGuide(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'ar' ? "خطأ في إرسال الطلب" : "Request Error",
+        description: error.message || (language === 'ar' ? "حدث خطأ أثناء إرسال طلب الحجز" : "An error occurred while sending the booking request"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleBookGuide = (guide: Guide) => {
+    if (!user) {
+      toast({
+        title: language === 'ar' ? "يجب تسجيل الدخول" : "Login Required",
+        description: language === 'ar' ? "يجب تسجيل الدخول لحجز جولة مع المرشد" : "Please login to book a tour with the guide",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSelectedGuide(guide);
+    setIsBookingDialogOpen(true);
+  };
+
+  const onSubmit = (data: BookingFormData) => {
+    bookingMutation.mutate(data);
+  };
+
+  const getGuideDisplayName = (guide: Guide) => {
+    if (!guide.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
+    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
+  };
+
+  const getGuideInitials = (guide: Guide) => {
+    if (!guide.user) return language === 'ar' ? 'م' : 'G';
+    const firstName = guide.user.firstName || '';
+    const lastName = guide.user.lastName || '';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'G');
+  };
 
   // Error state
   if (error) {
@@ -266,11 +369,219 @@ export default function Guides() {
                 key={guide.id} 
                 guide={guide} 
                 showContactButton={user?.role === 'tourist'}
+                showBookButton={user?.role === 'tourist'}
+                onBook={handleBookGuide}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Booking Dialog */}
+      <Dialog open={isBookingDialogOpen} onOpenChange={(open) => {
+        setIsBookingDialogOpen(open);
+        if (!open) {
+          setSelectedGuide(null);
+          form.reset();
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {selectedGuide && (
+                <>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={selectedGuide.user?.profileImageUrl || undefined} />
+                    <AvatarFallback>{getGuideInitials(selectedGuide)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span>{language === 'ar' ? 'احجز مع' : 'Book with'} {getGuideDisplayName(selectedGuide)}</span>
+                    {selectedGuide.dailyRate && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm font-normal text-secondary">
+                          {selectedGuide.dailyRate} {language === 'ar' ? 'ر.س/يوم' : 'SAR/day'}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                          <span className="text-xs text-muted-foreground">
+                            {selectedGuide.rating ? parseFloat(selectedGuide.rating).toFixed(1) : '0.0'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ar' 
+                ? 'أدخل تفاصيل الحجز الخاصة بك وسنتواصل معك لتأكيد الحجز'
+                : 'Enter your booking details and we will contact you to confirm the booking'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Start Date */}
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'تاريخ البداية' : 'Start Date'}</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            data-testid="dialog-input-start-date"
+                          >
+                            <CalendarIcon className="ml-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>{language === 'ar' ? 'اختر التاريخ' : 'Select date'}</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* End Date */}
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'تاريخ النهاية' : 'End Date'}</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            data-testid="dialog-input-end-date"
+                          >
+                            <CalendarIcon className="ml-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>{language === 'ar' ? 'اختر التاريخ' : 'Select date'}</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => 
+                            date < new Date() || 
+                            (form.getValues().startDate && date <= form.getValues().startDate)
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Guests */}
+              <FormField
+                control={form.control}
+                name="guests"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'عدد الضيوف' : 'Number of Guests'}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                        <Input
+                          type="number"
+                          min="1"
+                          max="50"
+                          className="pr-10"
+                          data-testid="dialog-input-guests"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Special Requests */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'ملاحظات خاصة (اختياري)' : 'Special Notes (Optional)'}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={language === 'ar' ? "أي ملاحظات أو طلبات خاصة للمرشد..." : "Any special notes or requests for the guide..."}
+                        className="resize-none"
+                        data-testid="dialog-input-notes"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={bookingMutation.isPending}
+                  data-testid="dialog-button-submit-booking"
+                >
+                  {bookingMutation.isPending 
+                    ? (language === 'ar' ? "جاري الإرسال..." : "Sending...") 
+                    : (language === 'ar' ? "إرسال طلب الحجز" : "Submit Booking")}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setIsBookingDialogOpen(false);
+                    setSelectedGuide(null);
+                    form.reset();
+                  }}
+                  data-testid="dialog-button-cancel-booking"
+                >
+                  {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

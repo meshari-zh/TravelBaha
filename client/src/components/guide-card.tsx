@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MessageCircle } from "lucide-react";
+import { Star, MessageCircle, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/context/LanguageContext";
 import type { Guide } from "@shared/schema";
@@ -10,10 +10,12 @@ import type { Guide } from "@shared/schema";
 interface GuideCardProps {
   guide: Guide;
   showContactButton?: boolean;
+  showBookButton?: boolean;
   onContact?: (guide: Guide) => void;
+  onBook?: (guide: Guide) => void;
 }
 
-export default function GuideCard({ guide, showContactButton = false, onContact }: GuideCardProps) {
+export default function GuideCard({ guide, showContactButton = false, showBookButton = false, onContact, onBook }: GuideCardProps) {
   const { language, t } = useLanguage();
   
   const getUserDisplayName = () => {
@@ -31,6 +33,12 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
   const handleContact = () => {
     if (onContact) {
       onContact(guide);
+    }
+  };
+
+  const handleBook = () => {
+    if (onBook) {
+      onBook(guide);
     }
   };
 
@@ -126,6 +134,19 @@ export default function GuideCard({ guide, showContactButton = false, onContact 
               {language === 'ar' ? 'عرض الملف الشخصي' : 'View Profile'}
             </Button>
           </Link>
+          
+          {showBookButton && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="w-full flex items-center gap-2 bg-secondary hover:bg-secondary/90"
+              onClick={handleBook}
+              data-testid={`guide-book-${guide.id}`}
+            >
+              <Calendar className="w-4 h-4" />
+              {language === 'ar' ? 'احجز الآن' : 'Book Now'}
+            </Button>
+          )}
           
           {showContactButton && (
             <Button 
