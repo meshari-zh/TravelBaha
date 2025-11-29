@@ -107,6 +107,14 @@ export default function Guides() {
       });
       return;
     }
+    if (user.role !== 'tourist') {
+      toast({
+        title: language === 'ar' ? "غير مسموح" : "Not Allowed",
+        description: language === 'ar' ? "الحجز متاح للسياح فقط" : "Booking is only available for tourists",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedGuide(guide);
     setIsBookingDialogOpen(true);
   };
