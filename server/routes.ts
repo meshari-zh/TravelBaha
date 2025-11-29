@@ -643,10 +643,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only tourists can create bookings" });
       }
 
-      const validatedData = insertBookingSchema.parse({
+      // Convert date strings to Date objects
+      const bookingData = {
         ...req.body,
         touristId: user.id,
-      });
+        startDate: new Date(req.body.startDate),
+        endDate: new Date(req.body.endDate),
+      };
+
+      const validatedData = insertBookingSchema.parse(bookingData);
       
       const booking = await storage.createBooking(validatedData);
       res.status(201).json(booking);
