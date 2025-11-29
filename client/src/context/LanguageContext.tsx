@@ -172,7 +172,10 @@ const translations = {
     inactive: 'غير نشط',
     pending: 'قيد الانتظار',
     approved: 'موافق عليه',
-    rejected: 'مرفوض'
+    rejected: 'مرفوض',
+    
+    // Booking
+    availableForBooking: 'متاح للحجز'
   },
   en: {
     // Navigation
@@ -335,7 +338,10 @@ const translations = {
     inactive: 'Inactive',
     pending: 'Pending',
     approved: 'Approved',
-    rejected: 'Rejected'
+    rejected: 'Rejected',
+    
+    // Booking
+    availableForBooking: 'Available for Booking'
   }
 };
 

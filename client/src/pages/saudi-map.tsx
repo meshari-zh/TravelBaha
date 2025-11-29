@@ -183,21 +183,47 @@ export default function SaudiMap() {
     queryKey: ['/api/places'],
   })
   
-  // جلب المحتوى القابل للتعديل للخريطة
-  const { data: mapTitle = '' } = useQuery({
+  // جلب المحتوى القابل للتعديل للخريطة - مع دعم اللغتين
+  const { data: mapTitleAr = '' } = useQuery({
     queryKey: ['/api/site-content/map_title'],
-    select: (data: any) => data?.content || 'خريطة المملكة التفاعلية'
+    select: (data: any) => data?.content || ''
   })
   
-  const { data: mapSubtitle = '' } = useQuery({
+  const { data: mapTitleEn = '' } = useQuery({
+    queryKey: ['/api/site-content/map_title_en'],
+    select: (data: any) => data?.content || ''
+  })
+  
+  const { data: mapSubtitleAr = '' } = useQuery({
     queryKey: ['/api/site-content/map_subtitle'],
-    select: (data: any) => data?.content || 'استكشف جمال منطقة الباحة والمدن السعودية'
+    select: (data: any) => data?.content || ''
   })
   
-  const { data: mapDescription = '' } = useQuery({
-    queryKey: ['/api/site-content/map_description'],
-    select: (data: any) => data?.content || 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة'
+  const { data: mapSubtitleEn = '' } = useQuery({
+    queryKey: ['/api/site-content/map_subtitle_en'],
+    select: (data: any) => data?.content || ''
   })
+  
+  const { data: mapDescriptionAr = '' } = useQuery({
+    queryKey: ['/api/site-content/map_description'],
+    select: (data: any) => data?.content || ''
+  })
+  
+  const { data: mapDescriptionEn = '' } = useQuery({
+    queryKey: ['/api/site-content/map_description_en'],
+    select: (data: any) => data?.content || ''
+  })
+  
+  // اختيار المحتوى بناءً على اللغة مع fallback للترجمات الافتراضية
+  const mapTitle = language === 'en' 
+    ? (mapTitleEn || t('mapTitle'))
+    : (mapTitleAr || t('mapTitle'))
+  const mapSubtitle = language === 'en'
+    ? (mapSubtitleEn || t('mapSubtitle'))
+    : (mapSubtitleAr || t('mapSubtitle'))
+  const mapDescription = language === 'en'
+    ? (mapDescriptionEn || t('mapDescription'))
+    : (mapDescriptionAr || t('mapDescription'))
   
   // التأكد من أن places هو مصفوفة
   const placesArray = Array.isArray(places) ? places : []
