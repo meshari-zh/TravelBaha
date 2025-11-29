@@ -733,8 +733,11 @@ export default function AdminDashboard() {
     
     const data: InsertTeamMember = {
       name: formData.get("name") as string,
+      nameEn: formData.get("nameEn") as string || null,
       role: formData.get("role") as string,
+      roleEn: formData.get("roleEn") as string || null,
       description: formData.get("description") as string,
+      descriptionEn: formData.get("descriptionEn") as string || null,
       imageUrl: teamMemberImageUrl,
       orderIndex: parseInt(formData.get("orderIndex") as string) || 0,
       isActive: true,
@@ -1296,37 +1299,86 @@ export default function AdminDashboard() {
                       
                       <div className="flex-1 overflow-y-auto px-6 pb-4" style={{minHeight: 0}}>
                           <form id="team-member-form" onSubmit={handleSubmitTeamMember} className="space-y-6 pb-24">
-                            <div className="space-y-2">
-                              <Label htmlFor="name">{language === 'ar' ? 'اسم العضو' : 'Member Name'}</Label>
-                              <Input
-                                id="name"
-                                name="name"
-                                defaultValue={editingTeamMember?.name || ""}
-                                required
-                                data-testid="input-team-member-name"
-                              />
+                            {/* Arabic Fields */}
+                            <div className="border-b pb-4">
+                              <h3 className="text-lg font-semibold mb-4 text-primary">{language === 'ar' ? 'البيانات بالعربية' : 'Arabic Data'}</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="name">{language === 'ar' ? 'اسم العضو (عربي)' : 'Member Name (Arabic)'}</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={editingTeamMember?.name || ""}
+                                    required
+                                    dir="rtl"
+                                    data-testid="input-team-member-name"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="role">{language === 'ar' ? 'المنصب (عربي)' : 'Position (Arabic)'}</Label>
+                                  <Input
+                                    id="role"
+                                    name="role"
+                                    defaultValue={editingTeamMember?.role || ""}
+                                    required
+                                    dir="rtl"
+                                    data-testid="input-team-member-role"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="description">{language === 'ar' ? 'الوصف (عربي)' : 'Description (Arabic)'}</Label>
+                                  <Textarea
+                                    id="description"
+                                    name="description"
+                                    defaultValue={editingTeamMember?.description || ""}
+                                    data-testid="input-team-member-description"
+                                    rows={2}
+                                    dir="rtl"
+                                  />
+                                </div>
+                              </div>
                             </div>
                             
-                            <div className="space-y-2">
-                              <Label htmlFor="role">{language === 'ar' ? 'المنصب' : 'Position'}</Label>
-                              <Input
-                                id="role"
-                                name="role"
-                                defaultValue={editingTeamMember?.role || ""}
-                                required
-                                data-testid="input-team-member-role"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label htmlFor="description">{language === 'ar' ? 'الوصف' : 'Description'}</Label>
-                              <Textarea
-                                id="description"
-                                name="description"
-                                defaultValue={editingTeamMember?.description || ""}
-                                data-testid="input-team-member-description"
-                                rows={3}
-                              />
+                            {/* English Fields */}
+                            <div className="border-b pb-4">
+                              <h3 className="text-lg font-semibold mb-4 text-primary">{language === 'ar' ? 'البيانات بالإنجليزية' : 'English Data'}</h3>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="nameEn">{language === 'ar' ? 'اسم العضو (إنجليزي)' : 'Member Name (English)'}</Label>
+                                  <Input
+                                    id="nameEn"
+                                    name="nameEn"
+                                    defaultValue={editingTeamMember?.nameEn || ""}
+                                    dir="ltr"
+                                    data-testid="input-team-member-name-en"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="roleEn">{language === 'ar' ? 'المنصب (إنجليزي)' : 'Position (English)'}</Label>
+                                  <Input
+                                    id="roleEn"
+                                    name="roleEn"
+                                    defaultValue={editingTeamMember?.roleEn || ""}
+                                    dir="ltr"
+                                    data-testid="input-team-member-role-en"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="descriptionEn">{language === 'ar' ? 'الوصف (إنجليزي)' : 'Description (English)'}</Label>
+                                  <Textarea
+                                    id="descriptionEn"
+                                    name="descriptionEn"
+                                    defaultValue={editingTeamMember?.descriptionEn || ""}
+                                    data-testid="input-team-member-description-en"
+                                    rows={2}
+                                    dir="ltr"
+                                  />
+                                </div>
+                              </div>
                             </div>
                             
                             <div className="space-y-2">
@@ -1396,25 +1448,25 @@ export default function AdminDashboard() {
                               {member.imageUrl ? (
                                 <img 
                                   src={member.imageUrl} 
-                                  alt={member.name}
+                                  alt={language === 'en' && member.nameEn ? member.nameEn : member.name}
                                   className="w-full h-full rounded-full object-cover"
                                 />
                               ) : (
                                 <span className="text-lg font-semibold">
-                                  {member.name.charAt(0)}
+                                  {(language === 'en' && member.nameEn ? member.nameEn : member.name).charAt(0)}
                                 </span>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-semibold truncate" data-testid={`team-member-name-${member.id}`}>
-                                {member.name}
+                                {language === 'en' && member.nameEn ? member.nameEn : member.name}
                               </h4>
                               <p className="text-sm text-primary font-medium" data-testid={`team-member-role-${member.id}`}>
-                                {member.role}
+                                {language === 'en' && member.roleEn ? member.roleEn : member.role}
                               </p>
-                              {member.description && (
+                              {(member.description || member.descriptionEn) && (
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2" data-testid={`team-member-description-${member.id}`}>
-                                  {member.description}
+                                  {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
                                 </p>
                               )}
                             </div>

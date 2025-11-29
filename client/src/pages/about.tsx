@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -91,19 +91,19 @@ export default function About() {
                         <Avatar className="w-16 h-16">
                           <AvatarImage src={member.imageUrl || undefined} />
                           <AvatarFallback className="text-lg">
-                            {member.name.charAt(0)}
+                            {(language === 'en' && member.nameEn ? member.nameEn : member.name).charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 text-right">
+                        <div className={`flex-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                           <h3 className="font-semibold text-lg" data-testid={`team-member-name-${member.id}`}>
-                            {member.name}
+                            {language === 'en' && member.nameEn ? member.nameEn : member.name}
                           </h3>
                           <p className="text-sm text-primary font-medium mb-2" data-testid={`team-member-role-${member.id}`}>
-                            {member.role}
+                            {language === 'en' && member.roleEn ? member.roleEn : member.role}
                           </p>
-                          {member.description && (
+                          {(member.description || member.descriptionEn) && (
                             <p className="text-sm text-muted-foreground" data-testid={`team-member-description-${member.id}`}>
-                              {member.description}
+                              {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
                             </p>
                           )}
                         </div>
@@ -138,9 +138,9 @@ export default function About() {
                     <Skeleton className="h-4 w-3/4" />
                   </div>
                 ) : aboutContent?.content ? (
-                  <div className="prose prose-lg max-w-none text-right" dir="rtl">
+                  <div className={`prose prose-lg max-w-none ${language === 'ar' ? 'text-right' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
                     <div className="whitespace-pre-wrap">
-                      {aboutContent.content}
+                      {language === 'en' && aboutContent.contentEn ? aboutContent.contentEn : aboutContent.content}
                     </div>
                   </div>
                 ) : (
@@ -202,9 +202,21 @@ interface EditAboutFormProps {
 
 function EditAboutForm({ content, onSave }: EditAboutFormProps) {
   const { language, t } = useLanguage();
-  const [title, setTitle] = useState(content?.title || (language === 'ar' ? 'نبذة عنا' : 'About Us'));
+  const [title, setTitle] = useState(content?.title || '');
+  const [titleEn, setTitleEn] = useState(content?.titleEn || '');
   const [contentText, setContentText] = useState(content?.content || '');
+  const [contentTextEn, setContentTextEn] = useState(content?.contentEn || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update form when content changes
+  useEffect(() => {
+    if (content) {
+      setTitle(content.title || '');
+      setTitleEn(content.titleEn || '');
+      setContentText(content.content || '');
+      setContentTextEn(content.contentEn || '');
+    }
+  }, [content]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,7 +231,9 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
         body: JSON.stringify({
           key: 'about_us',
           title,
+          titleEn,
           content: contentText,
+          contentEn: contentTextEn,
         }),
       });
 
@@ -243,38 +257,82 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              {language === 'ar' ? 'العنوان' : 'Title'}
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
-              dir="rtl"
-              placeholder={language === 'ar' ? 'عنوان الصفحة' : 'Page Title'}
-              required
-              data-testid="input-about-title"
-            />
+          {/* Arabic Content */}
+          <div className="border-b pb-6">
+            <h3 className="text-lg font-semibold mb-4 text-primary">{language === 'ar' ? 'المحتوى بالعربية' : 'Arabic Content'}</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium mb-2">
+                  {language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
+                  dir="rtl"
+                  placeholder={language === 'ar' ? 'عنوان الصفحة بالعربية' : 'Page Title in Arabic'}
+                  required
+                  data-testid="input-about-title"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="content" className="block text-sm font-medium mb-2">
+                  {language === 'ar' ? 'المحتوى (عربي)' : 'Content (Arabic)'}
+                </label>
+                <textarea
+                  id="content"
+                  value={contentText}
+                  onChange={(e) => setContentText(e.target.value)}
+                  rows={6}
+                  className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
+                  dir="rtl"
+                  placeholder={language === 'ar' ? 'محتوى صفحة نبذة عنا بالعربية...' : 'About us page content in Arabic...'}
+                  required
+                  data-testid="textarea-about-content"
+                />
+              </div>
+            </div>
           </div>
           
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium mb-2">
-              {t('content')}
-            </label>
-            <textarea
-              id="content"
-              value={contentText}
-              onChange={(e) => setContentText(e.target.value)}
-              rows={12}
-              className="w-full p-3 border border-border rounded-md bg-background text-foreground text-right"
-              dir="rtl"
-              placeholder={language === 'ar' ? 'محتوى صفحة نبذة عنا...' : 'About us page content...'}
-              required
-              data-testid="textarea-about-content"
-            />
+          {/* English Content */}
+          <div className="border-b pb-6">
+            <h3 className="text-lg font-semibold mb-4 text-primary">{language === 'ar' ? 'المحتوى بالإنجليزية' : 'English Content'}</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="titleEn" className="block text-sm font-medium mb-2">
+                  {language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}
+                </label>
+                <input
+                  id="titleEn"
+                  type="text"
+                  value={titleEn}
+                  onChange={(e) => setTitleEn(e.target.value)}
+                  className="w-full p-3 border border-border rounded-md bg-background text-foreground text-left"
+                  dir="ltr"
+                  placeholder={language === 'ar' ? 'عنوان الصفحة بالإنجليزية' : 'Page Title in English'}
+                  data-testid="input-about-title-en"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="contentEn" className="block text-sm font-medium mb-2">
+                  {language === 'ar' ? 'المحتوى (إنجليزي)' : 'Content (English)'}
+                </label>
+                <textarea
+                  id="contentEn"
+                  value={contentTextEn}
+                  onChange={(e) => setContentTextEn(e.target.value)}
+                  rows={6}
+                  className="w-full p-3 border border-border rounded-md bg-background text-foreground text-left"
+                  dir="ltr"
+                  placeholder={language === 'ar' ? 'محتوى صفحة نبذة عنا بالإنجليزية...' : 'About us page content in English...'}
+                  data-testid="textarea-about-content-en"
+                />
+              </div>
+            </div>
           </div>
           
           <div className="flex gap-4">
@@ -283,7 +341,7 @@ function EditAboutForm({ content, onSave }: EditAboutFormProps) {
               disabled={isSubmitting}
               data-testid="button-save-about"
             >
-{isSubmitting ? 
+              {isSubmitting ? 
                 (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : 
                 (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')
               }

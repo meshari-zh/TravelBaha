@@ -485,7 +485,9 @@ export class DatabaseStorage implements IStorage {
         target: siteContent.key,
         set: {
           title: content.title,
+          titleEn: content.titleEn,
           content: content.content,
+          contentEn: content.contentEn,
           updatedBy: content.updatedBy,
           updatedAt: new Date(),
         },
