@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -27,20 +28,21 @@ export default function MessageChat({
 }: MessageChatProps) {
   const [newMessage, setNewMessage] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { language } = useLanguage();
 
   const getUserDisplayName = (user: User) => {
-    return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || 'مستخدم';
+    return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || (language === 'ar' ? 'مستخدم' : 'User');
   };
 
   const getUserInitials = (user: User) => {
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'م';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || user.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'U');
   };
 
   const formatTime = (date: Date | string) => {
     const messageDate = new Date(date);
-    return messageDate.toLocaleTimeString('ar-SA', {
+    return messageDate.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -83,12 +85,12 @@ export default function MessageChat({
                 {isConnected ? (
                   <Badge variant="secondary" className="text-xs flex items-center gap-1">
                     <Wifi className="w-3 h-3" />
-                    متصل
+                    {language === 'ar' ? 'متصل' : 'Connected'}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="text-xs flex items-center gap-1">
                     <WifiOff className="w-3 h-3" />
-                    غير متصل
+                    {language === 'ar' ? 'غير متصل' : 'Disconnected'}
                   </Badge>
                 )}
               </div>
@@ -104,7 +106,7 @@ export default function MessageChat({
             <div className="flex justify-center items-center h-full">
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">جاري تحميل الرسائل...</p>
+                <p className="text-sm text-muted-foreground">{language === 'ar' ? 'جاري تحميل الرسائل...' : 'Loading messages...'}</p>
               </div>
             </div>
           ) : messages.length === 0 ? (
@@ -113,8 +115,8 @@ export default function MessageChat({
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <Send className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold mb-2">لا توجد رسائل</h3>
-                <p className="text-sm text-muted-foreground">ابدأ المحادثة بإرسال رسالة</p>
+                <h3 className="font-semibold mb-2">{language === 'ar' ? 'لا توجد رسائل' : 'No Messages'}</h3>
+                <p className="text-sm text-muted-foreground">{language === 'ar' ? 'ابدأ المحادثة بإرسال رسالة' : 'Start the conversation by sending a message'}</p>
               </div>
             </div>
           ) : (
@@ -141,7 +143,7 @@ export default function MessageChat({
                             ? 'text-primary-foreground/70' 
                             : 'text-muted-foreground'
                         }`}>
-                          {message.sender ? getUserDisplayName(message.sender) : (isFromCurrentUser ? 'أنت' : getUserDisplayName(otherUser))}
+                          {message.sender ? getUserDisplayName(message.sender) : (isFromCurrentUser ? (language === 'ar' ? 'أنت' : 'You') : getUserDisplayName(otherUser))}
                         </span>
                         <span className={`text-xs ${
                           isFromCurrentUser 
@@ -166,7 +168,7 @@ export default function MessageChat({
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="اكتب رسالتك هنا..."
+            placeholder={language === 'ar' ? "اكتب رسالتك هنا..." : "Type your message here..."}
             className="flex-1"
             data-testid="input-new-message"
           />
@@ -181,7 +183,7 @@ export default function MessageChat({
         </form>
         {!isConnected && (
           <p className="text-xs text-muted-foreground mt-2 text-center">
-            الاتصال منقطع - جاري إعادة المحاولة...
+            {language === 'ar' ? 'الاتصال منقطع - جاري إعادة المحاولة...' : 'Disconnected - Reconnecting...'}
           </p>
         )}
       </div>

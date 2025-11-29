@@ -125,8 +125,8 @@ export default function Messages() {
       if (event.code === 1008) {
         console.error('WebSocket connection rejected: Unauthorized');
         toast({
-          title: "اتصال غير مصرح",
-          description: "فشل في تسجيل الدخول للدردشة. سيتم تحديث الصفحة...",
+          title: language === 'ar' ? "اتصال غير مصرح" : "Unauthorized Connection",
+          description: language === 'ar' ? "فشل في تسجيل الدخول للدردشة. سيتم تحديث الصفحة..." : "Failed to authenticate chat. Redirecting...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -174,14 +174,14 @@ export default function Messages() {
      u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const getUserDisplayName = (user: User) => {
-    return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || 'مستخدم';
+  const getUserDisplayName = (u: User) => {
+    return [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || (language === 'ar' ? 'مستخدم' : 'User');
   };
 
-  const getUserInitials = (user: User) => {
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'م';
+  const getUserInitials = (u: User) => {
+    const firstName = u.firstName || '';
+    const lastName = u.lastName || '';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || u.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'U');
   };
 
   return (
@@ -195,14 +195,14 @@ export default function Messages() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5" />
-                المحادثات
+                {language === 'ar' ? 'المحادثات' : 'Conversations'}
               </CardTitle>
               
               {/* Search Users */}
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="البحث عن مستخدم..."
+                  placeholder={language === 'ar' ? "البحث عن مستخدم..." : "Search users..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pr-10"
@@ -215,7 +215,9 @@ export default function Messages() {
               <div className="space-y-1 max-h-96 overflow-y-auto">
                 {filteredUsers.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground">
-                    {searchTerm ? 'لا يوجد مستخدمين يطابقون البحث' : 'لا يوجد مستخدمين متاحين للمحادثة'}
+                    {searchTerm 
+                      ? (language === 'ar' ? 'لا يوجد مستخدمين يطابقون البحث' : 'No users match your search')
+                      : (language === 'ar' ? 'لا يوجد مستخدمين متاحين للمحادثة' : 'No users available for chat')}
                   </div>
                 ) : (
                   filteredUsers.map((u) => (
@@ -264,11 +266,11 @@ export default function Messages() {
               <CardContent className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">اختر محادثة</h3>
+                  <h3 className="font-semibold mb-2">{language === 'ar' ? 'اختر محادثة' : 'Select a Conversation'}</h3>
                   <p className="text-muted-foreground">
                     {user?.role === 'tourist' 
-                      ? 'اختر مرشداً سياحياً للبدء في المحادثة'
-                      : 'اختر مستخدماً للبدء في المحادثة'
+                      ? (language === 'ar' ? 'اختر مرشداً سياحياً للبدء في المحادثة' : 'Select a tour guide to start chatting')
+                      : (language === 'ar' ? 'اختر مستخدماً للبدء في المحادثة' : 'Select a user to start chatting')
                     }
                   </p>
                 </div>
