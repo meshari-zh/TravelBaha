@@ -19,7 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, Key, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember } from "@shared/schema";
 
@@ -1589,6 +1589,27 @@ export default function AdminDashboard() {
                                   ? (invite.isUsed ? 'مستخدم' : 'متاح')
                                   : (invite.isUsed ? 'Used' : 'Available')}
                               </Badge>
+                              {invite.isUsed && invite.usedBy && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (confirm(language === 'ar' 
+                                      ? 'هل أنت متأكد من إزالة صلاحيات هذا المستخدم وتحويله لزائر عادي؟' 
+                                      : 'Are you sure you want to revoke this user\'s privileges and make them a regular visitor?')) {
+                                      updateUserRoleMutation.mutate({ userId: invite.usedBy!, role: "tourist" });
+                                    }
+                                  }}
+                                  disabled={updateUserRoleMutation.isPending}
+                                  data-testid={`button-revoke-role-${invite.id}`}
+                                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                >
+                                  <UserX className="w-4 h-4" />
+                                  <span className="mr-1 text-xs">
+                                    {language === 'ar' ? 'إزالة الصلاحيات' : 'Revoke'}
+                                  </span>
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
