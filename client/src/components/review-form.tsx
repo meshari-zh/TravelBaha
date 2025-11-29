@@ -42,7 +42,7 @@ export default function ReviewForm({ bookingId, guideId, guideName, onSuccess, o
 
   const reviewMutation = useMutation({
     mutationFn: (data: ReviewFormData) => 
-      apiRequest("/api/reviews", "POST", {
+      apiRequest("POST", "/api/reviews", {
         bookingId,
         guideId,
         rating: data.rating,
