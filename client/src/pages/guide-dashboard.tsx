@@ -17,7 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Star, Calendar, DollarSign, MessageCircle, Plus, X } from "lucide-react";
-import type { Guide, InsertGuide, Booking, Review } from "@shared/schema";
+import type { Guide, InsertGuide, Booking, Review, User } from "@shared/schema";
+import { Link } from "wouter";
+
+type BookingWithTourist = Booking & { tourist?: User };
 
 export default function GuideDashboard() {
   const { user } = useAuth();
@@ -48,7 +51,7 @@ export default function GuideDashboard() {
     retry: false,
   });
 
-  const { data: bookings = [] } = useQuery<Booking[]>({
+  const { data: bookings = [] } = useQuery<BookingWithTourist[]>({
     queryKey: ["/api/bookings"],
     enabled: !!guide,
   });
@@ -457,6 +460,30 @@ export default function GuideDashboard() {
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
+                              {/* Tourist Info */}
+                              {booking.tourist && (
+                                <div className="flex items-center gap-3 mb-3 p-2 bg-muted rounded-lg">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarImage src={booking.tourist.profileImageUrl || undefined} />
+                                    <AvatarFallback className="text-sm">
+                                      {(booking.tourist.firstName?.charAt(0) || '') + (booking.tourist.lastName?.charAt(0) || '') || booking.tourist.email?.charAt(0) || 'س'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <p className="font-medium" data-testid={`tourist-name-${booking.id}`}>
+                                      {[booking.tourist.firstName, booking.tourist.lastName].filter(Boolean).join(' ') || booking.tourist.email || (language === 'ar' ? 'سائح' : 'Tourist')}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">{booking.tourist.email}</p>
+                                  </div>
+                                  <Link href={`/messages?userId=${booking.touristId}`}>
+                                    <Button size="sm" variant="outline" className="flex items-center gap-1" data-testid={`contact-tourist-${booking.id}`}>
+                                      <MessageCircle className="w-4 h-4" />
+                                      {language === 'ar' ? 'تواصل' : 'Contact'}
+                                    </Button>
+                                  </Link>
+                                </div>
+                              )}
+                              
                               <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
                                 {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
                               </h4>

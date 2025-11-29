@@ -56,7 +56,7 @@ export interface IStorage {
   getAllBookings(): Promise<Booking[]>;
   getBooking(id: string): Promise<Booking | undefined>;
   getBookingsByTourist(touristId: string): Promise<Booking[]>;
-  getBookingsByGuide(guideId: string): Promise<Booking[]>;
+  getBookingsByGuide(guideId: string): Promise<(Booking & { tourist?: User })[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, updates: Partial<InsertBooking>): Promise<Booking>;
   
@@ -322,12 +322,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bookings.createdAt));
   }
 
-  async getBookingsByGuide(guideId: string): Promise<Booking[]> {
-    return await db
+  async getBookingsByGuide(guideId: string): Promise<(Booking & { tourist?: User })[]> {
+    const results = await db
       .select()
       .from(bookings)
+      .leftJoin(users, eq(bookings.touristId, users.id))
       .where(eq(bookings.guideId, guideId))
       .orderBy(desc(bookings.createdAt));
+    
+    return results.map(row => ({
+      ...row.bookings,
+      tourist: row.users || undefined,
+    }));
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
