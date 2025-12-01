@@ -769,16 +769,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/reviews', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Review request body:", req.body);
+      console.log("User ID:", req.user.claims.sub);
+      
       const validatedData = insertReviewSchema.parse({
         ...req.body,
         touristId: req.user.claims.sub,
       });
       
+      console.log("Validated review data:", validatedData);
+      
       const review = await storage.createReview(validatedData);
+      
+      // Update guide rating after creating review
+      if (review) {
+        try {
+          const allReviews = await storage.getReviewsByGuide(validatedData.guideId);
+          const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+          await storage.updateGuide(validatedData.guideId, { 
+            rating: avgRating.toFixed(2),
+            reviewCount: allReviews.length 
+          });
+        } catch (updateError) {
+          console.error("Error updating guide rating:", updateError);
+        }
+      }
+      
       res.status(201).json(review);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating review:", error);
-      res.status(500).json({ message: "Failed to create review" });
+      if (error.name === 'ZodError') {
+        res.status(400).json({ message: "Invalid review data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: error.message || "Failed to create review" });
+      }
     }
   });
 
