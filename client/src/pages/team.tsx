@@ -1,50 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Award, Heart, Star } from "lucide-react";
+import type { TeamMember } from "@shared/schema";
 
 export default function Team() {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
 
-  const teamMembers = [
-    {
-      nameAr: "أحمد محمد",
-      nameEn: "Ahmed Mohammed",
-      roleAr: "مؤسس ومدير المشروع",
-      roleEn: "Founder & Project Manager",
-      descriptionAr: "خبرة واسعة في مجال السياحة والتقنية",
-      descriptionEn: "Extensive experience in tourism and technology",
-      avatar: "🧑‍💼"
-    },
-    {
-      nameAr: "فاطمة علي",
-      nameEn: "Fatima Ali",
-      roleAr: "مديرة تطوير المحتوى",
-      roleEn: "Content Development Manager",
-      descriptionAr: "متخصصة في المحتوى السياحي والثقافي",
-      descriptionEn: "Specialized in tourism and cultural content",
-      avatar: "👩‍💻"
-    },
-    {
-      nameAr: "محمد سالم",
-      nameEn: "Mohammed Salem",
-      roleAr: "مطور تقني",
-      roleEn: "Technical Developer",
-      descriptionAr: "خبير في تطوير التطبيقات والمنصات الرقمية",
-      descriptionEn: "Expert in app and digital platform development",
-      avatar: "👨‍💻"
-    },
-    {
-      nameAr: "نورة أحمد",
-      nameEn: "Noura Ahmed",
-      roleAr: "مسؤولة علاقات العملاء",
-      roleEn: "Customer Relations Manager",
-      descriptionAr: "متخصصة في خدمة العملاء والتواصل",
-      descriptionEn: "Specialized in customer service and communication",
-      avatar: "👩‍🔧"
-    }
-  ];
+  const { data: teamMembers = [], isLoading } = useQuery<TeamMember[]>({
+    queryKey: ['/api/team-members'],
+  });
+
+  const activeMembers = teamMembers.filter(m => m.isActive);
+  const supervisor = activeMembers.find(m => m.role?.includes('مشرف') || m.roleEn?.toLowerCase().includes('supervisor'));
+  const regularMembers = activeMembers.filter(m => m !== supervisor);
 
   const values = [
     {
@@ -91,62 +62,98 @@ export default function Team() {
           </div>
         </div>
 
-        <div className="space-y-4 mb-12">
-          {teamMembers.map((member, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${index}`}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-6">
-                  <div className="text-5xl w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full shrink-0">
-                    {member.avatar}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
-                      {language === 'ar' ? member.nameAr : member.nameEn}
-                    </h3>
-                    <div>
-                      <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
-                        {language === 'ar' ? member.roleAr : member.roleEn}
-                      </span>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">{language === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+          </div>
+        ) : activeMembers.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground text-lg">
+              {language === 'ar' ? 'لا يوجد أعضاء في الفريق حالياً' : 'No team members available'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 mb-12">
+              {regularMembers.map((member) => (
+                <Card key={member.id} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${member.id}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-6">
+                      {member.imageUrl ? (
+                        <img 
+                          src={member.imageUrl} 
+                          alt={language === 'ar' ? member.name : (member.nameEn || member.name)}
+                          className="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-green-200"
+                        />
+                      ) : (
+                        <div className="text-5xl w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full shrink-0">
+                          👤
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
+                          {language === 'ar' ? member.name : (member.nameEn || member.name)}
+                        </h3>
+                        <div>
+                          <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
+                            {language === 'ar' ? member.role : (member.roleEn || member.role)}
+                          </span>
+                        </div>
+                        {(member.description || member.descriptionEn) && (
+                          <p className="text-muted-foreground leading-relaxed">
+                            {language === 'ar' ? member.description : (member.descriptionEn || member.description)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {language === 'ar' ? member.descriptionAr : member.descriptionEn}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
-            {language === 'ar' ? 'المشرف على المشروع' : 'Project Supervisor'}
-          </h2>
-          <Card className="max-w-2xl mx-auto hover:shadow-lg transition-shadow border-2 border-primary/20" data-testid="card-supervisor">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
-                <div className="text-6xl w-24 h-24 flex items-center justify-center bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-800 dark:to-orange-800 rounded-full shrink-0 border-4 border-yellow-400">
-                  👨‍🏫
-                </div>
-                <div className="flex-1 space-y-3">
-                  <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">
-                    {language === 'ar' ? 'د. عبدالله الغامدي' : 'Dr. Abdullah Al-Ghamdi'}
-                  </h3>
-                  <div>
-                    <span className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-medium px-4 py-1.5 rounded-full text-sm">
-                      {language === 'ar' ? 'المشرف الأكاديمي' : 'Academic Supervisor'}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {language === 'ar' 
-                      ? 'أستاذ في قسم نظم المعلومات، خبرة واسعة في الإشراف على المشاريع التقنية والسياحية. ساهم في توجيه الفريق وتقديم الاستشارات اللازمة لنجاح المشروع.'
-                      : 'Professor in the Information Systems Department, with extensive experience in supervising technical and tourism projects. Contributed to guiding the team and providing necessary consultations for the project success.'}
-                  </p>
-                </div>
+            {supervisor && (
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
+                  {language === 'ar' ? 'المشرف على المشروع' : 'Project Supervisor'}
+                </h2>
+                <Card className="max-w-2xl mx-auto hover:shadow-lg transition-shadow border-2 border-primary/20" data-testid="card-supervisor">
+                  <CardContent className="p-8">
+                    <div className="flex items-start gap-6">
+                      {supervisor.imageUrl ? (
+                        <img 
+                          src={supervisor.imageUrl} 
+                          alt={language === 'ar' ? supervisor.name : (supervisor.nameEn || supervisor.name)}
+                          className="w-24 h-24 rounded-full object-cover shrink-0 border-4 border-yellow-400"
+                        />
+                      ) : (
+                        <div className="text-6xl w-24 h-24 flex items-center justify-center bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-800 dark:to-orange-800 rounded-full shrink-0 border-4 border-yellow-400">
+                          👨‍🏫
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-3">
+                        <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">
+                          {language === 'ar' ? supervisor.name : (supervisor.nameEn || supervisor.name)}
+                        </h3>
+                        <div>
+                          <span className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-medium px-4 py-1.5 rounded-full text-sm">
+                            {language === 'ar' ? supervisor.role : (supervisor.roleEn || supervisor.role)}
+                          </span>
+                        </div>
+                        {(supervisor.description || supervisor.descriptionEn) && (
+                          <p className="text-muted-foreground leading-relaxed">
+                            {language === 'ar' ? supervisor.description : (supervisor.descriptionEn || supervisor.description)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </>
+        )}
 
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
