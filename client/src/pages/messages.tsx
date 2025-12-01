@@ -194,20 +194,13 @@ export default function Messages() {
             <CardContent className="flex flex-col items-center justify-center py-16">
               <MessageCircle className="w-20 h-20 text-muted-foreground mb-6" />
               <h2 className="text-2xl font-bold mb-4 text-center">
-                {language === 'ar' ? 'يجب أن تسجل دخولك' : 'Login Required'}
+                {language === 'ar' ? 'يجب تسجيل الدخول' : 'Login Required'}
               </h2>
-              <p className="text-muted-foreground text-center mb-6">
+              <p className="text-muted-foreground text-center">
                 {language === 'ar' 
-                  ? 'سجل دخولك للتواصل مع المرشدين السياحيين واحصل على خصم 5% على أول حجز!'
-                  : 'Login to chat with tour guides and get 5% off your first booking!'}
+                  ? 'يجب تسجيل الدخول للتواصل مع المرشدين السياحيين'
+                  : 'You need to login to chat with tour guides'}
               </p>
-              <Button 
-                size="lg"
-                onClick={() => window.location.href = "/api/login"}
-                data-testid="button-login-messages"
-              >
-                {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
-              </Button>
             </CardContent>
           </Card>
         </div>

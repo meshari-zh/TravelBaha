@@ -241,20 +241,6 @@ export default function Navbar() {
                           </Link>
                         </SheetClose>
                       )}
-                      
-                      <SheetClose asChild>
-                        <Link href="/invite">
-                          <Button 
-                            variant={isActive("/invite") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-invite"
-                          >
-                            <Ticket className="w-4 h-4" />
-                            {t('inviteCode')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
 
                       {user?.role === 'admin' && (
                         <SheetClose asChild>
@@ -409,18 +395,6 @@ export default function Navbar() {
                 </Button>
               </Link>
             )}
-            
-            <Link href="/invite">
-              <Button 
-                variant={isActive("/invite") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-invite"
-              >
-                <Ticket className="w-4 h-4" />
-                {t('inviteCode')}
-              </Button>
-            </Link>
 
             {user?.role === 'admin' && (
               <Link href="/admin">
