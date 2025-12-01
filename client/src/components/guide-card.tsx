@@ -67,7 +67,7 @@ export default function GuideCard({ guide, showContactButton = false, showBookBu
       
       <CardContent className="p-4">
         <h3 className="text-lg font-semibold mb-1" data-testid={`guide-name-${guide.id}`}>
-          {getUserDisplayName()}
+          {getGuideName()}
         </h3>
         
         {(guide.bio || guide.bioEn) && (
