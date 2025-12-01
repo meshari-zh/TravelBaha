@@ -103,8 +103,21 @@ export default function GuideProfile() {
   };
 
   const getUserDisplayName = () => {
+    if (language === 'en' && guide?.nameEn) {
+      return guide.nameEn;
+    }
+    if (guide?.name) {
+      return guide.name;
+    }
     if (!guide?.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
     return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
+  };
+
+  const getGuideBio = () => {
+    if (language === 'en' && guide?.bioEn) {
+      return guide.bioEn;
+    }
+    return guide?.bio || '';
   };
 
   const getUserInitials = () => {
@@ -185,9 +198,9 @@ export default function GuideProfile() {
                       {getUserDisplayName()}
                     </h1>
                     
-                    {guide.bio && (
+                    {getGuideBio() && (
                       <p className="text-muted-foreground mb-4" data-testid="guide-profile-bio">
-                        {guide.bio}
+                        {getGuideBio()}
                       </p>
                     )}
                     

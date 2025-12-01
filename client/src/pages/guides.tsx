@@ -148,8 +148,21 @@ export default function Guides() {
   };
 
   const getGuideDisplayName = (guide: Guide) => {
+    if (language === 'en' && guide.nameEn) {
+      return guide.nameEn;
+    }
+    if (guide.name) {
+      return guide.name;
+    }
     if (!guide.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
     return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
+  };
+
+  const getGuideBio = (guide: Guide) => {
+    if (language === 'en' && guide.bioEn) {
+      return guide.bioEn;
+    }
+    return guide.bio || '';
   };
 
   const getGuideInitials = (guide: Guide) => {
@@ -185,7 +198,7 @@ export default function Guides() {
     .filter(guide => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
-        [guide.user?.firstName, guide.user?.lastName, guide.bio]
+        [guide.user?.firstName, guide.user?.lastName, guide.name, guide.nameEn, guide.bio, guide.bioEn]
           .some(value => (value ?? "").toLowerCase().includes(searchTermLower));
       
       const matchesSpecialty = !selectedSpecialty || selectedSpecialty === "all" || 

@@ -172,7 +172,10 @@ export default function GuideDashboard() {
     
     const data: InsertGuide = {
       userId: user!.id,
+      name: formData.get("name") as string,
+      nameEn: formData.get("nameEn") as string,
       bio: formData.get("bio") as string,
+      bioEn: formData.get("bioEn") as string,
       specialties: guide?.specialties || [],
       languages: guide?.languages || [],
       dailyRate: formData.get("dailyRate") as string,
@@ -346,15 +349,60 @@ export default function GuideDashboard() {
               
               <CardContent className="space-y-6">
                 <form onSubmit={handleProfileSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="bio">{language === 'ar' ? 'نبذة عني' : 'About Me'}</Label>
-                    <Textarea
-                      id="bio"
-                      name="bio"
-                      placeholder={language === 'ar' ? "اكتب نبذة عن خبرتك ومعرفتك بمنطقة الباحة..." : "Write about your experience and knowledge of Al Bahah region..."}
-                      defaultValue={guide?.bio || ""}
-                      data-testid="input-bio"
-                    />
+                  {/* Arabic Name & Bio */}
+                  <div className="p-4 border rounded-lg bg-muted/30">
+                    <h4 className="font-semibold mb-3 text-primary">{language === 'ar' ? 'المعلومات بالعربية' : 'Arabic Information'}</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="name">{language === 'ar' ? 'الاسم بالعربية' : 'Name in Arabic'}</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder={language === 'ar' ? "مثال: أحمد محمد" : "Example: أحمد محمد"}
+                          defaultValue={guide?.name || ""}
+                          data-testid="input-name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="bio">{language === 'ar' ? 'نبذة عني بالعربية' : 'About Me in Arabic'}</Label>
+                        <Textarea
+                          id="bio"
+                          name="bio"
+                          placeholder={language === 'ar' ? "اكتب نبذة عن خبرتك ومعرفتك بمنطقة الباحة..." : "Write about your experience in Arabic..."}
+                          defaultValue={guide?.bio || ""}
+                          data-testid="input-bio"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* English Name & Bio */}
+                  <div className="p-4 border rounded-lg bg-blue-50/30 dark:bg-blue-950/30">
+                    <h4 className="font-semibold mb-3 text-blue-700 dark:text-blue-300">{language === 'ar' ? 'المعلومات بالإنجليزية' : 'English Information'}</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="nameEn">{language === 'ar' ? 'الاسم بالإنجليزية' : 'Name in English'}</Label>
+                        <Input
+                          id="nameEn"
+                          name="nameEn"
+                          placeholder="Example: Ahmed Mohammed"
+                          defaultValue={guide?.nameEn || ""}
+                          data-testid="input-name-en"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="bioEn">{language === 'ar' ? 'نبذة عني بالإنجليزية' : 'About Me in English'}</Label>
+                        <Textarea
+                          id="bioEn"
+                          name="bioEn"
+                          placeholder="Write about your experience and knowledge of Al Bahah region..."
+                          defaultValue={guide?.bioEn || ""}
+                          data-testid="input-bio-en"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
                   </div>
                   
                   <div>

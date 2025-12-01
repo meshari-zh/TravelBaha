@@ -58,7 +58,10 @@ export const places = pgTable("places", {
 export const guides = pgTable("guides", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
+  name: text("name"),
+  nameEn: text("name_en"),
   bio: text("bio"),
+  bioEn: text("bio_en"),
   specialties: text("specialties").array(),
   languages: text("languages").array(),
   dailyRate: decimal("daily_rate", { precision: 10, scale: 2 }),
