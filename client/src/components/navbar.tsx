@@ -212,19 +212,21 @@ export default function Navbar() {
                         </Link>
                       </SheetClose>
                       
-                      <SheetClose asChild>
-                        <Link href="/messages">
-                          <Button 
-                            variant={isActive("/messages") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-messages"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            {t('messages')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
+                      {user && (
+                        <SheetClose asChild>
+                          <Link href="/messages">
+                            <Button 
+                              variant={isActive("/messages") ? "default" : "ghost"} 
+                              size="sm"
+                              className="w-full justify-start flex items-center gap-3"
+                              data-testid="mobile-nav-messages"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                              {t('messages')}
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                      )}
                       
                       {user?.role === 'tourist' && (
                         <SheetClose asChild>
@@ -370,17 +372,19 @@ export default function Navbar() {
               </Button>
             </Link>
             
-            <Link href="/messages">
-              <Button 
-                variant={isActive("/messages") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-messages"
-              >
-                <MessageCircle className="w-4 h-4" />
-                {t('messages')}
-              </Button>
-            </Link>
+            {user && (
+              <Link href="/messages">
+                <Button 
+                  variant={isActive("/messages") ? "default" : "ghost"} 
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="nav-messages"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  {t('messages')}
+                </Button>
+              </Link>
+            )}
             
             {user?.role === 'tourist' && (
               <Link href="/bookings">
