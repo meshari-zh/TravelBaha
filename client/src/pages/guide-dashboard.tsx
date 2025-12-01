@@ -458,35 +458,55 @@ export default function GuideDashboard() {
                     {bookings.map((booking) => (
                       <Card key={booking.id}>
                         <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              {/* Tourist Info */}
-                              {booking.tourist && (
-                                <div className="flex items-center gap-3 mb-3 p-2 bg-muted rounded-lg">
-                                  <Avatar className="w-10 h-10">
-                                    <AvatarImage src={booking.tourist.profileImageUrl || undefined} />
-                                    <AvatarFallback className="text-sm">
-                                      {(booking.tourist.firstName?.charAt(0) || '') + (booking.tourist.lastName?.charAt(0) || '') || booking.tourist.email?.charAt(0) || 'س'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1">
-                                    <p className="font-medium" data-testid={`tourist-name-${booking.id}`}>
-                                      {[booking.tourist.firstName, booking.tourist.lastName].filter(Boolean).join(' ') || booking.tourist.email || (language === 'ar' ? 'سائح' : 'Tourist')}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">{booking.tourist.email}</p>
-                                  </div>
-                                  <Link href={`/messages?userId=${booking.touristId}`}>
-                                    <Button size="sm" variant="outline" className="flex items-center gap-1" data-testid={`contact-tourist-${booking.id}`}>
-                                      <MessageCircle className="w-4 h-4" />
-                                      {language === 'ar' ? 'تواصل' : 'Contact'}
-                                    </Button>
-                                  </Link>
+                          <div className="space-y-4">
+                            {/* Tourist Info */}
+                            {booking.tourist && (
+                              <div className="flex items-center gap-3 p-2 bg-muted rounded-lg flex-wrap">
+                                <Avatar className="w-10 h-10">
+                                  <AvatarImage src={booking.tourist.profileImageUrl || undefined} />
+                                  <AvatarFallback className="text-sm">
+                                    {(booking.tourist.firstName?.charAt(0) || '') + (booking.tourist.lastName?.charAt(0) || '') || booking.tourist.email?.charAt(0) || 'س'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate" data-testid={`tourist-name-${booking.id}`}>
+                                    {[booking.tourist.firstName, booking.tourist.lastName].filter(Boolean).join(' ') || booking.tourist.email || (language === 'ar' ? 'سائح' : 'Tourist')}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">{booking.tourist.email}</p>
                                 </div>
-                              )}
-                              
-                              <h4 className="font-semibold mb-1" data-testid={`booking-id-${booking.id}`}>
-                                {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
-                              </h4>
+                                <Link href={`/messages?userId=${booking.touristId}`}>
+                                  <Button size="sm" variant="outline" className="flex items-center gap-1" data-testid={`contact-tourist-${booking.id}`}>
+                                    <MessageCircle className="w-4 h-4" />
+                                    <span className="hidden sm:inline">{language === 'ar' ? 'تواصل' : 'Contact'}</span>
+                                  </Button>
+                                </Link>
+                              </div>
+                            )}
+                            
+                            {/* Booking Details */}
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2 mb-2">
+                                <h4 className="font-semibold" data-testid={`booking-id-${booking.id}`}>
+                                  {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
+                                </h4>
+                                <Badge 
+                                  variant={
+                                    booking.status === 'confirmed' ? 'default' :
+                                    booking.status === 'pending' ? 'secondary' :
+                                    booking.status === 'completed' ? 'outline' :
+                                    'destructive'
+                                  }
+                                  data-testid={`booking-status-${booking.id}`}
+                                >
+                                  {language === 'ar' 
+                                    ? (booking.status === 'confirmed' ? 'مؤكد' :
+                                       booking.status === 'pending' ? 'في الانتظار' :
+                                       booking.status === 'completed' ? 'مكتمل' : 'ملغي')
+                                    : (booking.status === 'confirmed' ? 'Confirmed' :
+                                       booking.status === 'pending' ? 'Pending' :
+                                       booking.status === 'completed' ? 'Completed' : 'Cancelled')}
+                                </Badge>
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {language === 'ar' 
                                   ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
@@ -502,56 +522,42 @@ export default function GuideDashboard() {
                               </p>
                             </div>
                             
-                            <div className="flex flex-col gap-2">
-                              <Badge 
-                                variant={
-                                  booking.status === 'confirmed' ? 'default' :
-                                  booking.status === 'pending' ? 'secondary' :
-                                  booking.status === 'completed' ? 'outline' :
-                                  'destructive'
-                                }
-                                data-testid={`booking-status-${booking.id}`}
-                              >
-                                {language === 'ar' 
-                                  ? (booking.status === 'confirmed' ? 'مؤكد' :
-                                     booking.status === 'pending' ? 'في الانتظار' :
-                                     booking.status === 'completed' ? 'مكتمل' : 'ملغي')
-                                  : (booking.status === 'confirmed' ? 'Confirmed' :
-                                     booking.status === 'pending' ? 'Pending' :
-                                     booking.status === 'completed' ? 'Completed' : 'Cancelled')}
-                              </Badge>
-                              
-                              {booking.status === 'pending' && (
-                                <div className="flex gap-1">
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => updateBookingStatus(booking.id, 'confirmed')}
-                                    data-testid={`button-confirm-${booking.id}`}
-                                  >
-                                    {language === 'ar' ? 'قبول' : 'Accept'}
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="destructive" 
-                                    onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                                    data-testid={`button-cancel-${booking.id}`}
-                                  >
-                                    {language === 'ar' ? 'رفض' : 'Reject'}
-                                  </Button>
-                                </div>
-                              )}
-                              
-                              {booking.status === 'confirmed' && (
+                            {/* Action Buttons - Always visible */}
+                            {booking.status === 'pending' && (
+                              <div className="flex flex-wrap gap-2 pt-2 border-t">
                                 <Button 
-                                  size="sm" 
+                                  size="default"
+                                  className="flex-1 min-w-[100px]"
+                                  onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                                  data-testid={`button-confirm-${booking.id}`}
+                                >
+                                  {language === 'ar' ? 'قبول الحجز' : 'Accept Booking'}
+                                </Button>
+                                <Button 
+                                  size="default"
+                                  variant="destructive"
+                                  className="flex-1 min-w-[100px]"
+                                  onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                                  data-testid={`button-cancel-${booking.id}`}
+                                >
+                                  {language === 'ar' ? 'رفض الحجز' : 'Reject Booking'}
+                                </Button>
+                              </div>
+                            )}
+                            
+                            {booking.status === 'confirmed' && (
+                              <div className="pt-2 border-t">
+                                <Button 
+                                  size="default"
                                   variant="outline"
+                                  className="w-full"
                                   onClick={() => updateBookingStatus(booking.id, 'completed')}
                                   data-testid={`button-complete-${booking.id}`}
                                 >
-                                  {language === 'ar' ? 'تم الانتهاء' : 'Mark Complete'}
+                                  {language === 'ar' ? 'تم الانتهاء من الجولة' : 'Mark Tour Complete'}
                                 </Button>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

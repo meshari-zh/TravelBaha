@@ -31,20 +31,26 @@ export default function Messages() {
     queryKey: ["/api/guides"],
   });
 
-  // Fetch available users to chat with based on role
-  const { data: availableUsers = [] } = useQuery<User[]>({
-    queryKey: user?.role === 'tourist' ? ["/api/guides"] : ["/api/users"],
+  // Fetch all users for chat
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
     enabled: !!user,
-    select: (data: any[]) => {
-      if (user?.role === 'tourist') {
-        // For tourists, show guides
-        return data.map((guide: Guide) => guide.user).filter(Boolean);
-      } else {
-        // For guides and admins, show only guides and admins (not tourists)
-        return data.filter((u: User) => u.id !== user?.id && (u.role === 'guide' || u.role === 'admin'));
-      }
-    },
   });
+
+  // Separate users by role for guides/admins
+  const guideUsers = allUsers.filter((u: User) => u.id !== user?.id && u.role === 'guide');
+  const adminUsers = allUsers.filter((u: User) => u.id !== user?.id && u.role === 'admin');
+  const touristUsers = allUsers.filter((u: User) => u.id !== user?.id && u.role === 'tourist');
+
+  // For tourists, fetch guides separately
+  const { data: availableGuides = [] } = useQuery<User[]>({
+    queryKey: ["/api/guides"],
+    enabled: !!user && user.role === 'tourist',
+    select: (data: any[]) => data.map((guide: Guide) => guide.user).filter(Boolean),
+  });
+
+  // Determine available users based on role
+  const availableUsers = user?.role === 'tourist' ? availableGuides : allUsers.filter((u: User) => u.id !== user?.id);
 
   // Fetch messages for selected conversation
   const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
@@ -312,40 +318,197 @@ export default function Messages() {
             </CardHeader>
             
             <CardContent className="p-0">
-              <div className="space-y-1 max-h-96 overflow-y-auto">
-                {filteredUsers.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    {searchTerm 
-                      ? (language === 'ar' ? 'لا يوجد مستخدمين يطابقون البحث' : 'No users match your search')
-                      : (language === 'ar' ? 'لا يوجد مستخدمين متاحين للمحادثة' : 'No users available for chat')}
+              <div className="max-h-96 overflow-y-auto">
+                {user?.role === 'tourist' ? (
+                  // For tourists, show all guides
+                  <div className="space-y-1">
+                    {filteredUsers.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        {searchTerm 
+                          ? (language === 'ar' ? 'لا يوجد مرشدين يطابقون البحث' : 'No guides match your search')
+                          : (language === 'ar' ? 'لا يوجد مرشدين متاحين للمحادثة' : 'No guides available for chat')}
+                      </div>
+                    ) : (
+                      filteredUsers.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => setSelectedUser(u)}
+                          className={`w-full p-3 text-right hover:bg-muted transition-colors border-r-2 ${
+                            selectedUser?.id === u.id ? 'bg-muted border-primary' : 'border-transparent'
+                          }`}
+                          data-testid={`button-select-user-${u.id}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={u.profileImageUrl || undefined} />
+                              <AvatarFallback>{getUserInitials(u)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate" data-testid={`text-user-name-${u.id}`}>
+                                {getUserDisplayName(u)}
+                              </p>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {u.email}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    )}
                   </div>
                 ) : (
-                  filteredUsers.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => setSelectedUser(u)}
-                      className={`w-full p-3 text-right hover:bg-muted transition-colors border-r-2 ${
-                        selectedUser?.id === u.id ? 'bg-muted border-primary' : 'border-transparent'
-                      }`}
-                      data-testid={`button-select-user-${u.id}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage src={u.profileImageUrl || undefined} />
-                          <AvatarFallback>{getUserInitials(u)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate" data-testid={`text-user-name-${u.id}`}>
-                            {getUserDisplayName(u)}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {u.email}
+                  // For guides and admins, show sections
+                  <div className="space-y-2">
+                    {/* Tourists Section - for guides */}
+                    {(user?.role === 'guide' || user?.role === 'admin') && touristUsers.filter(u =>
+                      (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    ).length > 0 && (
+                      <div>
+                        <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950 border-b">
+                          <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                            {language === 'ar' ? 'السياح' : 'Tourists'}
                           </p>
                         </div>
-                        {/* You could add unread count badge here */}
+                        {touristUsers.filter(u =>
+                          (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                        ).map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => setSelectedUser(u)}
+                            className={`w-full p-3 text-right hover:bg-muted transition-colors border-r-2 ${
+                              selectedUser?.id === u.id ? 'bg-muted border-primary' : 'border-transparent'
+                            }`}
+                            data-testid={`button-select-user-${u.id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={u.profileImageUrl || undefined} />
+                                <AvatarFallback>{getUserInitials(u)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate" data-testid={`text-user-name-${u.id}`}>
+                                  {getUserDisplayName(u)}
+                                </p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {u.email}
+                                </p>
+                              </div>
+                              <Badge variant="secondary" className="text-xs">
+                                {language === 'ar' ? 'سائح' : 'Tourist'}
+                              </Badge>
+                            </div>
+                          </button>
+                        ))}
                       </div>
-                    </button>
-                  ))
+                    )}
+
+                    {/* Guides Section */}
+                    {guideUsers.filter(u =>
+                      (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    ).length > 0 && (
+                      <div>
+                        <div className="px-3 py-2 bg-green-50 dark:bg-green-950 border-b">
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            {language === 'ar' ? 'المرشدين' : 'Guides'}
+                          </p>
+                        </div>
+                        {guideUsers.filter(u =>
+                          (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                        ).map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => setSelectedUser(u)}
+                            className={`w-full p-3 text-right hover:bg-muted transition-colors border-r-2 ${
+                              selectedUser?.id === u.id ? 'bg-muted border-primary' : 'border-transparent'
+                            }`}
+                            data-testid={`button-select-user-${u.id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={u.profileImageUrl || undefined} />
+                                <AvatarFallback>{getUserInitials(u)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate" data-testid={`text-user-name-${u.id}`}>
+                                  {getUserDisplayName(u)}
+                                </p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {u.email}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                                {language === 'ar' ? 'مرشد' : 'Guide'}
+                              </Badge>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Admins Section */}
+                    {adminUsers.filter(u =>
+                      (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    ).length > 0 && (
+                      <div>
+                        <div className="px-3 py-2 bg-purple-50 dark:bg-purple-950 border-b">
+                          <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                            {language === 'ar' ? 'المشرفين' : 'Admins'}
+                          </p>
+                        </div>
+                        {adminUsers.filter(u =>
+                          (u.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                        ).map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => setSelectedUser(u)}
+                            className={`w-full p-3 text-right hover:bg-muted transition-colors border-r-2 ${
+                              selectedUser?.id === u.id ? 'bg-muted border-primary' : 'border-transparent'
+                            }`}
+                            data-testid={`button-select-user-${u.id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={u.profileImageUrl || undefined} />
+                                <AvatarFallback>{getUserInitials(u)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate" data-testid={`text-user-name-${u.id}`}>
+                                  {getUserDisplayName(u)}
+                                </p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {u.email}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300">
+                                {language === 'ar' ? 'مشرف' : 'Admin'}
+                              </Badge>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* No results message */}
+                    {guideUsers.length === 0 && adminUsers.length === 0 && touristUsers.length === 0 && (
+                      <div className="p-4 text-center text-muted-foreground">
+                        {searchTerm 
+                          ? (language === 'ar' ? 'لا يوجد مستخدمين يطابقون البحث' : 'No users match your search')
+                          : (language === 'ar' ? 'لا يوجد مستخدمين متاحين للمحادثة' : 'No users available for chat')}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </CardContent>
