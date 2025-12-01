@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Building2 } from "lucide-react";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 export default function About() {
   const { user } = useAuth();
@@ -191,6 +192,7 @@ export default function About() {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 }

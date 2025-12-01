@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import GuideCard from "@/components/guide-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -626,6 +627,8 @@ export default function Guides() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Footer />
     </div>
   );
 }

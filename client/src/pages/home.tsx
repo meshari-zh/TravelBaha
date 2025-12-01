@@ -2,6 +2,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import PlaceCard from "@/components/place-card";
 import GuideCard from "@/components/guide-card";
@@ -364,6 +365,8 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <Footer />
     </div>
   );
 }

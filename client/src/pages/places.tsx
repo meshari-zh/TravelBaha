@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import PlaceCard from "@/components/place-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -484,6 +485,8 @@ export default function Places() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }
