@@ -33,8 +33,11 @@ const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
   endDate: z.date({
     required_error: language === 'ar' ? "يرجى تحديد تاريخ النهاية" : "Please select an end date",
   }),
-  timeSlot: z.enum(["morning", "evening"], {
-    required_error: language === 'ar' ? "يرجى اختيار الوقت" : "Please select a time slot",
+  timeHour: z.string({
+    required_error: language === 'ar' ? "يرجى اختيار الساعة" : "Please select an hour",
+  }),
+  timePeriod: z.enum(["am", "pm"], {
+    required_error: language === 'ar' ? "يرجى اختيار صباحاً أو مساءً" : "Please select AM or PM",
   }),
   guests: z.coerce.number()
     .min(1, language === 'ar' ? "يجب أن يكون عدد الضيوف على الأقل 1" : "At least 1 guest is required")
@@ -45,7 +48,8 @@ const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
 type BookingFormData = {
   startDate: Date;
   endDate: Date;
-  timeSlot: "morning" | "evening";
+  timeHour: string;
+  timePeriod: "am" | "pm";
   guests: number;
   notes?: string;
 };
@@ -68,7 +72,8 @@ export default function Guides() {
     defaultValues: {
       guests: 2,
       notes: "",
-      timeSlot: "morning",
+      timeHour: "9",
+      timePeriod: "am",
     },
   });
 
@@ -77,15 +82,17 @@ export default function Guides() {
   });
 
   const bookingMutation = useMutation({
-    mutationFn: (data: BookingFormData) => 
-      apiRequest("POST", "/api/bookings", {
+    mutationFn: (data: BookingFormData) => {
+      const timeSlot = `${data.timeHour}:00 ${data.timePeriod === 'am' ? (language === 'ar' ? 'ص' : 'AM') : (language === 'ar' ? 'م' : 'PM')}`;
+      return apiRequest("POST", "/api/bookings", {
         guideId: selectedGuide?.id,
         startDate: data.startDate.toISOString(),
         endDate: data.endDate.toISOString(),
-        timeSlot: data.timeSlot,
+        timeSlot: timeSlot,
         notes: data.notes || "",
         totalAmount: "0",
-      }),
+      });
+    },
     onSuccess: () => {
       toast({
         title: language === 'ar' ? "تم إرسال طلب الحجز!" : "Booking Request Sent!",
@@ -560,32 +567,62 @@ export default function Guides() {
                 )}
               />
 
-              {/* Time Slot */}
-              <FormField
-                control={form.control}
-                name="timeSlot"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{language === 'ar' ? 'وقت الجولة' : 'Tour Time'}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="dialog-input-time-slot">
-                          <SelectValue placeholder={language === 'ar' ? 'اختر الوقت' : 'Select time'} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="morning">
-                          {language === 'ar' ? '☀️ صباحاً (8:00 ص - 12:00 م)' : '☀️ Morning (8:00 AM - 12:00 PM)'}
-                        </SelectItem>
-                        <SelectItem value="evening">
-                          {language === 'ar' ? '🌙 مساءً (4:00 م - 8:00 م)' : '🌙 Evening (4:00 PM - 8:00 PM)'}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Time Selection */}
+              <div className="space-y-2">
+                <FormLabel>{language === 'ar' ? 'وقت الجولة' : 'Tour Time'}</FormLabel>
+                <div className="flex gap-3">
+                  {/* Hour Selection */}
+                  <FormField
+                    control={form.control}
+                    name="timeHour"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="dialog-input-time-hour">
+                              <SelectValue placeholder={language === 'ar' ? 'الساعة' : 'Hour'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((hour) => (
+                              <SelectItem key={hour} value={hour.toString()}>
+                                {hour}:00
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* AM/PM Selection */}
+                  <FormField
+                    control={form.control}
+                    name="timePeriod"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="dialog-input-time-period">
+                              <SelectValue placeholder={language === 'ar' ? 'ص/م' : 'AM/PM'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="am">
+                              {language === 'ar' ? '☀️ صباحاً' : '☀️ AM'}
+                            </SelectItem>
+                            <SelectItem value="pm">
+                              {language === 'ar' ? '🌙 مساءً' : '🌙 PM'}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               {/* Guests */}
               <FormField

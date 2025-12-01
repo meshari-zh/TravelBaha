@@ -172,9 +172,11 @@ export default function Home() {
                       </div>
                       <h3 className="font-semibold mb-2">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</h3>
                       <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'متابعة طلبات الحجز والجولات' : 'Track booking requests and tours'}</p>
-                      <Button size="sm" variant="secondary" className="w-full" data-testid="button-view-bookings">
-                        {language === 'ar' ? 'عرض الحجوزات' : 'View Bookings'}
-                      </Button>
+                      <Link href="/bookings">
+                        <Button size="sm" variant="secondary" className="w-full" data-testid="button-view-bookings">
+                          {language === 'ar' ? 'عرض الحجوزات' : 'View Bookings'}
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
 
