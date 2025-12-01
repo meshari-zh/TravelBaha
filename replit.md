@@ -1,8 +1,8 @@
-# Tourism Platform for Al Baha
+# Tourism Platform for AlBaha
 
 ## Overview
 
-This is a comprehensive tourism platform specifically designed for the Al Baha region in Saudi Arabia. The application connects tourists with local tour guides, facilitating authentic travel experiences through a modern web interface. Built with React/TypeScript on the frontend and Express.js on the backend, it features a complete booking system, real-time messaging, and role-based access control for tourists, guides, and administrators. The platform emphasizes Arabic language support and cultural authenticity while providing modern web application features.
+This is a comprehensive tourism platform specifically designed for the AlBaha region in Saudi Arabia. The application connects tourists with local tour guides, facilitating authentic travel experiences through a modern web interface. Built with React/TypeScript on the frontend and Express.js on the backend, it features a complete booking system, real-time messaging, and role-based access control for tourists, guides, and administrators. The platform emphasizes Arabic language support and cultural authenticity while providing modern web application features.
 
 ## User Preferences
 

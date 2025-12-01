@@ -351,7 +351,7 @@ export default function GuideProfile() {
                       <p className="text-muted-foreground mb-4">
                         {language === 'ar' 
                           ? `احجز جولة مع ${getUserDisplayName()} واكتشف جمال الباحة`
-                          : `Book a tour with ${getUserDisplayName()} and discover the beauty of Al Baha`}
+                          : `Book a tour with ${getUserDisplayName()} and discover the beauty of AlBaha`}
                       </p>
                       <Button 
                         onClick={() => setShowBookingForm(true)}

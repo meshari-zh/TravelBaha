@@ -59,10 +59,10 @@ export default function Home() {
           {/* Hero Content */}
           <div className="relative z-10 container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
-              {language === 'ar' ? 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين' : 'Discover the beauty of Al Baha with the best tour guides'}
+              {language === 'ar' ? 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين' : 'Discover the beauty of AlBaha with the best tour guides'}
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-8 drop-shadow-lg">
-              {language === 'ar' ? 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة' : 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in Al Baha region'}
+              {language === 'ar' ? 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة' : 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region'}
             </p>
             
             {/* Call to Action Buttons */}
@@ -91,7 +91,7 @@ export default function Home() {
                 {language === 'ar' ? `أهلاً وسهلاً ${user?.firstName || "بك"}!` : `Welcome ${user?.firstName || ""}!`}
               </h1>
               <p className="text-lg text-muted-foreground">
-                {user?.role === 'tourist' && (language === 'ar' ? "اكتشف جمال الباحة مع أفضل المرشدين السياحيين" : "Discover the beauty of Al Baha with the best tour guides")}
+                {user?.role === 'tourist' && (language === 'ar' ? "اكتشف جمال الباحة مع أفضل المرشدين السياحيين" : "Discover the beauty of AlBaha with the best tour guides")}
                 {user?.role === 'guide' && (language === 'ar' ? "مرحباً بك في لوحة التحكم الخاصة بك" : "Welcome to your control panel")}
                 {user?.role === 'admin' && (language === 'ar' ? "مرحباً بك في لوحة تحكم المشرف" : "Welcome to admin control panel")}
               </p>
@@ -107,7 +107,7 @@ export default function Home() {
                         <span className="text-2xl">🗺️</span>
                       </div>
                       <h3 className="font-semibold mb-2">{language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in Al Baha'}</p>
+                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in AlBaha'}</p>
                       <Link href="/places">
                         <Button size="sm" className="w-full" data-testid="button-explore-places">
                           {language === 'ar' ? 'تصفح الأماكن' : 'Browse Places'}
@@ -257,7 +257,7 @@ export default function Home() {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-4">{t('welcomeTitle')}</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                {language === 'ar' ? 'تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة' : 'Enjoy watching the most beautiful natural landscapes and tourist attractions in Al Baha region'}
+                {language === 'ar' ? 'تمتع بمشاهدة أروع المناظر الطبيعية والمعالم السياحية في منطقة الباحة' : 'Enjoy watching the most beautiful natural landscapes and tourist attractions in AlBaha region'}
               </p>
             </div>
             <div className="max-w-4xl mx-auto">

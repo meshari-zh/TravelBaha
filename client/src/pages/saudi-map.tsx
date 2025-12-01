@@ -52,7 +52,7 @@ const getGoogleMapsUrl = (lat: number, lng: number, placeName: string): string =
 
 // إحداثيات المدن
 const cities = {
-  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة', nameEn: 'Al Baha' },
+  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة', nameEn: 'AlBaha' },
   mecca: { lat: 21.42246468453151, lng: 39.82616340057774, name: 'مكة المكرمة', nameEn: 'Mecca' },
   riyadh: { lat: 24.712000190710448, lng: 46.67226386370668, name: 'الرياض', nameEn: 'Riyadh' }
 }
@@ -412,7 +412,7 @@ export default function SaudiMap() {
                           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <Car className="w-4 h-4 text-blue-600" />
-                              <span className="font-semibold text-blue-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from Al Baha'}:</span>
+                              <span className="font-semibold text-blue-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from AlBaha'}:</span>
                             </div>
                             <div className="text-lg font-bold text-blue-900 mb-1">
                               {calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.mecca.lat, cities.mecca.lng).toFixed(1)} {language === 'ar' ? 'كم' : 'km'}
@@ -437,7 +437,7 @@ export default function SaudiMap() {
                           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <Car className="w-4 h-4 text-green-600" />
-                              <span className="font-semibold text-green-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from Al Baha'}:</span>
+                              <span className="font-semibold text-green-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from AlBaha'}:</span>
                             </div>
                             <div className="text-lg font-bold text-green-900 mb-1">
                               {calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.riyadh.lat, cities.riyadh.lng).toFixed(1)} {language === 'ar' ? 'كم' : 'km'}

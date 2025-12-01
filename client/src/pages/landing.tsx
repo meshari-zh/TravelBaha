@@ -117,11 +117,11 @@ export default function Landing() {
       messages: 'Messages',
       login: 'Login',
       register: 'Register',
-      discoverBahah: 'Discover the Beauty of Al Baha',
-      enjoyViews: 'Enjoy watching the most beautiful natural landscapes and tourist attractions in Al Baha region',
+      discoverBahah: 'Discover the Beauty of AlBaha',
+      enjoyViews: 'Enjoy watching the most beautiful natural landscapes and tourist attractions in AlBaha region',
       browserNotSupport: 'Your browser does not support video playback',
-      welcomeTitle: 'Welcome to Al Baha Tourism Platform',
-      welcomeDesc: 'We connect tourists with local tour guides in Al Baha region, providing you with a distinctive tourism experience that combines natural beauty and authentic Saudi heritage. Our platform ensures you get the best local guides who know the secrets and rich history of the region.',
+      welcomeTitle: 'Welcome to AlBaha Tourism Platform',
+      welcomeDesc: 'We connect tourists with local tour guides in AlBaha region, providing you with a distinctive tourism experience that combines natural beauty and authentic Saudi heritage. Our platform ensures you get the best local guides who know the secrets and rich history of the region.',
       naturalPlaces: 'Stunning Natural Places',
       naturalPlacesDesc: 'Discover mountains, forests and heritage villages',
       expertGuides: 'Expert Local Guides',
@@ -129,7 +129,7 @@ export default function Landing() {
       safeMessaging: 'Direct & Secure Communication',
       safeMessagingDesc: 'Advanced messaging system for communication and booking',
       featuredPlaces: 'Featured Tourist Places',
-      featuredPlacesDesc: 'Discover the most beautiful tourist destinations in Al Baha',
+      featuredPlacesDesc: 'Discover the most beautiful tourist destinations in AlBaha',
       noPlaces: 'No tourist places available currently',
       viewAllPlaces: 'View All Places',
       certifiedGuides: 'Certified Tour Guides',
@@ -139,14 +139,14 @@ export default function Landing() {
       joinUs: 'Join Us',
       chooseRole: 'Choose the right role for you on our platform',
       tourist: 'Tourist',
-      touristDesc: 'Discover the most beautiful places in Al Baha with the best local guides',
+      touristDesc: 'Discover the most beautiful places in AlBaha with the best local guides',
       browsePlace: 'Browse tourist places',
       chooseGuide: 'Choose the right guide',
       makeBookings: 'Make bookings',
       contactGuides: 'Contact guides',
       joinAsTourist: 'Join as Tourist',
       guide: 'Tour Guide',
-      guideDesc: 'Share your local expertise and earn by guiding tourists in Al Baha',
+      guideDesc: 'Share your local expertise and earn by guiding tourists in AlBaha',
       editProfile: 'Edit profile',
       setLanguages: 'Set languages and specialties',
       managePrices: 'Manage prices',
@@ -163,13 +163,13 @@ export default function Landing() {
       safeCommunication: 'Safe and direct communication between tourists and guides',
       chatWith: 'Chat with Guide Ahmed Al-Saeed',
       onlineNow: 'Online now',
-      welcomeMessage: 'Welcome! I am happy to help you explore Al Baha. What are your tourism interests?',
-      userMessage: 'Hello! I want to visit Al Baha forests and Dhi Ain village. Can you arrange a two-day tour?',
+      welcomeMessage: 'Welcome! I am happy to help you explore AlBaha. What are your tourism interests?',
+      userMessage: 'Hello! I want to visit AlBaha forests and Dhi Ain village. Can you arrange a two-day tour?',
       guideReply: 'Of course! I will arrange a great program that includes the forests, heritage village, and some other special places. The price is 500 SAR for two days including transportation.',
       writeMessage: 'Write your message here...',
       send: 'Send',
-      platformName: 'Al Baha Tourism Platform',
-      platformDesc: 'We connect tourists with the best local guides in Al Baha for an authentic and distinctive tourism experience.',
+      platformName: 'AlBaha Tourism Platform',
+      platformDesc: 'We connect tourists with the best local guides in AlBaha for an authentic and distinctive tourism experience.',
       quickLinks: 'Quick Links',
       howItWorks: 'How it works',
       faq: 'FAQ',
@@ -182,11 +182,11 @@ export default function Landing() {
       email: 'Email',
       phone: 'Phone',
       address: 'Address',
-      addressValue: 'Al Baha, Saudi Arabia',
-      copyright: '© 2024 Al Baha Tourism Platform. All rights reserved.',
+      addressValue: 'AlBaha, Saudi Arabia',
+      copyright: '© 2024 AlBaha Tourism Platform. All rights reserved.',
       discountOffer: 'Login and get 5% off your first booking!',
       brandName: 'Tourism Guide',
-      regionName: 'Al Baha Region',
+      regionName: 'AlBaha Region',
     }
   };
 
@@ -219,7 +219,7 @@ export default function Landing() {
             <div className={`flex items-center gap-4 ${language === 'ar' ? 'space-x-reverse' : ''}`}>
               <img 
                 src={siteLogo} 
-                alt={language === 'ar' ? 'لوجو إرشاد سياحي - منطقة الباحة' : 'Tourism Guide Logo - Al Baha Region'} 
+                alt={language === 'ar' ? 'لوجو إرشاد سياحي - منطقة الباحة' : 'Tourism Guide Logo - AlBaha Region'} 
                 className="w-12 h-12 object-contain"
               />
               <div>

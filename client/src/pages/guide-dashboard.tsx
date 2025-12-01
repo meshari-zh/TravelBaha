@@ -267,7 +267,7 @@ export default function GuideDashboard() {
             <h1 className="text-3xl font-bold text-foreground" data-testid="guide-display-name">
               {getUserDisplayName()}
             </h1>
-            <p className="text-muted-foreground">{language === 'ar' ? 'مرشد سياحي في منطقة الباحة' : 'Tour Guide in Al Baha Region'}</p>
+            <p className="text-muted-foreground">{language === 'ar' ? 'مرشد سياحي في منطقة الباحة' : 'Tour Guide in AlBaha Region'}</p>
             {guide && (
               <div className="flex items-center gap-2 mt-2">
                 <Star className="w-4 h-4 text-yellow-500 fill-current" />
@@ -396,7 +396,7 @@ export default function GuideDashboard() {
                         <Textarea
                           id="bioEn"
                           name="bioEn"
-                          placeholder="Write about your experience and knowledge of Al Baha region..."
+                          placeholder="Write about your experience and knowledge of AlBaha region..."
                           defaultValue={guide?.bioEn || ""}
                           data-testid="input-bio-en"
                           dir="ltr"

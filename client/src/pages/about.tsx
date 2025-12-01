@@ -147,12 +147,12 @@ export default function About() {
                 ) : (
                   <div className="bg-muted/50 p-6 rounded-lg text-right" dir="rtl">
                     <h3 className="text-xl font-semibold mb-4">
-                      {language === 'ar' ? 'عن منصة الباحة السياحية' : 'About Al Baha Tourism Platform'}
+                      {language === 'ar' ? 'عن منصة الباحة السياحية' : 'About AlBaha Tourism Platform'}
                     </h3>
                     <p className="mb-4">
                       {language === 'ar' ? 
                         'منصة الباحة السياحية هي منصة رقمية مبتكرة تهدف إلى الربط بين السياح والمرشدين السياحيين المحليين في منطقة الباحة الخلابة بالمملكة العربية السعودية.' :
-                        'Al Baha Tourism Platform is an innovative digital platform that aims to connect tourists with local tour guides in the beautiful Al Baha region of Saudi Arabia.'
+                        'AlBaha Tourism Platform is an innovative digital platform that aims to connect tourists with local tour guides in the beautiful AlBaha region of Saudi Arabia.'
                       }
                     </p>
                     <p className="mb-4">
@@ -164,7 +164,7 @@ export default function About() {
                     <p>
                       {language === 'ar' ? 
                         'من خلال منصتنا، يمكن للسياح اكتشاف أجمل الأماكن في الباحة، والتواصل مع مرشدين محليين خبراء، وحجز جولات سياحية مخصصة تناسب اهتماماتهم وميزانيتهم.' :
-                        'Through our platform, tourists can discover the most beautiful places in Al Baha, communicate with expert local guides, and book customized tours that suit their interests and budget.'
+                        'Through our platform, tourists can discover the most beautiful places in AlBaha, communicate with expert local guides, and book customized tours that suit their interests and budget.'
                       }
                     </p>
                   </div>

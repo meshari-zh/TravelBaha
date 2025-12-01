@@ -27,7 +27,7 @@ export default function Footer() {
 
   const contactEmail = getContactInfo('contact_email') || 'MSSR1488@GMAIL.COM';
   const contactPhone = getContactInfo('contact_phone') || '+966531076021';
-  const contactAddress = getContactInfo('contact_address') || (language === 'ar' ? 'الباحة، المملكة العربية السعودية' : 'Al Baha, Saudi Arabia');
+  const contactAddress = getContactInfo('contact_address') || (language === 'ar' ? 'الباحة، المملكة العربية السعودية' : 'AlBaha, Saudi Arabia');
 
   const texts = language === 'ar' ? {
     platformName: 'منصة الباحة السياحية',
@@ -49,8 +49,8 @@ export default function Footer() {
     address: 'العنوان',
     copyright: '© 2024 منصة الباحة السياحية. جميع الحقوق محفوظة.',
   } : {
-    platformName: 'Al Baha Tourism Platform',
-    platformDesc: 'We connect tourists with the best local guides in Al Baha for an authentic and distinctive tourism experience.',
+    platformName: 'AlBaha Tourism Platform',
+    platformDesc: 'We connect tourists with the best local guides in AlBaha for an authentic and distinctive tourism experience.',
     quickLinks: 'Quick Links',
     home: 'Home',
     places: 'Tourist Places',
@@ -66,7 +66,7 @@ export default function Footer() {
     email: 'Email',
     phone: 'Phone',
     address: 'Address',
-    copyright: '© 2024 Al Baha Tourism Platform. All rights reserved.',
+    copyright: '© 2024 AlBaha Tourism Platform. All rights reserved.',
   };
 
   return (
