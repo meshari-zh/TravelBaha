@@ -236,10 +236,22 @@ export default function Bookings() {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-secondary" data-testid={`booking-amount-${booking.id}`}>
-                        {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
+                      <span className="text-lg font-bold text-primary" data-testid={`booking-amount-${booking.id}`}>
+                        {language === 'ar' ? `💰 ${booking.totalAmount || '0'} ر.س` : `💰 ${booking.totalAmount || '0'} SAR`}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="flex items-center gap-2 mb-4 p-2 bg-muted rounded-lg">
+                    <span className="text-sm">
+                      {language === 'ar' ? 'طريقة الدفع:' : 'Payment:'}
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {booking.paymentMethod === 'bank_transfer' 
+                        ? (language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer')
+                        : (language === 'ar' ? '💵 كاش' : '💵 Cash')}
+                    </Badge>
                   </div>
 
                   {booking.notes && (

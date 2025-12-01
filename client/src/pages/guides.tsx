@@ -48,6 +48,9 @@ const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
   guests: z.coerce.number()
     .min(1, language === 'ar' ? "يجب أن يكون عدد الضيوف على الأقل 1" : "At least 1 guest is required")
     .max(50, language === 'ar' ? "الحد الأقصى 50 ضيف" : "Maximum 50 guests"),
+  paymentMethod: z.enum(["cash", "bank_transfer"], {
+    required_error: language === 'ar' ? "يرجى اختيار طريقة الدفع" : "Please select payment method",
+  }),
   notes: z.string().optional(),
 });
 
@@ -59,6 +62,7 @@ type BookingFormData = {
   endTimeHour: string;
   endTimePeriod: "am" | "pm";
   guests: number;
+  paymentMethod: "cash" | "bank_transfer";
   notes?: string;
 };
 
@@ -84,6 +88,7 @@ export default function Guides() {
       startTimePeriod: "am",
       endTimeHour: "12",
       endTimePeriod: "pm",
+      paymentMethod: "cash",
     },
   });
 
@@ -96,13 +101,20 @@ export default function Guides() {
       const startTime = `${data.startTimeHour}:00 ${data.startTimePeriod === 'am' ? (language === 'ar' ? 'ص' : 'AM') : (language === 'ar' ? 'م' : 'PM')}`;
       const endTime = `${data.endTimeHour}:00 ${data.endTimePeriod === 'am' ? (language === 'ar' ? 'ص' : 'AM') : (language === 'ar' ? 'م' : 'PM')}`;
       const timeSlot = `${startTime} - ${endTime}`;
+      
+      // Calculate total amount based on guide's daily rate and number of days
+      const days = Math.max(1, Math.ceil((data.endDate.getTime() - data.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      const dailyRate = selectedGuide?.dailyRate ? parseFloat(selectedGuide.dailyRate) : 0;
+      const totalAmount = (dailyRate * days).toFixed(2);
+      
       return apiRequest("POST", "/api/bookings", {
         guideId: selectedGuide?.id,
         startDate: data.startDate.toISOString(),
         endDate: data.endDate.toISOString(),
         timeSlot: timeSlot,
         notes: data.notes || "",
-        totalAmount: "0",
+        totalAmount: totalAmount,
+        paymentMethod: data.paymentMethod,
       });
     },
     onSuccess: () => {
@@ -722,6 +734,33 @@ export default function Guides() {
                         />
                       </div>
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Payment Method */}
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'طريقة الدفع' : 'Payment Method'}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="dialog-select-payment">
+                          <SelectValue placeholder={language === 'ar' ? "اختر طريقة الدفع" : "Select payment method"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="cash">
+                          {language === 'ar' ? '💵 كاش (نقداً)' : '💵 Cash'}
+                        </SelectItem>
+                        <SelectItem value="bank_transfer">
+                          {language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer'}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

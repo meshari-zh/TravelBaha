@@ -81,6 +81,7 @@ export const bookings = pgTable("bookings", {
   endDate: timestamp("end_date").notNull(),
   timeSlot: text("time_slot").default("morning"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: varchar("payment_method", { enum: ["cash", "bank_transfer"] }).default("cash"),
   status: varchar("status", { enum: ["pending", "confirmed", "completed", "cancelled"] }).default("pending"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),

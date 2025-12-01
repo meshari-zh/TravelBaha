@@ -574,9 +574,16 @@ export default function GuideDashboard() {
                                   {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}
                                 </p>
                               )}
-                              <p className="text-sm font-semibold mt-2" data-testid={`booking-amount-${booking.id}`}>
-                                {language === 'ar' ? `المبلغ: ${booking.totalAmount} ر.س` : `Amount: ${booking.totalAmount} SAR`}
-                              </p>
+                              <div className="flex flex-wrap items-center gap-3 mt-2">
+                                <p className="text-sm font-semibold" data-testid={`booking-amount-${booking.id}`}>
+                                  {language === 'ar' ? `💰 المبلغ: ${booking.totalAmount || '0'} ر.س` : `💰 Amount: ${booking.totalAmount || '0'} SAR`}
+                                </p>
+                                <Badge variant="outline" className="text-xs">
+                                  {booking.paymentMethod === 'bank_transfer' 
+                                    ? (language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer')
+                                    : (language === 'ar' ? '💵 كاش' : '💵 Cash')}
+                                </Badge>
+                              </div>
                             </div>
                             
                             {/* Action Buttons - Always visible */}
