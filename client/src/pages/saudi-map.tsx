@@ -231,8 +231,24 @@ export default function SaudiMap() {
   // التأكد من أن places هو مصفوفة
   const placesArray = Array.isArray(places) ? places : []
 
-  // استخراج الفئات المتاحة
-  const categories = Array.from(new Set(placesArray.map((p: any) => p.category).filter(Boolean))) as string[]
+  // استخراج الفئات المتاحة مع الترجمة
+  const categoryMap = new Map<string, { ar: string; en: string }>()
+  placesArray.forEach((p: any) => {
+    if (p.category) {
+      categoryMap.set(p.category, { 
+        ar: p.category, 
+        en: p.categoryEn || p.category 
+      })
+    }
+  })
+  const categories = Array.from(categoryMap.entries())
+
+  // الحصول على اسم الفئة حسب اللغة
+  const getCategoryLabel = (categoryKey: string) => {
+    const cat = categoryMap.get(categoryKey)
+    if (!cat) return categoryKey
+    return language === 'en' ? cat.en : cat.ar
+  }
 
   // تصفية الأماكن حسب البحث والفئة
   const filteredPlaces = placesArray.filter((place: any) => {
@@ -332,9 +348,9 @@ export default function SaudiMap() {
                     <SelectItem value="all">
                       {language === 'ar' ? 'جميع الفئات' : 'All Categories'}
                     </SelectItem>
-                    {categories.map((category: string) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {categories.map(([categoryKey, categoryLabels]) => (
+                      <SelectItem key={categoryKey} value={categoryKey}>
+                        {language === 'en' ? categoryLabels.en : categoryLabels.ar}
                       </SelectItem>
                     ))}
                   </SelectContent>
