@@ -21,7 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Search, Filter, Calendar as CalendarIcon, Users, Star } from "lucide-react";
+import { Search, Filter, Calendar as CalendarIcon, Users, Star, Gift } from "lucide-react";
 import { z } from "zod";
 import type { Guide } from "@shared/schema";
 
@@ -100,11 +100,8 @@ export default function Guides() {
 
   const handleBookGuide = (guide: Guide) => {
     if (!user) {
-      toast({
-        title: language === 'ar' ? "يجب تسجيل الدخول" : "Login Required",
-        description: language === 'ar' ? "يجب تسجيل الدخول لحجز جولة مع المرشد" : "Please login to book a tour with the guide",
-        variant: "destructive",
-      });
+      setSelectedGuide(guide);
+      setIsBookingDialogOpen(true);
       return;
     }
     if (user.role !== 'tourist') {
@@ -377,7 +374,7 @@ export default function Guides() {
                 key={guide.id} 
                 guide={guide} 
                 showContactButton={user?.role === 'tourist'}
-                showBookButton={user?.role === 'tourist'}
+                showBookButton={!user || user?.role === 'tourist'}
                 onBook={handleBookGuide}
               />
             ))}
@@ -422,12 +419,50 @@ export default function Guides() {
               )}
             </DialogTitle>
             <DialogDescription>
-              {language === 'ar' 
-                ? 'أدخل تفاصيل الحجز الخاصة بك وسنتواصل معك لتأكيد الحجز'
-                : 'Enter your booking details and we will contact you to confirm the booking'}
+              {!user 
+                ? (language === 'ar' 
+                    ? 'سجل دخولك لإتمام الحجز والحصول على خصم 5% على أول حجز!'
+                    : 'Login to complete your booking and get 5% off your first booking!')
+                : (language === 'ar' 
+                    ? 'أدخل تفاصيل الحجز الخاصة بك وسنتواصل معك لتأكيد الحجز'
+                    : 'Enter your booking details and we will contact you to confirm the booking')}
             </DialogDescription>
           </DialogHeader>
           
+          {!user ? (
+            <div className="flex flex-col items-center py-8">
+              <div className="bg-primary/10 rounded-full p-4 mb-4">
+                <Gift className="w-12 h-12 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-center">
+                {language === 'ar' ? 'سجل دخول لتحصل على خصم 5%' : 'Login to get 5% off'}
+              </h3>
+              <p className="text-muted-foreground text-center text-sm mb-6">
+                {language === 'ar' 
+                  ? 'أنشئ حسابك الآن واستمتع بخصم حصري على أول حجز لك'
+                  : 'Create your account now and enjoy an exclusive discount on your first booking'}
+              </p>
+              <div className="flex gap-3 w-full">
+                <Button 
+                  className="flex-1"
+                  onClick={() => window.location.href = "/api/login"}
+                  data-testid="dialog-button-login"
+                >
+                  {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setIsBookingDialogOpen(false);
+                    setSelectedGuide(null);
+                  }}
+                  data-testid="dialog-button-cancel-login"
+                >
+                  {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
+            </div>
+          ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Start Date */}
@@ -588,6 +623,7 @@ export default function Guides() {
               </div>
             </form>
           </Form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

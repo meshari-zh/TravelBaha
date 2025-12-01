@@ -184,6 +184,37 @@ export default function Messages() {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || u.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'U');
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <MessageCircle className="w-20 h-20 text-muted-foreground mb-6" />
+              <h2 className="text-2xl font-bold mb-4 text-center">
+                {language === 'ar' ? 'يجب أن تسجل دخولك' : 'Login Required'}
+              </h2>
+              <p className="text-muted-foreground text-center mb-6">
+                {language === 'ar' 
+                  ? 'سجل دخولك للتواصل مع المرشدين السياحيين واحصل على خصم 5% على أول حجز!'
+                  : 'Login to chat with tour guides and get 5% off your first booking!'}
+              </p>
+              <Button 
+                size="lg"
+                onClick={() => window.location.href = "/api/login"}
+                data-testid="button-login-messages"
+              >
+                {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
