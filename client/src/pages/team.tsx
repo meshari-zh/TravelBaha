@@ -91,26 +91,28 @@ export default function Team() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <div className="space-y-4 mb-12">
           {teamMembers.map((member, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${index}`}>
               <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-5xl w-16 h-16 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full">
+                <div className="flex items-start gap-6">
+                  <div className="text-5xl w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full shrink-0">
                     {member.avatar}
                   </div>
-                  <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
-                    {language === 'ar' ? member.nameAr : member.nameEn}
-                  </h3>
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
+                      {language === 'ar' ? member.nameAr : member.nameEn}
+                    </h3>
+                    <div>
+                      <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
+                        {language === 'ar' ? member.roleAr : member.roleEn}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {language === 'ar' ? member.descriptionAr : member.descriptionEn}
+                    </p>
+                  </div>
                 </div>
-                <div className="mb-3">
-                  <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
-                    {language === 'ar' ? member.roleAr : member.roleEn}
-                  </span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  {language === 'ar' ? member.descriptionAr : member.descriptionEn}
-                </p>
               </CardContent>
             </Card>
           ))}
