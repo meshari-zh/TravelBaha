@@ -6,7 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ArrowLeft, MapPin, Users, Calendar } from "lucide-react";
+import { ArrowRight, ArrowLeft, MapPin, Users, Calendar, Map } from "lucide-react";
 import { resolveAssetUrl } from "@/utils/assets";
 import type { Place, Guide } from "@shared/schema";
 
@@ -67,6 +67,11 @@ export default function PlaceDetails() {
   }
 
   const availableGuides = guides.filter(guide => guide.isActive);
+  
+  const getGuideName = (guide: Guide) => {
+    if (!guide.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
+    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
+  };
   
   const placeName = language === 'en' && place.nameEn ? place.nameEn : place.name;
   const placeDesc = language === 'en' && place.descriptionEn ? place.descriptionEn : place.description;
@@ -147,12 +152,16 @@ export default function PlaceDetails() {
                     <Card key={guide.id} className="p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-primary" />
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                            {guide.user?.profileImageUrl ? (
+                              <img src={guide.user.profileImageUrl} alt={getGuideName(guide)} className="w-full h-full object-cover" />
+                            ) : (
+                              <Users className="w-5 h-5 text-primary" />
+                            )}
                           </div>
                           <div>
                             <h3 className="font-medium" data-testid={`guide-name-${guide.id}`}>
-                              {guide.bio ? guide.bio.split(' ').slice(0, 2).join(' ') : (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide')}
+                              {getGuideName(guide)}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {guide.dailyRate && parseFloat(guide.dailyRate) > 0 
@@ -189,11 +198,17 @@ export default function PlaceDetails() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Link href="/guides">
                 <Button className="flex-1" data-testid="button-find-guide">
                   <Calendar className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {language === 'ar' ? 'احجز مع مرشد' : 'Book a Guide'}
+                </Button>
+              </Link>
+              <Link href="/saudi-map">
+                <Button variant="secondary" className="flex-1" data-testid="button-view-on-map">
+                  <Map className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                  {language === 'ar' ? 'عرض على الخريطة' : 'View on Map'}
                 </Button>
               </Link>
               <Link href="/bookings">
