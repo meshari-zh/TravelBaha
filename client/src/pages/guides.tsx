@@ -33,6 +33,9 @@ const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
   endDate: z.date({
     required_error: language === 'ar' ? "يرجى تحديد تاريخ النهاية" : "Please select an end date",
   }),
+  timeSlot: z.enum(["morning", "evening"], {
+    required_error: language === 'ar' ? "يرجى اختيار الوقت" : "Please select a time slot",
+  }),
   guests: z.coerce.number()
     .min(1, language === 'ar' ? "يجب أن يكون عدد الضيوف على الأقل 1" : "At least 1 guest is required")
     .max(50, language === 'ar' ? "الحد الأقصى 50 ضيف" : "Maximum 50 guests"),
@@ -42,6 +45,7 @@ const getBookingFormSchema = (language: 'ar' | 'en') => z.object({
 type BookingFormData = {
   startDate: Date;
   endDate: Date;
+  timeSlot: "morning" | "evening";
   guests: number;
   notes?: string;
 };
@@ -64,6 +68,7 @@ export default function Guides() {
     defaultValues: {
       guests: 2,
       notes: "",
+      timeSlot: "morning",
     },
   });
 
@@ -77,6 +82,7 @@ export default function Guides() {
         guideId: selectedGuide?.id,
         startDate: data.startDate.toISOString(),
         endDate: data.endDate.toISOString(),
+        timeSlot: data.timeSlot,
         notes: data.notes || "",
         totalAmount: "0",
       }),
@@ -91,9 +97,10 @@ export default function Guides() {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
     },
     onError: (error: any) => {
+      const errorMessage = language === 'ar' ? error.message : (error.messageEn || error.message);
       toast({
         title: language === 'ar' ? "خطأ في إرسال الطلب" : "Request Error",
-        description: error.message || (language === 'ar' ? "حدث خطأ أثناء إرسال طلب الحجز" : "An error occurred while sending the booking request"),
+        description: errorMessage || (language === 'ar' ? "حدث خطأ أثناء إرسال طلب الحجز" : "An error occurred while sending the booking request"),
         variant: "destructive",
       });
     },
@@ -548,6 +555,33 @@ export default function Guides() {
                         />
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Time Slot */}
+              <FormField
+                control={form.control}
+                name="timeSlot"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'ar' ? 'وقت الجولة' : 'Tour Time'}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="dialog-input-time-slot">
+                          <SelectValue placeholder={language === 'ar' ? 'اختر الوقت' : 'Select time'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="morning">
+                          {language === 'ar' ? '☀️ صباحاً (8:00 ص - 12:00 م)' : '☀️ Morning (8:00 AM - 12:00 PM)'}
+                        </SelectItem>
+                        <SelectItem value="evening">
+                          {language === 'ar' ? '🌙 مساءً (4:00 م - 8:00 م)' : '🌙 Evening (4:00 PM - 8:00 PM)'}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

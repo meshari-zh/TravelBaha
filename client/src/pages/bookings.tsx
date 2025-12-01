@@ -1,21 +1,60 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/navbar";
 import ReviewForm from "@/components/review-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { CalendarDays, MapPin, User, Clock, Star } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { CalendarDays, MapPin, User, Clock, Star, AlertCircle } from "lucide-react";
 import type { Booking } from "@shared/schema";
 
 export default function Bookings() {
   const { user } = useAuth();
   const { language, t } = useLanguage();
+  const { toast } = useToast();
   const [filter, setFilter] = useState<string>("all");
   const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+
+  const cancelBookingMutation = useMutation({
+    mutationFn: (bookingId: string) => 
+      apiRequest("PUT", `/api/bookings/${bookingId}`, {
+        status: "cancelled"
+      }),
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? "تم إلغاء الحجز" : "Booking Cancelled",
+        description: language === 'ar' ? "تم إلغاء حجزك بنجاح" : "Your booking has been cancelled successfully",
+      });
+      setCancelDialogOpen(false);
+      setBookingToCancel(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: error.message || (language === 'ar' ? "فشل في إلغاء الحجز" : "Failed to cancel booking"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelBooking = (booking: Booking) => {
+    setBookingToCancel(booking);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancelBooking = () => {
+    if (bookingToCancel) {
+      cancelBookingMutation.mutate(bookingToCancel.id);
+    }
+  };
 
   const { data: bookings = [], isLoading, error } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
@@ -216,7 +255,12 @@ export default function Bookings() {
                       {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                     </Button>
                     {booking.status === "pending" && (
-                      <Button variant="destructive" size="sm" data-testid={`booking-cancel-${booking.id}`}>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleCancelBooking(booking)}
+                        data-testid={`booking-cancel-${booking.id}`}
+                      >
                         {language === 'ar' ? 'إلغاء الحجز' : 'Cancel Booking'}
                       </Button>
                     )}
@@ -250,6 +294,60 @@ export default function Bookings() {
           </div>
         )}
       </div>
+
+      {/* Cancel Booking Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
+              {language === 'ar' ? 'تأكيد إلغاء الحجز' : 'Confirm Cancellation'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ar' 
+                ? 'هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.'
+                : 'Are you sure you want to cancel this booking? This action cannot be undone.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {bookingToCancel && (
+            <div className="bg-muted/50 p-4 rounded-lg my-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">
+                  {new Date(bookingToCancel.startDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')} - {new Date(bookingToCancel.endDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
+                </span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {language === 'ar' ? `رقم الحجز: ${bookingToCancel.id.slice(0, 8)}` : `Booking ID: ${bookingToCancel.id.slice(0, 8)}`}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setCancelDialogOpen(false);
+                setBookingToCancel(null);
+              }}
+              data-testid="dialog-button-keep-booking"
+            >
+              {language === 'ar' ? 'الاحتفاظ بالحجز' : 'Keep Booking'}
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={confirmCancelBooking}
+              disabled={cancelBookingMutation.isPending}
+              data-testid="dialog-button-confirm-cancel"
+            >
+              {cancelBookingMutation.isPending 
+                ? (language === 'ar' ? 'جاري الإلغاء...' : 'Cancelling...') 
+                : (language === 'ar' ? 'تأكيد الإلغاء' : 'Confirm Cancel')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

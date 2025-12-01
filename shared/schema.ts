@@ -76,6 +76,7 @@ export const bookings = pgTable("bookings", {
   placeId: varchar("place_id").references(() => places.id),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
+  timeSlot: varchar("time_slot", { enum: ["morning", "evening"] }).default("morning"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   status: varchar("status", { enum: ["pending", "confirmed", "completed", "cancelled"] }).default("pending"),
   notes: text("notes"),

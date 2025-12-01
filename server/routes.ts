@@ -643,12 +643,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Only tourists can create bookings" });
       }
 
+      const startDate = new Date(req.body.startDate);
+      const endDate = new Date(req.body.endDate);
+      const timeSlot = req.body.timeSlot || 'morning';
+      const guideId = req.body.guideId;
+
+      // Check if guide already has a booking for this date and time slot
+      const existingBookings = await storage.getBookingsByGuide(guideId);
+      const conflictingBooking = existingBookings.find((booking: Booking) => {
+        if (booking.status === 'cancelled') return false;
+        
+        const bookingStart = new Date(booking.startDate);
+        const bookingEnd = new Date(booking.endDate);
+        
+        // Check if dates overlap and same time slot
+        const datesOverlap = startDate <= bookingEnd && endDate >= bookingStart;
+        const sameTimeSlot = booking.timeSlot === timeSlot;
+        
+        return datesOverlap && sameTimeSlot;
+      });
+
+      if (conflictingBooking) {
+        const timeSlotText = timeSlot === 'morning' ? 'صباحاً' : 'مساءً';
+        return res.status(409).json({ 
+          message: `المرشد لديه حجز بالفعل في هذا الوقت (${timeSlotText}). يرجى اختيار وقت أو تاريخ آخر.`,
+          messageEn: `This guide already has a booking at this time (${timeSlot === 'morning' ? 'Morning' : 'Evening'}). Please choose a different time or date.`
+        });
+      }
+
       // Convert date strings to Date objects
       const bookingData = {
         ...req.body,
         touristId: user.id,
-        startDate: new Date(req.body.startDate),
-        endDate: new Date(req.body.endDate),
+        startDate: startDate,
+        endDate: endDate,
+        timeSlot: timeSlot,
       };
 
       const validatedData = insertBookingSchema.parse(bookingData);
