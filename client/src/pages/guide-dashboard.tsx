@@ -321,11 +321,20 @@ export default function GuideDashboard() {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile" data-testid="tab-profile">{language === 'ar' ? 'الملف الشخصي' : 'Profile'}</TabsTrigger>
-            <TabsTrigger value="bookings" data-testid="tab-bookings">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</TabsTrigger>
-            <TabsTrigger value="reviews" data-testid="tab-reviews">{language === 'ar' ? 'التقييمات' : 'Reviews'}</TabsTrigger>
+        <Tabs defaultValue="bookings" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="profile" className="text-xs sm:text-sm py-2 px-1 sm:px-3" data-testid="tab-profile">
+              {language === 'ar' ? 'الملف' : 'Profile'}
+            </TabsTrigger>
+            <TabsTrigger value="bookings" className="text-xs sm:text-sm py-2 px-1 sm:px-3" data-testid="tab-bookings">
+              {language === 'ar' ? 'الحجوزات' : 'Bookings'}
+              {stats.pendingBookings > 0 && (
+                <Badge variant="destructive" className="mr-1 sm:mr-2 text-[10px] px-1">{stats.pendingBookings}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs sm:text-sm py-2 px-1 sm:px-3" data-testid="tab-reviews">
+              {language === 'ar' ? 'التقييمات' : 'Reviews'}
+            </TabsTrigger>
           </TabsList>
 
           {/* Profile Management */}
