@@ -13,7 +13,7 @@ export default function AboutProject() {
       titleAr: "استكشاف الأماكن السياحية",
       titleEn: "Explore Tourist Places",
       descAr: "تصفح مجموعة واسعة من الأماكن السياحية في منطقة الباحة",
-      descEn: "Browse a wide range of tourist places in Albaha region"
+      descEn: "Browse a wide range of tourist places in Al Bahah region"
     },
     {
       icon: <Users className="w-6 h-6" />,
@@ -45,7 +45,7 @@ export default function AboutProject() {
       titleAr: "إطلاق المنصة",
       titleEn: "Platform Launch",
       descAr: "إطلاق النسخة الأولى من منصة سياحة الباحة",
-      descEn: "Launch of the first version of Albaha Tourism Platform"
+      descEn: "Launch of the first version of Al Bahah Tourism Platform"
     },
     {
       yearAr: "٢٠٢٤",
@@ -80,7 +80,7 @@ export default function AboutProject() {
               <p className="text-xl opacity-90">
                 {language === 'ar' 
                   ? 'منصة سياحية شاملة تهدف لتعزيز السياحة في منطقة الباحة' 
-                  : 'A comprehensive tourism platform aimed at promoting tourism in Albaha region'}
+                  : 'A comprehensive tourism platform aimed at promoting tourism in Al Bahah region'}
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function AboutProject() {
               <p className="text-muted-foreground leading-relaxed">
                 {language === 'ar' 
                   ? 'نسعى لتقديم تجربة سياحية متكاملة تربط السياح بالمرشدين المحليين في منطقة الباحة، مع التركيز على الأصالة والجودة والابتكار في تقديم الخدمات السياحية.'
-                  : 'We strive to provide an integrated tourism experience that connects tourists with local guides in Albaha region, focusing on authenticity, quality, and innovation in delivering tourism services.'}
+                  : 'We strive to provide an integrated tourism experience that connects tourists with local guides in Al Bahah region, focusing on authenticity, quality, and innovation in delivering tourism services.'}
               </p>
             </CardContent>
           </Card>
@@ -114,7 +114,7 @@ export default function AboutProject() {
               <p className="text-muted-foreground leading-relaxed">
                 {language === 'ar' 
                   ? 'أن نكون المنصة الرائدة والأولى في مجال السياحة الرقمية لمنطقة الباحة، ونساهم في تعزيز السياحة المحلية وتنمية الاقتصاد السياحي في المنطقة.'
-                  : 'To be the leading and first platform in digital tourism for Albaha region, contributing to promoting local tourism and developing the tourism economy in the region.'}
+                  : 'To be the leading and first platform in digital tourism for Al Bahah region, contributing to promoting local tourism and developing the tourism economy in the region.'}
               </p>
             </CardContent>
           </Card>

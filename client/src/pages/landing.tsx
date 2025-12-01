@@ -588,7 +588,7 @@ export default function Landing() {
             <div>
               <h3 className="font-semibold mb-4">{texts.contactUs}</h3>
               <ul className="space-y-2 text-sm text-background/80">
-                <li>{texts.email}: info@albaha-tourism.sa</li>
+                <li>{texts.email}: info@albahah-tourism.sa</li>
                 <li>{texts.phone}: +966 17 123 4567</li>
                 <li>{texts.address}: {texts.addressValue}</li>
               </ul>
