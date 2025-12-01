@@ -228,11 +228,21 @@ export default function Bookings() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm" data-testid={`booking-dates-${booking.id}`}>
-                        {new Date(booking.startDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')} - {new Date(booking.endDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
-                      </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm" data-testid={`booking-dates-${booking.id}`}>
+                          {new Date(booking.startDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')} - {new Date(booking.endDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}
+                        </span>
+                      </div>
+                      {booking.timeSlot && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm" data-testid={`booking-time-${booking.id}`}>
+                            {booking.timeSlot}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center gap-2">

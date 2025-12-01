@@ -566,9 +566,14 @@ export default function GuideDashboard() {
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {language === 'ar' 
-                                  ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
-                                  : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
+                                  ? `📅 من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                                  : `📅 From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
                               </p>
+                              {booking.timeSlot && (
+                                <p className="text-sm text-muted-foreground">
+                                  {language === 'ar' ? `🕐 الوقت: ${booking.timeSlot}` : `🕐 Time: ${booking.timeSlot}`}
+                                </p>
+                              )}
                               {booking.notes && (
                                 <p className="text-sm text-muted-foreground mt-1">
                                   {language === 'ar' ? `ملاحظات: ${booking.notes}` : `Notes: ${booking.notes}`}

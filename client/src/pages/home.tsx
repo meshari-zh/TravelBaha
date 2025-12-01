@@ -336,12 +336,18 @@ export default function Home() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-semibold mb-2" data-testid={`text-booking-${booking.id}`}>
-                          حجز رقم: {booking.id.slice(-6)}
+                          {language === 'ar' ? `حجز رقم: ${booking.id.slice(-6)}` : `Booking #${booking.id.slice(-6)}`}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          من {new Date(booking.startDate).toLocaleDateString('ar-SA')} 
-                          إلى {new Date(booking.endDate).toLocaleDateString('ar-SA')}
+                          {language === 'ar' 
+                            ? `📅 من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                            : `📅 From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
                         </p>
+                        {booking.timeSlot && (
+                          <p className="text-muted-foreground text-sm">
+                            {language === 'ar' ? `🕐 الوقت: ${booking.timeSlot}` : `🕐 Time: ${booking.timeSlot}`}
+                          </p>
+                        )}
                       </div>
                       <div className="text-left">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -350,14 +356,22 @@ export default function Home() {
                           booking.status === 'completed' ? 'bg-green-100 text-green-800' :
                           'bg-destructive/10 text-destructive'
                         }`}>
-                          {booking.status === 'confirmed' ? 'مؤكد' :
-                           booking.status === 'pending' ? 'في الانتظار' :
-                           booking.status === 'completed' ? 'مكتمل' :
-                           'ملغي'}
+                          {language === 'ar' 
+                            ? (booking.status === 'confirmed' ? 'مؤكد' :
+                               booking.status === 'pending' ? 'في الانتظار' :
+                               booking.status === 'completed' ? 'مكتمل' : 'ملغي')
+                            : (booking.status === 'confirmed' ? 'Confirmed' :
+                               booking.status === 'pending' ? 'Pending' :
+                               booking.status === 'completed' ? 'Completed' : 'Cancelled')}
                         </span>
                         <p className="text-sm font-semibold mt-2">
-                          {booking.totalAmount} ر.س
+                          💰 {booking.totalAmount || '0'} {language === 'ar' ? 'ر.س' : 'SAR'}
                         </p>
+                        <span className="text-xs text-muted-foreground">
+                          {booking.paymentMethod === 'bank_transfer' 
+                            ? (language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer')
+                            : (language === 'ar' ? '💵 كاش' : '💵 Cash')}
+                        </span>
                       </div>
                     </div>
                   </CardContent>

@@ -1616,14 +1616,26 @@ export default function AdminDashboard() {
                                     <MapPin className="w-4 h-4 text-muted-foreground" />
                                     <span className="text-muted-foreground">
                                       {language === 'ar' 
-                                        ? `من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
-                                        : `From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
+                                        ? `📅 من ${new Date(booking.startDate).toLocaleDateString('ar-SA')} إلى ${new Date(booking.endDate).toLocaleDateString('ar-SA')}`
+                                        : `📅 From ${new Date(booking.startDate).toLocaleDateString('en-US')} to ${new Date(booking.endDate).toLocaleDateString('en-US')}`}
                                     </span>
                                   </div>
+                                  {booking.timeSlot && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-muted-foreground">
+                                        {language === 'ar' ? `🕐 الوقت: ${booking.timeSlot}` : `🕐 Time: ${booking.timeSlot}`}
+                                      </span>
+                                    </div>
+                                  )}
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-primary" data-testid={`booking-amount-${booking.id}`}>
-                                      {language === 'ar' ? `${booking.totalAmount} ر.س` : `${booking.totalAmount} SAR`}
+                                      {language === 'ar' ? `💰 ${booking.totalAmount || '0'} ر.س` : `💰 ${booking.totalAmount || '0'} SAR`}
                                     </span>
+                                    <Badge variant="outline" className="text-xs">
+                                      {booking.paymentMethod === 'bank_transfer' 
+                                        ? (language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer')
+                                        : (language === 'ar' ? '💵 كاش' : '💵 Cash')}
+                                    </Badge>
                                   </div>
                                 </div>
                                 
