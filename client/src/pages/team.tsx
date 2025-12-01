@@ -4,7 +4,7 @@ import Footer from "@/components/footer";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Award, Heart, Star } from "lucide-react";
-import type { TeamMember } from "@shared/schema";
+import type { TeamMember, SiteContent } from "@shared/schema";
 
 export default function Team() {
   const { language } = useLanguage();
@@ -13,9 +13,29 @@ export default function Team() {
     queryKey: ['/api/team-members'],
   });
 
+  const { data: supervisorName } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_name'],
+  });
+  const { data: supervisorNameEn } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_name_en'],
+  });
+  const { data: supervisorRole } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_role'],
+  });
+  const { data: supervisorRoleEn } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_role_en'],
+  });
+  const { data: supervisorBio } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_bio'],
+  });
+  const { data: supervisorBioEn } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_bio_en'],
+  });
+  const { data: supervisorImage } = useQuery<SiteContent>({
+    queryKey: ['/api/site-content/supervisor_image'],
+  });
+
   const activeMembers = teamMembers.filter(m => m.isActive);
-  const supervisor = activeMembers.find(m => m.role?.includes('مشرف') || m.roleEn?.toLowerCase().includes('supervisor'));
-  const regularMembers = activeMembers.filter(m => m !== supervisor);
 
   const values = [
     {
@@ -77,7 +97,7 @@ export default function Team() {
         ) : (
           <>
             <div className="space-y-4 mb-12">
-              {regularMembers.map((member) => (
+              {activeMembers.map((member: TeamMember) => (
                 <Card key={member.id} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${member.id}`}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-6">
@@ -113,7 +133,7 @@ export default function Team() {
               ))}
             </div>
 
-            {supervisor && (
+            {(supervisorName?.content || supervisorNameEn?.content) && (
               <div className="mb-12">
                 <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
                   {language === 'ar' ? 'المشرف على المشروع' : 'Project Supervisor'}
@@ -121,10 +141,10 @@ export default function Team() {
                 <Card className="max-w-2xl mx-auto hover:shadow-lg transition-shadow border-2 border-primary/20" data-testid="card-supervisor">
                   <CardContent className="p-8">
                     <div className="flex items-start gap-6">
-                      {supervisor.imageUrl ? (
+                      {supervisorImage?.content ? (
                         <img 
-                          src={supervisor.imageUrl} 
-                          alt={language === 'ar' ? supervisor.name : (supervisor.nameEn || supervisor.name)}
+                          src={supervisorImage.content} 
+                          alt={language === 'ar' ? supervisorName?.content : (supervisorNameEn?.content || supervisorName?.content)}
                           className="w-24 h-24 rounded-full object-cover shrink-0 border-4 border-yellow-400"
                         />
                       ) : (
@@ -134,16 +154,16 @@ export default function Team() {
                       )}
                       <div className="flex-1 space-y-3">
                         <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">
-                          {language === 'ar' ? supervisor.name : (supervisor.nameEn || supervisor.name)}
+                          {language === 'ar' ? supervisorName?.content : (supervisorNameEn?.content || supervisorName?.content)}
                         </h3>
                         <div>
                           <span className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-medium px-4 py-1.5 rounded-full text-sm">
-                            {language === 'ar' ? supervisor.role : (supervisor.roleEn || supervisor.role)}
+                            {language === 'ar' ? supervisorRole?.content : (supervisorRoleEn?.content || supervisorRole?.content)}
                           </span>
                         </div>
-                        {(supervisor.description || supervisor.descriptionEn) && (
+                        {(supervisorBio?.content || supervisorBioEn?.content) && (
                           <p className="text-muted-foreground leading-relaxed">
-                            {language === 'ar' ? supervisor.description : (supervisor.descriptionEn || supervisor.description)}
+                            {language === 'ar' ? supervisorBio?.content : (supervisorBioEn?.content || supervisorBio?.content)}
                           </p>
                         )}
                       </div>

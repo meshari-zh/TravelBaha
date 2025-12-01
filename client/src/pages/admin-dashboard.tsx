@@ -210,6 +210,196 @@ function MapContentEditorComponent() {
   );
 }
 
+// مكون تعديل بيانات المشرف على المشروع
+function SupervisorEditorComponent() {
+  const { toast } = useToast();
+  const { language } = useLanguage();
+  const [isEditing, setIsEditing] = useState(false);
+  const [supervisorImageUrl, setSupervisorImageUrl] = useState("");
+
+  // جلب البيانات الحالية للمشرف
+  const { data: supervisorName, refetch: refetchName } = useQuery({
+    queryKey: ['/api/site-content/supervisor_name'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorNameEn, refetch: refetchNameEn } = useQuery({
+    queryKey: ['/api/site-content/supervisor_name_en'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorRole, refetch: refetchRole } = useQuery({
+    queryKey: ['/api/site-content/supervisor_role'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorRoleEn, refetch: refetchRoleEn } = useQuery({
+    queryKey: ['/api/site-content/supervisor_role_en'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorBio, refetch: refetchBio } = useQuery({
+    queryKey: ['/api/site-content/supervisor_bio'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorBioEn, refetch: refetchBioEn } = useQuery({
+    queryKey: ['/api/site-content/supervisor_bio_en'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: supervisorImage, refetch: refetchImage } = useQuery({
+    queryKey: ['/api/site-content/supervisor_image'],
+    select: (data: any) => data?.content || ''
+  });
+
+  useEffect(() => {
+    if (supervisorImage) {
+      setSupervisorImageUrl(supervisorImage);
+    }
+  }, [supervisorImage]);
+
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ key, title, content }: { key: string; title: string; content: string }) => {
+      const response = await fetch('/api/site-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, title, content }),
+      });
+      if (!response.ok) throw new Error('Failed to update content');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    try {
+      await Promise.all([
+        updateContentMutation.mutateAsync({ key: 'supervisor_name', title: 'اسم المشرف', content: formData.get('supervisor_name') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_name_en', title: 'Supervisor Name', content: formData.get('supervisor_name_en') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_role', title: 'منصب المشرف', content: formData.get('supervisor_role') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_role_en', title: 'Supervisor Role', content: formData.get('supervisor_role_en') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_bio', title: 'سيرة المشرف', content: formData.get('supervisor_bio') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_bio_en', title: 'Supervisor Bio', content: formData.get('supervisor_bio_en') as string }),
+        updateContentMutation.mutateAsync({ key: 'supervisor_image', title: 'صورة المشرف', content: supervisorImageUrl }),
+      ]);
+      
+      toast({
+        title: language === 'ar' ? "تم الحفظ بنجاح" : "Saved Successfully",
+        description: language === 'ar' ? "تم تحديث بيانات المشرف" : "Supervisor data has been updated",
+      });
+      
+      setIsEditing(false);
+      refetchName(); refetchNameEn(); refetchRole(); refetchRoleEn();
+      refetchBio(); refetchBioEn(); refetchImage();
+    } catch (error) {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حفظ البيانات" : "Failed to save data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <Card className="border-l-4 border-l-yellow-500">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">👨‍🏫</span>
+            <div>
+              <CardTitle className="text-lg">{language === 'ar' ? 'المشرف على المشروع' : 'Project Supervisor'}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {language === 'ar' ? 'تعديل بيانات المشرف على المشروع التي تظهر في صفحة فريق العمل' : 'Edit supervisor data displayed on the team page'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            data-testid="button-edit-supervisor"
+          >
+            <Edit className="w-4 h-4 ml-1" />
+            {isEditing ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {!isEditing ? (
+          <div className="flex items-start gap-4 bg-muted/50 p-4 rounded-lg">
+            {supervisorImage ? (
+              <img src={supervisorImage} alt="Supervisor" className="w-16 h-16 rounded-full object-cover border-2 border-yellow-400" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center text-3xl">👨‍🏫</div>
+            )}
+            <div className="flex-1">
+              <h4 className="font-bold text-lg">{supervisorName || (language === 'ar' ? 'لم يتم تحديد اسم' : 'Name not set')}</h4>
+              <p className="text-primary text-sm">{supervisorRole || (language === 'ar' ? 'لم يتم تحديد المنصب' : 'Role not set')}</p>
+              <p className="text-muted-foreground text-sm mt-1">{supervisorBio || (language === 'ar' ? 'لم يتم إضافة سيرة' : 'No bio added')}</p>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4 border-l pl-4">
+                <h4 className="font-semibold text-primary">{language === 'ar' ? 'البيانات بالعربية' : 'Arabic Data'}</h4>
+                <div>
+                  <Label>{language === 'ar' ? 'الاسم (عربي)' : 'Name (Arabic)'}</Label>
+                  <Input name="supervisor_name" defaultValue={supervisorName} dir="rtl" data-testid="input-supervisor-name" />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'المنصب (عربي)' : 'Role (Arabic)'}</Label>
+                  <Input name="supervisor_role" defaultValue={supervisorRole} dir="rtl" data-testid="input-supervisor-role" />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'السيرة (عربي)' : 'Bio (Arabic)'}</Label>
+                  <Textarea name="supervisor_bio" defaultValue={supervisorBio} dir="rtl" rows={3} data-testid="input-supervisor-bio" />
+                </div>
+              </div>
+              
+              <div className="space-y-4 border-l pl-4">
+                <h4 className="font-semibold text-primary">{language === 'ar' ? 'البيانات بالإنجليزية' : 'English Data'}</h4>
+                <div>
+                  <Label>{language === 'ar' ? 'الاسم (إنجليزي)' : 'Name (English)'}</Label>
+                  <Input name="supervisor_name_en" defaultValue={supervisorNameEn} dir="ltr" data-testid="input-supervisor-name-en" />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'المنصب (إنجليزي)' : 'Role (English)'}</Label>
+                  <Input name="supervisor_role_en" defaultValue={supervisorRoleEn} dir="ltr" data-testid="input-supervisor-role-en" />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'السيرة (إنجليزي)' : 'Bio (English)'}</Label>
+                  <Textarea name="supervisor_bio_en" defaultValue={supervisorBioEn} dir="ltr" rows={3} data-testid="input-supervisor-bio-en" />
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <Label>{language === 'ar' ? 'صورة المشرف' : 'Supervisor Image'}</Label>
+              <div className="mt-2">
+                <ImageUploader
+                  value={supervisorImageUrl}
+                  onChange={setSupervisorImageUrl}
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button type="submit" disabled={updateContentMutation.isPending} data-testid="button-save-supervisor">
+                {updateContentMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ البيانات' : 'Save Data')}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -1665,18 +1855,22 @@ export default function AdminDashboard() {
 
           {/* Site Content Management */}
           <TabsContent value="content">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Edit className="w-5 h-5 text-blue-600" />
-                  {language === 'ar' ? 'إدارة محتوى الموقع' : 'Website Content Management'}
-                </CardTitle>
-                <p className="text-muted-foreground">{language === 'ar' ? 'تعديل النصوص والمحتوى القابل للتحرير في الموقع' : 'Edit texts and editable content on the website'}</p>
-              </CardHeader>
-              <CardContent>
-                <MapContentEditorComponent />
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-blue-600" />
+                    {language === 'ar' ? 'إدارة محتوى الموقع' : 'Website Content Management'}
+                  </CardTitle>
+                  <p className="text-muted-foreground">{language === 'ar' ? 'تعديل النصوص والمحتوى القابل للتحرير في الموقع' : 'Edit texts and editable content on the website'}</p>
+                </CardHeader>
+                <CardContent>
+                  <MapContentEditorComponent />
+                </CardContent>
+              </Card>
+              
+              <SupervisorEditorComponent />
+            </div>
           </TabsContent>
 
           {/* Invite Codes Management */}
