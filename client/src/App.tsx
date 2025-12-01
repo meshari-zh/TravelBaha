@@ -18,6 +18,8 @@ import GuideProfile from "@/pages/guide-profile";
 import InviteRedemption from "@/pages/invite-redemption";
 import ProfileEdit from "@/pages/profile-edit";
 import About from "@/pages/about";
+import Team from "@/pages/team";
+import AboutProject from "@/pages/about-project";
 import SaudiMap from "@/pages/saudi-map";
 import NotFound from "@/pages/not-found";
 
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/guides" component={Guides} />
       <Route path="/guide/:id" component={GuideProfile} />
       <Route path="/about" component={About} />
+      <Route path="/team" component={Team} />
+      <Route path="/about-project" component={AboutProject} />
       <Route path="/map" component={SaudiMap} />
       <Route path="/landing" component={Landing} />
       

@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
@@ -184,19 +184,38 @@ export default function Navbar() {
                         </Link>
                       </SheetClose>
                       
-                      <SheetClose asChild>
-                        <Link href="/about">
-                          <Button 
-                            variant={isActive("/about") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-about"
-                          >
-                            <Info className="w-4 h-4" />
-                            {t('about')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
+                      <div className="space-y-1">
+                        <div className="px-3 py-2 text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <Info className="w-4 h-4" />
+                          {t('about')}
+                        </div>
+                        <SheetClose asChild>
+                          <Link href="/team">
+                            <Button 
+                              variant={isActive("/team") ? "default" : "ghost"} 
+                              size="sm"
+                              className="w-full justify-start flex items-center gap-3 pr-8"
+                              data-testid="mobile-nav-team"
+                            >
+                              <Users className="w-4 h-4" />
+                              {language === 'ar' ? 'فريق العمل' : 'Our Team'}
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/about-project">
+                            <Button 
+                              variant={isActive("/about-project") ? "default" : "ghost"} 
+                              size="sm"
+                              className="w-full justify-start flex items-center gap-3 pr-8"
+                              data-testid="mobile-nav-about-project"
+                            >
+                              <FileText className="w-4 h-4" />
+                              {language === 'ar' ? 'نبذة عن المشروع' : 'About the Project'}
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                      </div>
                       
                       <SheetClose asChild>
                         <Link href="/map">
@@ -348,17 +367,34 @@ export default function Navbar() {
               </Button>
             </Link>
             
-            <Link href="/about">
-              <Button 
-                variant={isActive("/about") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-about"
-              >
-                <Info className="w-4 h-4" />
-                {t('about')}
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={(isActive("/about") || isActive("/team") || isActive("/about-project")) ? "default" : "ghost"} 
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="nav-about-dropdown"
+                >
+                  <Info className="w-4 h-4" />
+                  {t('about')}
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/team" className="flex items-center gap-2 cursor-pointer">
+                    <Users className="w-4 h-4" />
+                    {language === 'ar' ? 'فريق العمل' : 'Our Team'}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/about-project" className="flex items-center gap-2 cursor-pointer">
+                    <FileText className="w-4 h-4" />
+                    {language === 'ar' ? 'نبذة عن المشروع' : 'About the Project'}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             <Link href="/map">
               <Button 
