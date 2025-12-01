@@ -52,9 +52,9 @@ const getGoogleMapsUrl = (lat: number, lng: number, placeName: string): string =
 
 // إحداثيات المدن
 const cities = {
-  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة', nameEn: 'Al Bahah' },
-  mecca: { lat: 21.3891, lng: 39.8579, name: 'مكة المكرمة', nameEn: 'Mecca' },
-  riyadh: { lat: 24.7136, lng: 46.6753, name: 'الرياض', nameEn: 'Riyadh' }
+  albaha: { lat: 20.0127, lng: 41.4676, name: 'الباحة', nameEn: 'Albaha' },
+  mecca: { lat: 21.42246468453151, lng: 39.82616340057774, name: 'مكة المكرمة', nameEn: 'Mecca' },
+  riyadh: { lat: 24.712000190710448, lng: 46.67226386370668, name: 'الرياض', nameEn: 'Riyadh' }
 }
 
 // إحداثيات دقيقة للأماكن السياحية المشهورة في الباحة (من Google Maps)
@@ -276,7 +276,7 @@ export default function SaudiMap() {
     [20.7, 40.2],
     [21.0, 40.0],
     [21.2, 39.9],
-    [cities.mecca.lat, cities.mecca.lng]
+    [21.42246468453151, 39.82616340057774] // مكة المكرمة
   ]
 
   const roadToRiyadh: LatLngTuple[] = [
@@ -291,7 +291,7 @@ export default function SaudiMap() {
     [23.6, 45.6],
     [24.0, 46.0],
     [24.3, 46.3],
-    [cities.riyadh.lat, cities.riyadh.lng]
+    [24.712000190710448, 46.67226386370668] // الرياض
   ]
 
   const handleUpdateWebsite = (placeId: string, website: string) => {
@@ -403,20 +403,50 @@ export default function SaudiMap() {
 
                     <Marker position={[cities.mecca.lat, cities.mecca.lng]} icon={meccaIcon}>
                       <Popup>
-                        <div className="text-center p-2">
-                          <h3 className="font-bold text-lg">{language === 'ar' ? cities.mecca.name : cities.mecca.nameEn}</h3>
-                          <p className="text-sm">{t('meccaHolyCity')}</p>
-                          <p className="text-xs text-gray-600">{t('meccaDescription')}</p>
+                        <div className="text-center p-3 min-w-[250px]">
+                          <h3 className="font-bold text-lg text-blue-800">{language === 'ar' ? cities.mecca.name : cities.mecca.nameEn}</h3>
+                          <p className="text-sm mb-2">{t('meccaHolyCity')}</p>
+                          <p className="text-xs text-gray-600 mb-3">{t('meccaDescription')}</p>
+                          
+                          {/* معلومات المسافة والوقت من الباحة */}
+                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <Car className="w-4 h-4 text-blue-600" />
+                              <span className="font-semibold text-blue-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from Albaha'}:</span>
+                            </div>
+                            <div className="text-lg font-bold text-blue-900 mb-1">
+                              {calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.mecca.lat, cities.mecca.lng).toFixed(1)} {language === 'ar' ? 'كم' : 'km'}
+                            </div>
+                            <div className="flex items-center justify-center gap-1 text-sm text-blue-700">
+                              <Clock className="w-3 h-3" />
+                              <span>{language === 'ar' ? 'الوقت التقريبي' : 'Est. time'}: {calculateDrivingTime(calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.mecca.lat, cities.mecca.lng), language)}</span>
+                            </div>
+                          </div>
                         </div>
                       </Popup>
                     </Marker>
 
                     <Marker position={[cities.riyadh.lat, cities.riyadh.lng]} icon={riyadhIcon}>
                       <Popup>
-                        <div className="text-center p-2">
-                          <h3 className="font-bold text-lg">{language === 'ar' ? cities.riyadh.name : cities.riyadh.nameEn}</h3>
-                          <p className="text-sm">{t('riyadhCapital')}</p>
-                          <p className="text-xs text-gray-600">{t('riyadhDescription')}</p>
+                        <div className="text-center p-3 min-w-[250px]">
+                          <h3 className="font-bold text-lg text-green-800">{language === 'ar' ? cities.riyadh.name : cities.riyadh.nameEn}</h3>
+                          <p className="text-sm mb-2">{t('riyadhCapital')}</p>
+                          <p className="text-xs text-gray-600 mb-3">{t('riyadhDescription')}</p>
+                          
+                          {/* معلومات المسافة والوقت من الباحة */}
+                          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <Car className="w-4 h-4 text-green-600" />
+                              <span className="font-semibold text-green-800">{language === 'ar' ? 'المسافة من الباحة' : 'Distance from Albaha'}:</span>
+                            </div>
+                            <div className="text-lg font-bold text-green-900 mb-1">
+                              {calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.riyadh.lat, cities.riyadh.lng).toFixed(1)} {language === 'ar' ? 'كم' : 'km'}
+                            </div>
+                            <div className="flex items-center justify-center gap-1 text-sm text-green-700">
+                              <Clock className="w-3 h-3" />
+                              <span>{language === 'ar' ? 'الوقت التقريبي' : 'Est. time'}: {calculateDrivingTime(calculateDistance(cities.albaha.lat, cities.albaha.lng, cities.riyadh.lat, cities.riyadh.lng), language)}</span>
+                            </div>
+                          </div>
                         </div>
                       </Popup>
                     </Marker>
