@@ -12,10 +12,10 @@ export default function GuideRequirements() {
 
   const texts = language === 'ar' ? {
     pageTitle: 'متطلبات الانضمام',
-    pageSubtitle: 'الشروط الأساسية للحصول على رخصة الإرشاد السياحي',
+    pageSubtitle: 'الشروط الأساسية للانضمام كمرشد سياحي',
     
     introTitle: 'شروط الانضمام كمرشد سياحي',
-    introDesc: 'للحصول على رخصة الإرشاد السياحي والانضمام إلى منصتنا، يجب توفر الشروط الأساسية التالية:',
+    introDesc: 'للانضمام إلى منصتنا كمرشد سياحي، يجب توفر الشروط الأساسية التالية:',
     
     requirements: [
       {
@@ -57,10 +57,10 @@ export default function GuideRequirements() {
     viewManual: 'دليل المرشد',
   } : {
     pageTitle: 'Joining Requirements',
-    pageSubtitle: 'Basic requirements for obtaining a tourism guide license',
+    pageSubtitle: 'Basic requirements to join as a tour guide',
     
     introTitle: 'Requirements to Join as a Tour Guide',
-    introDesc: 'To obtain a tourism guide license and join our platform, the following basic requirements must be met:',
+    introDesc: 'To join our platform as a tour guide, the following basic requirements must be met:',
     
     requirements: [
       {
