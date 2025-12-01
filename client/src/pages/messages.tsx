@@ -7,13 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import MessageChat from "@/components/message-chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, MessageCircle } from "lucide-react";
+import { Search, MessageCircle, Lock } from "lucide-react";
 import type { Message, User, Guide } from "@shared/schema";
 
 export default function Messages() {
@@ -25,9 +26,15 @@ export default function Messages() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isSocketAuthenticated, setIsSocketAuthenticated] = useState(false);
 
+  // Fetch guides for visitors (always fetch guides)
+  const { data: guides = [] } = useQuery<Guide[]>({
+    queryKey: ["/api/guides"],
+  });
+
   // Fetch available users to chat with based on role
   const { data: availableUsers = [] } = useQuery<User[]>({
     queryKey: user?.role === 'tourist' ? ["/api/guides"] : ["/api/users"],
+    enabled: !!user,
     select: (data: any[]) => {
       if (user?.role === 'tourist') {
         // For tourists, show guides
@@ -184,26 +191,95 @@ export default function Messages() {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || u.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'U');
   };
 
+  const getGuideDisplayName = (guide: Guide) => {
+    if (!guide.user) return language === 'ar' ? 'مرشد سياحي' : 'Tour Guide';
+    return [guide.user.firstName, guide.user.lastName].filter(Boolean).join(' ') || guide.user.email || (language === 'ar' ? 'مرشد سياحي' : 'Tour Guide');
+  };
+
+  const getGuideInitials = (guide: Guide) => {
+    if (!guide.user) return language === 'ar' ? 'م' : 'G';
+    const firstName = guide.user.firstName || '';
+    const lastName = guide.user.lastName || '';
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || guide.user.email?.charAt(0).toUpperCase() || (language === 'ar' ? 'م' : 'G');
+  };
+
   if (!user) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         
-        <div className="container mx-auto px-4 py-8">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <MessageCircle className="w-20 h-20 text-muted-foreground mb-6" />
-              <h2 className="text-2xl font-bold mb-4 text-center">
-                {language === 'ar' ? 'يجب تسجيل الدخول' : 'Login Required'}
-              </h2>
-              <p className="text-muted-foreground text-center">
-                {language === 'ar' 
-                  ? 'يجب تسجيل الدخول للتواصل مع المرشدين السياحيين'
-                  : 'You need to login to chat with tour guides'}
-              </p>
+        <div className="container mx-auto px-4 py-8 flex-1">
+          {/* Login Required Banner */}
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="flex items-center gap-4 py-4">
+              <div className="bg-primary/10 rounded-full p-3">
+                <Lock className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">
+                  {language === 'ar' ? 'يجب تسجيل الدخول للمراسلة' : 'Login Required to Message'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'ar' 
+                    ? 'سجل دخولك للتواصل مع المرشدين السياحيين'
+                    : 'Login to chat with tour guides'}
+                </p>
+              </div>
             </CardContent>
           </Card>
+
+          <h2 className="text-2xl font-bold mb-6">
+            {language === 'ar' ? 'المرشدين السياحيين المتاحين' : 'Available Tour Guides'}
+          </h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {guides.map((guide) => (
+              <Card key={guide.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-14 h-14">
+                      <AvatarImage src={guide.user?.profileImageUrl || undefined} />
+                      <AvatarFallback>{getGuideInitials(guide)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{getGuideDisplayName(guide)}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {guide.languages?.slice(0, 2).join(', ')}
+                      </p>
+                      {guide.rating && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-yellow-500">★</span>
+                          <span className="text-sm">{parseFloat(guide.rating).toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    className="w-full mt-4"
+                    variant="outline"
+                    onClick={() => window.location.href = "/api/login"}
+                  >
+                    <MessageCircle className="w-4 h-4 ml-2" />
+                    {language === 'ar' ? 'سجل دخولك للمراسلة' : 'Login to Message'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {guides.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <MessageCircle className="w-16 h-16 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  {language === 'ar' ? 'لا يوجد مرشدين متاحين حالياً' : 'No guides available at the moment'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        <Footer />
       </div>
     );
   }
