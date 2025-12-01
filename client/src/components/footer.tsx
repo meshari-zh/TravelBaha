@@ -121,10 +121,26 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4">{texts.forGuides}</h3>
             <ul className="space-y-2 text-sm text-background/80">
-              <li><span className="hover:text-background transition-colors cursor-pointer">{texts.joinGuide}</span></li>
-              <li><span className="hover:text-background transition-colors cursor-pointer">{texts.requirements}</span></li>
-              <li><span className="hover:text-background transition-colors cursor-pointer">{texts.guideManual}</span></li>
-              <li><span className="hover:text-background transition-colors cursor-pointer">{texts.support}</span></li>
+              <li>
+                <Link href="/guide-info" className="hover:text-background transition-colors">
+                  {texts.joinGuide}
+                </Link>
+              </li>
+              <li>
+                <Link href="/guide-info#requirements" className="hover:text-background transition-colors">
+                  {texts.requirements}
+                </Link>
+              </li>
+              <li>
+                <Link href="/guide-info#manual" className="hover:text-background transition-colors">
+                  {texts.guideManual}
+                </Link>
+              </li>
+              <li>
+                <Link href="/guide-info" className="hover:text-background transition-colors">
+                  {texts.support}
+                </Link>
+              </li>
             </ul>
           </div>
           

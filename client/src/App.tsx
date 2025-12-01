@@ -21,6 +21,7 @@ import About from "@/pages/about";
 import Team from "@/pages/team";
 import AboutProject from "@/pages/about-project";
 import SaudiMap from "@/pages/saudi-map";
+import GuideInfo from "@/pages/guide-info";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/team" component={Team} />
       <Route path="/about-project" component={AboutProject} />
       <Route path="/map" component={SaudiMap} />
+      <Route path="/guide-info" component={GuideInfo} />
       <Route path="/landing" component={Landing} />
       
       {/* Routes requiring authentication */}
