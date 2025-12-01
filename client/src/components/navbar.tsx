@@ -233,6 +233,22 @@ export default function Navbar() {
                       
                       {user && (
                         <SheetClose asChild>
+                          <Link href="/invite">
+                            <Button 
+                              variant={isActive("/invite") ? "default" : "ghost"} 
+                              size="sm"
+                              className="w-full justify-start flex items-center gap-3"
+                              data-testid="mobile-nav-invite"
+                            >
+                              <Ticket className="w-4 h-4" />
+                              {t('inviteCode')}
+                            </Button>
+                          </Link>
+                        </SheetClose>
+                      )}
+                      
+                      {user && (
+                        <SheetClose asChild>
                           <Link href="/messages">
                             <Button 
                               variant={isActive("/messages") ? "default" : "ghost"} 
@@ -407,6 +423,20 @@ export default function Navbar() {
                 {t('map')}
               </Button>
             </Link>
+            
+            {user && (
+              <Link href="/invite">
+                <Button 
+                  variant={isActive("/invite") ? "default" : "ghost"} 
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="nav-invite"
+                >
+                  <Ticket className="w-4 h-4" />
+                  {t('inviteCode')}
+                </Button>
+              </Link>
+            )}
             
             {user && (
               <Link href="/messages">
