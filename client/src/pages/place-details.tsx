@@ -205,7 +205,7 @@ export default function PlaceDetails() {
                   {language === 'ar' ? 'احجز مع مرشد' : 'Book a Guide'}
                 </Button>
               </Link>
-              <Link href="/saudi-map">
+              <Link href="/map">
                 <Button variant="secondary" className="flex-1" data-testid="button-view-on-map">
                   <Map className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {language === 'ar' ? 'عرض على الخريطة' : 'View on Map'}

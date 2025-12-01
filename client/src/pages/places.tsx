@@ -212,7 +212,7 @@ export default function Places() {
           
           <div className="flex gap-3">
             {/* زر الانتقال للخريطة */}
-            <Link href="/saudi-map">
+            <Link href="/map">
               <Button variant="outline" className="flex items-center gap-2" data-testid="button-go-to-map">
                 <MapPin className="w-4 h-4" />
                 {language === 'ar' ? 'عرض على الخريطة' : 'View on Map'}
