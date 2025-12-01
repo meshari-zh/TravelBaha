@@ -453,66 +453,77 @@ export default function Navbar() {
           
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-3 px-3" data-testid="user-menu">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{getUserDisplayName()}</p>
-                    <div className="flex items-center gap-2">
-                      {getRoleBadge()}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-3 px-3" data-testid="user-menu">
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{getUserDisplayName()}</p>
+                      <div className="flex items-center gap-2">
+                        {getRoleBadge()}
+                      </div>
                     </div>
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={user?.profileImageUrl || undefined} />
+                      <AvatarFallback className="text-xs">{getUserInitials()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium" data-testid="user-display-name">{getUserDisplayName()}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user?.profileImageUrl || undefined} />
-                    <AvatarFallback className="text-xs">{getUserInitials()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium" data-testid="user-display-name">{getUserDisplayName()}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                
-                {user?.role === 'guide' && (
+                  <DropdownMenuSeparator />
+                  
+                  {user?.role === 'guide' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">
+                        <UserCog className="w-4 h-4 ml-2" />
+                        {t('guideDashboard')}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  {user?.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">
+                        <Settings className="w-4 h-4 ml-2" />
+                        {t('adminDashboard')}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard">
-                      <UserCog className="w-4 h-4 ml-2" />
-                      {t('guideDashboard')}
+                    <Link href="/profile">
+                      <User className="w-4 h-4 ml-2" />
+                      {t('profile')}
                     </Link>
                   </DropdownMenuItem>
-                )}
-                
-                {user?.role === 'admin' && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin">
-                      <Settings className="w-4 h-4 ml-2" />
-                      {t('adminDashboard')}
-                    </Link>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem 
+                    onClick={() => window.location.href = "/api/logout"}
+                    className="text-destructive focus:text-destructive"
+                    data-testid="logout-button"
+                  >
+                    <LogOut className="w-4 h-4 ml-2" />
+                    {t('logout')}
                   </DropdownMenuItem>
-                )}
-                
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="w-4 h-4 ml-2" />
-                    {t('profile')}
-                  </Link>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={() => window.location.href = "/api/logout"}
-                  className="text-destructive focus:text-destructive"
-                  data-testid="logout-button"
-                >
-                  <LogOut className="w-4 h-4 ml-2" />
-                  {t('logout')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={() => window.location.href = "/api/login"}
+                className="flex items-center gap-2"
+                data-testid="desktop-login-button"
+              >
+                <LogIn className="w-4 h-4" />
+                {language === 'ar' ? 'تسجيل الدخول / إنشاء حساب' : 'Login / Sign Up'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
