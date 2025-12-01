@@ -40,28 +40,84 @@ export default function AboutProject() {
 
   const milestones = [
     {
-      yearAr: "٢٠٢٤",
-      yearEn: "2024",
-      titleAr: "إطلاق المنصة",
-      titleEn: "Platform Launch",
-      descAr: "إطلاق النسخة الأولى من منصة سياحة الباحة",
-      descEn: "Launch of the first version of Al Bahah Tourism Platform"
+      stepAr: "١",
+      stepEn: "1",
+      titleAr: "مرحلة توليد الفكرة",
+      titleEn: "Idea Generation Phase",
+      descAr: "بدأ المشروع بتحديد مشكلة حقيقية تتمثل في صعوبة وصول الزوار والمهتمين إلى المرشدين السياحيين في منطقة الباحة، مما أدى إلى ظهور فكرة إنشاء منصة إلكترونية تجمع المرشدين وتعرض خدماتهم بطريقة سهلة وواضحة.",
+      descEn: "The project started by identifying a real problem: the difficulty for visitors to reach tour guides in Al Bahah region, which led to the idea of creating an electronic platform that brings together guides and displays their services in an easy and clear way."
     },
     {
-      yearAr: "٢٠٢٤",
-      yearEn: "2024",
-      titleAr: "إضافة نظام الحجز",
-      titleEn: "Booking System Added",
-      descAr: "تطوير نظام حجز متكامل وآمن",
-      descEn: "Development of integrated and secure booking system"
+      stepAr: "٢",
+      stepEn: "2",
+      titleAr: "كتابة وتطوير فكرة المشروع",
+      titleEn: "Writing and Developing the Project Idea",
+      descAr: "تم صياغة الفكرة بشكل رسمي ودقيق، وكتابة وصف شامل يوضح: أهداف المنصة، الفئة المستهدفة، المشكلة والحل المقترح، والقيمة المضافة التي يقدمها المشروع.",
+      descEn: "The idea was formally and precisely formulated, with a comprehensive description covering: platform objectives, target audience, problem and proposed solution, and the added value the project provides."
     },
     {
-      yearAr: "٢٠٢٥",
-      yearEn: "2025",
-      titleAr: "خريطة تفاعلية",
-      titleEn: "Interactive Map",
-      descAr: "إضافة خريطة تفاعلية لعرض المواقع السياحية",
-      descEn: "Adding interactive map to display tourist locations"
+      stepAr: "٣",
+      stepEn: "3",
+      titleAr: "تصميم رسومات الـ UML",
+      titleEn: "UML Diagrams Design",
+      descAr: "تم إعداد المخططات الأساسية للمشروع، وتشمل: Use Case Diagram، Sequence Diagram، Activity Diagram، Class Diagram، وذلك بهدف توضيح طريقة عمل النظام قبل بدء البرمجة.",
+      descEn: "Basic project diagrams were prepared, including: Use Case Diagram, Sequence Diagram, Activity Diagram, Class Diagram, to clarify how the system works before starting programming."
+    },
+    {
+      stepAr: "٤",
+      stepEn: "4",
+      titleAr: "إنشاء النموذج الأولي (Wireframe / Prototype)",
+      titleEn: "Creating Wireframe / Prototype",
+      descAr: "تم تصميم صورة تقريبية لشكل الموقع قبل البدء بالبرمجة، تشمل: شكل الصفحة الرئيسية، صفحة المرشدين، صفحة الأماكن السياحية، صفحة تسجيل الدخول، وشكل لوحة التحكم.",
+      descEn: "An approximate design of the website was created before programming, including: homepage layout, guides page, tourist places page, login page, and dashboard layout."
+    },
+    {
+      stepAr: "٥",
+      stepEn: "5",
+      titleAr: "بدء إنشاء وتنفيذ المشروع",
+      titleEn: "Starting Project Implementation",
+      descAr: "تم البدء ببرمجة الموقع باستخدام الأدوات المناسبة، وبناء الهيكلة الأساسية للصفحات.",
+      descEn: "Website programming began using appropriate tools, building the basic structure of pages."
+    },
+    {
+      stepAr: "٦",
+      stepEn: "6",
+      titleAr: "إضافة الأماكن السياحية",
+      titleEn: "Adding Tourist Places",
+      descAr: "تم إدراج مجموعة من المواقع السياحية في منطقة الباحة داخل المنصة، مع: صور، وصف، موقع جغرافي، ومعلومات مختصرة لكل موقع.",
+      descEn: "A collection of tourist sites in Al Bahah region was added to the platform, with: images, descriptions, geographic locations, and brief information for each site."
+    },
+    {
+      stepAr: "٧",
+      stepEn: "7",
+      titleAr: "إضافة المرشدين السياحيين",
+      titleEn: "Adding Tour Guides",
+      descAr: "تم إضافة حسابات مرشدين سياحيين تشمل: الاسم، الخبرة، التخصص، طريقة التواصل، وإمكانية حجز الجولات.",
+      descEn: "Tour guide accounts were added including: name, experience, specialty, contact method, and tour booking capability."
+    },
+    {
+      stepAr: "٨",
+      stepEn: "8",
+      titleAr: "اختيار طريقة الدخول عبر كود دعوة",
+      titleEn: "Invitation Code Login Method",
+      descAr: "تم اعتماد طريقة دخول خاصة لحماية النظام أثناء التطوير، بحيث: يمكن للمرشد الدخول عبر كود دعوة، يتم التحكم في عدد المستخدمين، ويتم ضمان الخصوصية والتنظيم.",
+      descEn: "A special login method was adopted to protect the system during development: guides can login via invitation code, user count is controlled, and privacy and organization are ensured."
+    },
+    {
+      stepAr: "٩",
+      stepEn: "9",
+      titleAr: "إضافة الخريطة التفاعلية",
+      titleEn: "Adding Interactive Map",
+      descAr: "تم دمج خريطة تفاعلية لعرض: الأماكن السياحية، مواقع المرشدين، والمسارات المقترحة، وذلك لتعزيز تجربة المستخدم.",
+      descEn: "An interactive map was integrated to display: tourist places, guide locations, and suggested routes, to enhance user experience."
+    },
+    {
+      stepAr: "١٠",
+      stepEn: "10",
+      titleAr: "تجهيز العرض النهائي وتقديم المشروع",
+      titleEn: "Final Presentation Preparation",
+      descAr: "بعد إكمال جميع مراحل التطوير، تم إعداد: تقرير المشروع، عرض البوربوينت، العرض الشفهي للمشروع الأول. والآن يجري العمل على مشروع 2.",
+      descEn: "After completing all development phases, the following were prepared: project report, PowerPoint presentation, oral presentation for Project 1. Now working on Project 2."
     }
   ];
 
@@ -147,31 +203,28 @@ export default function AboutProject() {
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200 flex items-center justify-center gap-3">
             <CheckCircle className="w-8 h-8" />
-            {language === 'ar' ? 'مراحل التطوير' : 'Development Milestones'}
+            {language === 'ar' ? 'مراحل التطوير' : 'Development Phases'}
           </h2>
-          <div className="relative">
-            <div className="absolute right-1/2 transform translate-x-1/2 h-full w-1 bg-green-200 dark:bg-green-800 hidden md:block"></div>
-            <div className="space-y-8">
-              {milestones.map((milestone, index) => (
-                <div key={index} className={`flex items-center gap-8 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                  <Card className="flex-1 hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="text-2xl font-bold text-primary mb-2">
-                        {language === 'ar' ? milestone.yearAr : milestone.yearEn}
-                      </div>
-                      <h3 className="font-bold text-lg mb-2">
+          <div className="space-y-4">
+            {milestones.map((milestone, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-xl font-bold">
+                      {language === 'ar' ? milestone.stepAr : milestone.stepEn}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-2 text-primary">
                         {language === 'ar' ? milestone.titleAr : milestone.titleEn}
                       </h3>
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground leading-relaxed">
                         {language === 'ar' ? milestone.descAr : milestone.descEn}
                       </p>
-                    </CardContent>
-                  </Card>
-                  <div className="hidden md:block w-4 h-4 bg-green-600 rounded-full z-10"></div>
-                  <div className="flex-1 hidden md:block"></div>
-                </div>
-              ))}
-            </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
