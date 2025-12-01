@@ -93,7 +93,7 @@ export default function GuideRequirements() {
     additionalTitle: 'Preferred Additional Requirements',
     additionalItems: [
       'Previous experience in tourism or guiding',
-      'Good knowledge of Al Bahah region history and culture',
+      'Good knowledge of Al Baha region history and culture',
       'Excellent communication skills',
       'Ability to deal with different nationalities and cultures'
     ],

@@ -13,7 +13,7 @@ export default function AboutProject() {
       titleAr: "استكشاف الأماكن السياحية",
       titleEn: "Explore Tourist Places",
       descAr: "تصفح مجموعة واسعة من الأماكن السياحية في منطقة الباحة",
-      descEn: "Browse a wide range of tourist places in Al Bahah region"
+      descEn: "Browse a wide range of tourist places in Al Baha region"
     },
     {
       icon: <Users className="w-6 h-6" />,
@@ -45,7 +45,7 @@ export default function AboutProject() {
       titleAr: "مرحلة توليد الفكرة",
       titleEn: "Idea Generation Phase",
       descAr: "بدأ المشروع بتحديد مشكلة حقيقية تتمثل في صعوبة وصول الزوار والمهتمين إلى المرشدين السياحيين في منطقة الباحة، مما أدى إلى ظهور فكرة إنشاء منصة إلكترونية تجمع المرشدين وتعرض خدماتهم بطريقة سهلة وواضحة.",
-      descEn: "The project started by identifying a real problem: the difficulty for visitors to reach tour guides in Al Bahah region, which led to the idea of creating an electronic platform that brings together guides and displays their services in an easy and clear way."
+      descEn: "The project started by identifying a real problem: the difficulty for visitors to reach tour guides in Al Baha region, which led to the idea of creating an electronic platform that brings together guides and displays their services in an easy and clear way."
     },
     {
       stepAr: "٢",
@@ -85,7 +85,7 @@ export default function AboutProject() {
       titleAr: "إضافة الأماكن السياحية",
       titleEn: "Adding Tourist Places",
       descAr: "تم إدراج مجموعة من المواقع السياحية في منطقة الباحة داخل المنصة، مع: صور، وصف، موقع جغرافي، ومعلومات مختصرة لكل موقع.",
-      descEn: "A collection of tourist sites in Al Bahah region was added to the platform, with: images, descriptions, geographic locations, and brief information for each site."
+      descEn: "A collection of tourist sites in Al Baha region was added to the platform, with: images, descriptions, geographic locations, and brief information for each site."
     },
     {
       stepAr: "٧",
@@ -136,7 +136,7 @@ export default function AboutProject() {
               <p className="text-xl opacity-90">
                 {language === 'ar' 
                   ? 'منصة سياحية شاملة تهدف لتعزيز السياحة في منطقة الباحة' 
-                  : 'A comprehensive tourism platform aimed at promoting tourism in Al Bahah region'}
+                  : 'A comprehensive tourism platform aimed at promoting tourism in Al Baha region'}
               </p>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function AboutProject() {
               <p className="text-muted-foreground leading-relaxed">
                 {language === 'ar' 
                   ? 'نسعى لتقديم تجربة سياحية متكاملة تربط السياح بالمرشدين المحليين في منطقة الباحة، مع التركيز على الأصالة والجودة والابتكار في تقديم الخدمات السياحية.'
-                  : 'We strive to provide an integrated tourism experience that connects tourists with local guides in Al Bahah region, focusing on authenticity, quality, and innovation in delivering tourism services.'}
+                  : 'We strive to provide an integrated tourism experience that connects tourists with local guides in Al Baha region, focusing on authenticity, quality, and innovation in delivering tourism services.'}
               </p>
             </CardContent>
           </Card>
@@ -170,7 +170,7 @@ export default function AboutProject() {
               <p className="text-muted-foreground leading-relaxed">
                 {language === 'ar' 
                   ? 'أن نكون المنصة الرائدة والأولى في مجال السياحة الرقمية لمنطقة الباحة، ونساهم في تعزيز السياحة المحلية وتنمية الاقتصاد السياحي في المنطقة.'
-                  : 'To be the leading and first platform in digital tourism for Al Bahah region, contributing to promoting local tourism and developing the tourism economy in the region.'}
+                  : 'To be the leading and first platform in digital tourism for Al Baha region, contributing to promoting local tourism and developing the tourism economy in the region.'}
               </p>
             </CardContent>
           </Card>

@@ -37,7 +37,7 @@ function MapContentEditorComponent() {
 
   const { data: mapSubtitle = '', refetch: refetchSubtitle } = useQuery({
     queryKey: ['/api/site-content/map_subtitle', language],
-    select: (data: any) => data?.content || (language === 'ar' ? 'استكشف جمال منطقة الباحة والمدن السعودية' : 'Explore the beauty of Al Bahah region and Saudi cities')
+    select: (data: any) => data?.content || (language === 'ar' ? 'استكشف جمال منطقة الباحة والمدن السعودية' : 'Explore the beauty of Al Baha region and Saudi cities')
   });
 
   const { data: mapDescription = '', refetch: refetchDescription } = useQuery({
@@ -774,7 +774,7 @@ export default function AdminDashboard() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
       toast({
-        title: language === 'ar' ? "تم إضافة معالم الباحة بنجاح" : "Al Bahah Landmarks Added Successfully",
+        title: language === 'ar' ? "تم إضافة معالم الباحة بنجاح" : "Al Baha Landmarks Added Successfully",
         description: language === 'ar' ? `تم إضافة ${data?.places?.length || 28} معلم سياحي بنجاح` : `${data?.places?.length || 28} tourist landmarks added successfully`,
       });
     },
@@ -792,7 +792,7 @@ export default function AdminDashboard() {
       }
       toast({
         title: language === 'ar' ? "خطأ" : "Error",
-        description: language === 'ar' ? "فشل في إضافة معالم الباحة" : "Failed to add Al Bahah landmarks",
+        description: language === 'ar' ? "فشل في إضافة معالم الباحة" : "Failed to add Al Baha landmarks",
         variant: "destructive",
       });
     },
@@ -1115,7 +1115,7 @@ export default function AdminDashboard() {
   const handleSeedPlaces = () => {
     const confirmMsg = language === 'ar' 
       ? "هل أنت متأكد من إضافة جميع معالم الباحة السياحية؟ سيتم إضافة 28 معلم سياحي."
-      : "Are you sure you want to add all Al Bahah tourist landmarks? 28 landmarks will be added.";
+      : "Are you sure you want to add all Al Baha tourist landmarks? 28 landmarks will be added.";
     if (confirm(confirmMsg)) {
       seedPlacesMutation.mutate();
     }
@@ -1251,7 +1251,7 @@ export default function AdminDashboard() {
                     >
                       {seedPlacesMutation.isPending 
                         ? (language === 'ar' ? 'جاري إضافة المعالم...' : 'Adding landmarks...') 
-                        : (language === 'ar' ? 'إضافة معالم الباحة' : 'Add Al Bahah Landmarks')}
+                        : (language === 'ar' ? 'إضافة معالم الباحة' : 'Add Al Baha Landmarks')}
                     </Button>
                     <Dialog open={isPlaceDialogOpen} onOpenChange={setIsPlaceDialogOpen}>
                       <DialogTrigger asChild>

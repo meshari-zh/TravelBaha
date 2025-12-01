@@ -54,14 +54,14 @@ export default function JoinGuide() {
     viewManual: 'دليل المرشد',
   } : {
     pageTitle: 'Join as a Tour Guide',
-    pageSubtitle: 'Be part of our team and help tourists discover the beauty of Al Bahah region',
+    pageSubtitle: 'Be part of our team and help tourists discover the beauty of Al Baha region',
     
-    mainDesc: 'Do you have a passion for tourism and deep knowledge of Al Bahah region? Join our team of professional guides and help tourists discover the beauty of the region.',
+    mainDesc: 'Do you have a passion for tourism and deep knowledge of Al Baha region? Join our team of professional guides and help tourists discover the beauty of the region.',
     whyJoin: 'Why Join Us?',
     reason1: 'Opportunity to work with tourists from around the world',
     reason2: 'Additional income with flexible working hours',
     reason3: 'Continuous support and training from the platform team',
-    reason4: 'Contributing to tourism development in Al Bahah region',
+    reason4: 'Contributing to tourism development in Al Baha region',
     
     contactUs: 'Contact Us to Join',
     emailLabel: 'Email',

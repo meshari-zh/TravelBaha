@@ -127,7 +127,7 @@ export default function Navbar() {
                     ) : (
                       <div className="p-4 bg-muted rounded-lg text-center">
                         <p className="text-sm text-muted-foreground mb-3">
-                          {language === 'ar' ? 'مرحباً بك في منصة الباحة السياحية' : 'Welcome to Al Bahah Tourism Platform'}
+                          {language === 'ar' ? 'مرحباً بك في منصة الباحة السياحية' : 'Welcome to Al Baha Tourism Platform'}
                         </p>
                         <Button 
                           className="w-full" 
