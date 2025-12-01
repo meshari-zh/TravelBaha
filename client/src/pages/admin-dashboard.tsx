@@ -400,6 +400,186 @@ function SupervisorEditorComponent() {
   );
 }
 
+// مكون تعديل معلومات التواصل
+function ContactInfoEditorComponent() {
+  const { toast } = useToast();
+  const { language } = useLanguage();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { data: contactEmail, refetch: refetchEmail } = useQuery({
+    queryKey: ['/api/site-content/contact_email'],
+    select: (data: any) => data?.content || 'MSSR1488@GMAIL.COM'
+  });
+  const { data: contactPhone, refetch: refetchPhone } = useQuery({
+    queryKey: ['/api/site-content/contact_phone'],
+    select: (data: any) => data?.content || '+966531076021'
+  });
+  const { data: contactAddress, refetch: refetchAddress } = useQuery({
+    queryKey: ['/api/site-content/contact_address'],
+    select: (data: any) => data?.content || ''
+  });
+  const { data: contactAddressEn, refetch: refetchAddressEn } = useQuery({
+    queryKey: ['/api/site-content/contact_address_en'],
+    select: (data: any) => data?.contentEn || ''
+  });
+
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ key, title, content, contentEn }: { key: string; title: string; content: string; contentEn?: string }) => {
+      const response = await fetch('/api/site-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, title, content, contentEn }),
+      });
+      if (!response.ok) throw new Error('Failed to update content');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    try {
+      await Promise.all([
+        updateContentMutation.mutateAsync({ 
+          key: 'contact_email', 
+          title: 'البريد الإلكتروني', 
+          content: formData.get('contact_email') as string 
+        }),
+        updateContentMutation.mutateAsync({ 
+          key: 'contact_phone', 
+          title: 'رقم الهاتف', 
+          content: formData.get('contact_phone') as string 
+        }),
+        updateContentMutation.mutateAsync({ 
+          key: 'contact_address', 
+          title: 'العنوان', 
+          content: formData.get('contact_address') as string,
+          contentEn: formData.get('contact_address_en') as string
+        }),
+      ]);
+      
+      toast({
+        title: language === 'ar' ? "تم الحفظ بنجاح" : "Saved Successfully",
+        description: language === 'ar' ? "تم تحديث معلومات التواصل" : "Contact info has been updated",
+      });
+      
+      setIsEditing(false);
+      refetchEmail(); refetchPhone(); refetchAddress(); refetchAddressEn();
+    } catch (error) {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حفظ البيانات" : "Failed to save data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <Card className="border-l-4 border-l-green-500">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">
+                {language === 'ar' ? 'معلومات التواصل' : 'Contact Information'}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {language === 'ar' ? 'البريد الإلكتروني ورقم الهاتف والعنوان في ذيل الموقع' : 'Email, phone, and address in the footer'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={isEditing ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            data-testid="button-edit-contact-info"
+          >
+            <Edit className="w-4 h-4 ml-2" />
+            {isEditing ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {!isEditing ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">{language === 'ar' ? 'البريد:' : 'Email:'}</span>
+              <span className="text-muted-foreground">{contactEmail}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">{language === 'ar' ? 'الهاتف:' : 'Phone:'}</span>
+              <span className="text-muted-foreground">{contactPhone}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">{language === 'ar' ? 'العنوان:' : 'Address:'}</span>
+              <span className="text-muted-foreground">{contactAddress}</span>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label>{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Label>
+              <Input 
+                name="contact_email" 
+                defaultValue={contactEmail} 
+                type="email"
+                dir="ltr"
+                data-testid="input-contact-email" 
+              />
+            </div>
+            <div>
+              <Label>{language === 'ar' ? 'رقم الهاتف' : 'Phone'}</Label>
+              <Input 
+                name="contact_phone" 
+                defaultValue={contactPhone} 
+                dir="ltr"
+                data-testid="input-contact-phone" 
+              />
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>{language === 'ar' ? 'العنوان (عربي)' : 'Address (Arabic)'}</Label>
+                <Input 
+                  name="contact_address" 
+                  defaultValue={contactAddress} 
+                  dir="rtl"
+                  data-testid="input-contact-address" 
+                />
+              </div>
+              <div>
+                <Label>{language === 'ar' ? 'العنوان (إنجليزي)' : 'Address (English)'}</Label>
+                <Input 
+                  name="contact_address_en" 
+                  defaultValue={contactAddressEn} 
+                  dir="ltr"
+                  data-testid="input-contact-address-en" 
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button type="submit" disabled={updateContentMutation.isPending} data-testid="button-save-contact">
+                {updateContentMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ البيانات' : 'Save Data')}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -1870,6 +2050,7 @@ export default function AdminDashboard() {
               </Card>
               
               <SupervisorEditorComponent />
+              <ContactInfoEditorComponent />
             </div>
           </TabsContent>
 

@@ -1,9 +1,33 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
+
+interface SiteContent {
+  id: string;
+  key: string;
+  title: string;
+  titleEn: string | null;
+  content: string;
+  contentEn: string | null;
+}
 
 export default function Footer() {
   const { language } = useLanguage();
+
+  const { data: siteContents = [] } = useQuery<SiteContent[]>({
+    queryKey: ["/api/site-content"],
+  });
+
+  const getContactInfo = (key: string) => {
+    const content = siteContents.find(c => c.key === key);
+    if (!content) return null;
+    return language === 'ar' ? content.content : (content.contentEn || content.content);
+  };
+
+  const contactEmail = getContactInfo('contact_email') || 'MSSR1488@GMAIL.COM';
+  const contactPhone = getContactInfo('contact_phone') || '+966531076021';
+  const contactAddress = getContactInfo('contact_address') || (language === 'ar' ? 'الباحة، المملكة العربية السعودية' : 'Al Bahah, Saudi Arabia');
 
   const texts = language === 'ar' ? {
     platformName: 'منصة الباحة السياحية',
@@ -23,7 +47,6 @@ export default function Footer() {
     email: 'البريد',
     phone: 'الهاتف',
     address: 'العنوان',
-    addressValue: 'الباحة، المملكة العربية السعودية',
     copyright: '© 2024 منصة الباحة السياحية. جميع الحقوق محفوظة.',
   } : {
     platformName: 'Al Bahah Tourism Platform',
@@ -43,7 +66,6 @@ export default function Footer() {
     email: 'Email',
     phone: 'Phone',
     address: 'Address',
-    addressValue: 'Al Bahah, Saudi Arabia',
     copyright: '© 2024 Al Bahah Tourism Platform. All rights reserved.',
   };
 
@@ -109,9 +131,17 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4">{texts.contactUs}</h3>
             <ul className="space-y-2 text-sm text-background/80">
-              <li>{texts.email}: info@albaha-tourism.sa</li>
-              <li>{texts.phone}: +966 17 123 4567</li>
-              <li>{texts.address}: {texts.addressValue}</li>
+              <li>
+                <a href={`mailto:${contactEmail}`} className="hover:text-background transition-colors">
+                  {texts.email}: {contactEmail}
+                </a>
+              </li>
+              <li>
+                <a href={`tel:${contactPhone}`} className="hover:text-background transition-colors">
+                  {texts.phone}: {contactPhone}
+                </a>
+              </li>
+              <li>{texts.address}: {contactAddress}</li>
             </ul>
           </div>
         </div>
