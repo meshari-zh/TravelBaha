@@ -58,12 +58,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload endpoint
+  // Upload endpoint - allow all authenticated users to upload images
   app.post('/api/uploads', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
+      if (!user) {
+        return res.status(403).json({ message: "Authentication required" });
       }
 
       if (!req.file) {
