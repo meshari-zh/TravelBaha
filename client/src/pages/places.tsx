@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Filter, MapPin } from "lucide-react";
+import { Link } from "wouter";
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, InsertPlace } from "@shared/schema";
 
@@ -209,6 +210,15 @@ export default function Places() {
             <p className="text-muted-foreground">{t('placesSubtitle')}</p>
           </div>
           
+          <div className="flex gap-3">
+            {/* زر الانتقال للخريطة */}
+            <Link href="/saudi-map">
+              <Button variant="outline" className="flex items-center gap-2" data-testid="button-go-to-map">
+                <MapPin className="w-4 h-4" />
+                {language === 'ar' ? 'عرض على الخريطة' : 'View on Map'}
+              </Button>
+            </Link>
+          
           {user?.role === 'admin' && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -338,6 +348,7 @@ export default function Places() {
               </DialogContent>
             </Dialog>
           )}
+          </div>
         </div>
 
         {/* Search and Filter */}
