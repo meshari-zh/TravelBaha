@@ -42,6 +42,20 @@ export default function GuideCard({ guide, showContactButton = false, showBookBu
     }
   };
 
+  const getGuideBio = () => {
+    if (language === 'en' && guide.bioEn) {
+      return guide.bioEn;
+    }
+    return guide.bio || '';
+  };
+
+  const getGuideName = () => {
+    if (language === 'en' && guide.nameEn) {
+      return guide.nameEn;
+    }
+    return guide.name || getUserDisplayName();
+  };
+
   return (
     <Card className="overflow-hidden card-hover" data-testid={`guide-card-${guide.id}`}>
       <div className="relative h-48 bg-muted flex items-center justify-center">
@@ -56,9 +70,9 @@ export default function GuideCard({ guide, showContactButton = false, showBookBu
           {getUserDisplayName()}
         </h3>
         
-        {guide.bio && (
+        {(guide.bio || guide.bioEn) && (
           <p className="text-muted-foreground text-sm mb-2 line-clamp-2" data-testid={`guide-bio-${guide.id}`}>
-            {guide.bio}
+            {getGuideBio()}
           </p>
         )}
         
