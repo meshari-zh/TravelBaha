@@ -122,15 +122,30 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
+  // Get the primary domain from REPLIT_DOMAINS
+  const domains = process.env.REPLIT_DOMAINS!.split(",");
+  const primaryDomain = domains[0];
+
+  const getAuthDomain = (hostname: string) => {
+    // Check if hostname is in the list of valid domains
+    if (domains.includes(hostname)) {
+      return hostname;
+    }
+    // Fallback to primary domain for localhost or invalid hostnames
+    return primaryDomain;
+  };
+
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const authDomain = getAuthDomain(req.hostname);
+    passport.authenticate(`replitauth:${authDomain}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const authDomain = getAuthDomain(req.hostname);
+    passport.authenticate(`replitauth:${authDomain}`, {
       failureRedirect: "/api/login",
     }, (err: any, user: any) => {
       if (err) {
