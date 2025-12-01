@@ -37,34 +37,23 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
+      {/* Common routes for all users (visitors and authenticated) */}
+      <Route path="/" component={Home} />
+      <Route path="/places" component={Places} />
+      <Route path="/places/:id" component={PlaceDetails} />
+      <Route path="/guides" component={Guides} />
+      <Route path="/guide/:id" component={GuideProfile} />
+      <Route path="/about" component={About} />
+      <Route path="/map" component={SaudiMap} />
+      <Route path="/landing" component={Landing} />
+      
+      {/* Routes requiring authentication */}
+      {isAuthenticated ? (
         <>
-          <Route path="/" component={Landing} />
-          <Route path="/places" component={Places} />
-          <Route path="/places/:id" component={PlaceDetails} />
-          <Route path="/about" component={About} />
-          <Route path="/map" component={SaudiMap} />
-          <Route path="/profile" component={ProfileEdit} />
-          <Route path="/login">
-            {() => {
-              window.location.href = '/api/login';
-              return null;
-            }}
-          </Route>
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/places" component={Places} />
-          <Route path="/places/:id" component={PlaceDetails} />
-          <Route path="/guides" component={Guides} />
-          <Route path="/guide/:id" component={GuideProfile} />
           <Route path="/messages" component={Messages} />
           <Route path="/bookings" component={Bookings} />
           <Route path="/invite" component={InviteRedemption} />
           <Route path="/profile" component={ProfileEdit} />
-          <Route path="/about" component={About} />
-          <Route path="/map" component={SaudiMap} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/admin/invites">
@@ -76,6 +65,27 @@ function Router() {
           {user?.role === 'guide' && (
             <Route path="/dashboard" component={GuideDashboard} />
           )}
+        </>
+      ) : (
+        <>
+          <Route path="/login">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
+          <Route path="/messages">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
+          <Route path="/bookings">
+            {() => {
+              window.location.href = '/api/login';
+              return null;
+            }}
+          </Route>
         </>
       )}
       <Route component={NotFound} />

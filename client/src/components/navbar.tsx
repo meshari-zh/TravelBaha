@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
@@ -42,22 +42,45 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-card shadow-md sticky top-0 z-50 border-b">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center cursor-pointer">
-              <img 
-                src={siteLogo} 
-                alt="لوجو المنصة السياحية" 
-                className="w-12 h-12 object-contain"
-              />
-            </div>
-          </Link>
+    <>
+      {/* Discount Banner for Visitors */}
+      {!user && (
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-2 px-4">
+          <div className="container mx-auto flex items-center justify-center gap-2 text-center flex-wrap">
+            <Gift className="w-4 h-4 animate-pulse" />
+            <span className="text-sm font-medium">
+              {language === 'ar' ? 'سجل دخولك واحصل على خصم 5% على أول حجز!' : 'Login and get 5% off your first booking!'}
+            </span>
+            <Button 
+              size="sm" 
+              variant="secondary"
+              className="h-7 text-xs"
+              onClick={() => window.location.href = "/api/login"}
+              data-testid="button-discount-login"
+            >
+              <LogIn className="w-3 h-3 ml-1" />
+              {language === 'ar' ? 'سجل الآن' : 'Login Now'}
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      <header className="bg-card shadow-md sticky top-0 z-50 border-b">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link href="/">
+              <div className="flex items-center cursor-pointer">
+                <img 
+                  src={siteLogo} 
+                  alt="لوجو المنصة السياحية" 
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+            </Link>
           
-          {/* Language Toggle & Mobile Menu */}
-          <div className="flex items-center gap-3">
+            {/* Language Toggle & Mobile Menu */}
+            <div className="flex items-center gap-3">
             {/* Language Toggle */}
             <Button
               variant="ghost"
@@ -87,19 +110,35 @@ export default function Navbar() {
                   </SheetHeader>
                   
                   <div className="mt-6 space-y-4">
-                    {/* User Info - Mobile */}
-                    <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={user?.profileImageUrl || undefined} />
-                        <AvatarFallback className="text-sm">{getUserInitials()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 text-right">
-                        <p className="text-sm font-medium" data-testid="mobile-user-name">{getUserDisplayName()}</p>
-                        <div className="flex justify-end mt-1">
-                          {getRoleBadge()}
+                    {/* User Info - Mobile (Logged in users) */}
+                    {user ? (
+                      <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={user?.profileImageUrl || undefined} />
+                          <AvatarFallback className="text-sm">{getUserInitials()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 text-right">
+                          <p className="text-sm font-medium" data-testid="mobile-user-name">{getUserDisplayName()}</p>
+                          <div className="flex justify-end mt-1">
+                            {getRoleBadge()}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="p-4 bg-muted rounded-lg text-center">
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {language === 'ar' ? 'مرحباً بك في منصة الباحة السياحية' : 'Welcome to Al Bahah Tourism Platform'}
+                        </p>
+                        <Button 
+                          className="w-full" 
+                          onClick={() => window.location.href = "/api/login"}
+                          data-testid="mobile-login-button"
+                        >
+                          <LogIn className="w-4 h-4 ml-2" />
+                          {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+                        </Button>
+                      </div>
+                    )}
                     
                     {/* Navigation Links - Mobile */}
                     <nav className="space-y-2">
@@ -478,5 +517,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }
