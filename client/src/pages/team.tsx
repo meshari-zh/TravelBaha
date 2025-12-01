@@ -120,6 +120,36 @@ export default function Team() {
 
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
+            {language === 'ar' ? 'المشرف على المشروع' : 'Project Supervisor'}
+          </h2>
+          <Card className="max-w-2xl mx-auto hover:shadow-lg transition-shadow border-2 border-primary/20" data-testid="card-supervisor">
+            <CardContent className="p-8">
+              <div className="flex items-start gap-6">
+                <div className="text-6xl w-24 h-24 flex items-center justify-center bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-800 dark:to-orange-800 rounded-full shrink-0 border-4 border-yellow-400">
+                  👨‍🏫
+                </div>
+                <div className="flex-1 space-y-3">
+                  <h3 className="text-2xl font-bold text-green-800 dark:text-green-200">
+                    {language === 'ar' ? 'د. عبدالله الغامدي' : 'Dr. Abdullah Al-Ghamdi'}
+                  </h3>
+                  <div>
+                    <span className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 font-medium px-4 py-1.5 rounded-full text-sm">
+                      {language === 'ar' ? 'المشرف الأكاديمي' : 'Academic Supervisor'}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {language === 'ar' 
+                      ? 'أستاذ في قسم نظم المعلومات، خبرة واسعة في الإشراف على المشاريع التقنية والسياحية. ساهم في توجيه الفريق وتقديم الاستشارات اللازمة لنجاح المشروع.'
+                      : 'Professor in the Information Systems Department, with extensive experience in supervising technical and tourism projects. Contributed to guiding the team and providing necessary consultations for the project success.'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-center mb-8 text-green-800 dark:text-green-200">
             {language === 'ar' ? 'قيمنا' : 'Our Values'}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
