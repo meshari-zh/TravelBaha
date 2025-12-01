@@ -17,7 +17,7 @@ const translations = {
     places: 'الأماكن السياحية',
     guides: 'المرشدين السياحيين',
     about: 'نبذة عنا',
-    map: 'خريطة المملكة',
+    map: 'خريطة الباحة',
     messages: 'الرسائل',
     myBookings: 'حجوزاتي',
     inviteCode: 'كود الدعوة',
@@ -117,8 +117,8 @@ const translations = {
     profileImage: 'صورة الملف الشخصي',
     
     // Map
-    mapTitle: 'خريطة المملكة التفاعلية',
-    mapSubtitle: 'استكشف جمال منطقة الباحة والمدن السعودية',
+    mapTitle: 'خريطة الباحة التفاعلية',
+    mapSubtitle: 'استكشف جمال منطقة الباحة',
     mapDescription: 'تصفح الطرق والأماكن السياحية بتقنية تفاعلية حديثة',
     interactiveMap: 'الخريطة التفاعلية',
     mapGuide: 'دليل الخريطة',
@@ -184,7 +184,7 @@ const translations = {
     places: 'Tourist Places',
     guides: 'Tour Guides',
     about: 'About Us',
-    map: 'Kingdom Map',
+    map: 'Albaha Map',
     messages: 'Messages',
     myBookings: 'My Bookings',
     inviteCode: 'Invite Code',
@@ -284,8 +284,8 @@ const translations = {
     profileImage: 'Profile Image',
     
     // Map
-    mapTitle: 'Interactive Kingdom Map',
-    mapSubtitle: 'Explore the Beauty of Al Bahah Region and Saudi Cities',
+    mapTitle: 'Albaha Interactive Map',
+    mapSubtitle: 'Explore the Beauty of Albaha Region',
     mapDescription: 'Browse roads and tourist attractions with modern interactive technology',
     interactiveMap: 'Interactive Map',
     mapGuide: 'Map Guide',

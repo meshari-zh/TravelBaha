@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, Polygon, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip } from 'react-leaflet'
 import L, { LatLngExpression, LatLngTuple } from 'leaflet'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { MapPin, ExternalLink, Plus, Navigation, Car, Clock } from 'lucide-react'
+import { MapPin, ExternalLink, Plus, Navigation, Car, Clock, Search, Filter } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Navbar from '@/components/navbar'
 import 'leaflet/dist/leaflet.css'
 
@@ -177,6 +178,8 @@ export default function SaudiMap() {
   const [selectedPlace, setSelectedPlace] = useState<any>(null)
   const [editingPlace, setEditingPlace] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   
   // استخدام API الأماكن السياحية الفعلية
   const { data: places = [], isLoading: placesLoading } = useQuery({
@@ -227,6 +230,24 @@ export default function SaudiMap() {
   
   // التأكد من أن places هو مصفوفة
   const placesArray = Array.isArray(places) ? places : []
+
+  // استخراج الفئات المتاحة
+  const categories = Array.from(new Set(placesArray.map((p: any) => p.category).filter(Boolean))) as string[]
+
+  // تصفية الأماكن حسب البحث والفئة
+  const filteredPlaces = placesArray.filter((place: any) => {
+    const placeName = language === 'en' && place.nameEn ? place.nameEn : place.name
+    const placeLocation = language === 'en' && place.locationEn ? place.locationEn : place.location
+    const placeCategory = place.category || ''
+    
+    const matchesSearch = searchTerm === '' || 
+      placeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      placeLocation?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategory === 'all' || placeCategory === selectedCategory
+    
+    return matchesSearch && matchesCategory
+  })
 
   // خطوط الطرق المحسنة والأكثر دقة
   const roadToMecca: LatLngTuple[] = [
@@ -284,6 +305,52 @@ export default function SaudiMap() {
           </div>
         </div>
 
+        {/* شريط البحث والفلاتر */}
+        <Card className="mb-6">
+          <CardContent className="py-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* حقل البحث */}
+              <div className="flex-1 relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder={language === 'ar' ? 'ابحث عن مكان...' : 'Search for a place...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10"
+                  data-testid="input-map-search"
+                />
+              </div>
+              
+              {/* فلتر الفئات */}
+              <div className="w-full md:w-64">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger data-testid="select-map-category">
+                    <Filter className="w-4 h-4 ml-2" />
+                    <SelectValue placeholder={language === 'ar' ? 'جميع الفئات' : 'All Categories'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {language === 'ar' ? 'جميع الفئات' : 'All Categories'}
+                    </SelectItem>
+                    {categories.map((category: string) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* عدد النتائج */}
+            <div className="mt-3 text-sm text-muted-foreground">
+              {language === 'ar' 
+                ? `عرض ${filteredPlaces.length} من ${placesArray.length} مكان`
+                : `Showing ${filteredPlaces.length} of ${placesArray.length} places`}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -298,35 +365,13 @@ export default function SaudiMap() {
                 <div className="h-[600px] rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                   <MapContainer
                     center={[cities.albaha.lat, cities.albaha.lng]}
-                    zoom={8}
+                    zoom={11}
                     style={{ height: '100%', width: '100%' }}
                     data-testid="saudi-map"
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    
-                    {/* حدود منطقة الباحة المبرزة */}
-                    <Polygon
-                      positions={albahaRegionBounds}
-                      pathOptions={{
-                        fillColor: '#22c55e',
-                        fillOpacity: 0.2,
-                        color: '#16a34a',
-                        weight: 3,
-                        opacity: 0.8
-                      }}
-                    />
-                    
-                    {/* دائرة إضافية للتركيز على مركز الباحة */}
-                    <Circle
-                      center={[cities.albaha.lat, cities.albaha.lng]}
-                      radius={15000}
-                      fillColor="#22c55e"
-                      fillOpacity={0.15}
-                      color="#16a34a"
-                      weight={2}
                     />
 
                     {/* علامات المدن الرئيسية */}
@@ -361,7 +406,7 @@ export default function SaudiMap() {
                     </Marker>
 
                     {/* علامات الأماكن السياحية من قاعدة البيانات */}
-                    {!placesLoading && placesArray.map((place: any) => {
+                    {!placesLoading && filteredPlaces.map((place: any) => {
                       // استخدام الإحداثيات الدقيقة من القائمة المعروفة
                       const coords = getPlaceCoordinates(place.name, place.latitude, place.longitude);
                       const lat = coords.lat;
@@ -549,10 +594,10 @@ export default function SaudiMap() {
                       </div>
                     ) : (
                       <div className="space-y-3 max-h-60 overflow-y-auto">
-                        {placesArray.length === 0 ? (
+                        {filteredPlaces.length === 0 ? (
                           <p className="text-center text-gray-500 py-4">{t('noPlacesFound')}</p>
                         ) : (
-                          placesArray.map((place: any) => {
+                          filteredPlaces.map((place: any) => {
                             const placeName = language === 'en' && place.nameEn ? place.nameEn : place.name;
                             const placeLocation = language === 'en' && place.locationEn ? place.locationEn : place.location;
                             const placeCategory = language === 'en' && place.categoryEn ? place.categoryEn : place.category;
