@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, type Booking, type User } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, insertQuickQuestionSchema, type Booking, type User } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -1117,6 +1117,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting team member:", error);
       res.status(500).json({ message: "Failed to delete team member" });
+    }
+  });
+
+  // Quick Questions routes - visible to all, answerable by admins only
+  app.get('/api/quick-questions', async (req, res) => {
+    try {
+      const questions = await storage.getAllQuickQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching quick questions:", error);
+      res.status(500).json({ message: "Failed to fetch quick questions" });
+    }
+  });
+
+  app.get('/api/quick-questions/unanswered', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const questions = await storage.getUnansweredQuickQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching unanswered questions:", error);
+      res.status(500).json({ message: "Failed to fetch unanswered questions" });
+    }
+  });
+
+  app.get('/api/quick-questions/answered', async (req, res) => {
+    try {
+      const questions = await storage.getAnsweredQuickQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching answered questions:", error);
+      res.status(500).json({ message: "Failed to fetch answered questions" });
+    }
+  });
+
+  app.post('/api/quick-questions', async (req: any, res) => {
+    try {
+      let userId = null;
+      if (req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+      }
+      
+      const validatedData = insertQuickQuestionSchema.parse({
+        ...req.body,
+        userId,
+        isAnswered: false,
+      });
+      const question = await storage.createQuickQuestion(validatedData);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error("Error creating quick question:", error);
+      res.status(500).json({ message: "Failed to create quick question" });
+    }
+  });
+
+  app.put('/api/quick-questions/:id/answer', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { answer } = req.body;
+      if (!answer || answer.trim() === '') {
+        return res.status(400).json({ message: "Answer is required" });
+      }
+
+      const question = await storage.answerQuickQuestion(req.params.id, answer, user.id);
+      res.json(question);
+    } catch (error) {
+      console.error("Error answering quick question:", error);
+      res.status(500).json({ message: "Failed to answer quick question" });
+    }
+  });
+
+  app.delete('/api/quick-questions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteQuickQuestion(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting quick question:", error);
+      res.status(500).json({ message: "Failed to delete quick question" });
     }
   });
 

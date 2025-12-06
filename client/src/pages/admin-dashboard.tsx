@@ -19,9 +19,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
-import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember } from "@shared/schema";
+import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion } from "@shared/schema";
 
 // مكون تعديل محتوى الخريطة
 function MapContentEditorComponent() {
@@ -206,6 +206,262 @@ function MapContentEditorComponent() {
             : 'Saved changes will appear immediately on the map page for users. Make sure to review the content before saving.'}
         </p>
       </div>
+    </div>
+  );
+}
+
+// مكون إدارة الأسئلة السريعة
+function QuickQuestionsManagement({ language, toast }: { language: string; toast: any }) {
+  const [answerText, setAnswerText] = useState<{ [key: string]: string }>({});
+
+  const { data: unansweredQuestions = [], isLoading: loadingUnanswered } = useQuery<QuickQuestion[]>({
+    queryKey: ['/api/quick-questions/unanswered'],
+  });
+
+  const { data: answeredQuestions = [], isLoading: loadingAnswered } = useQuery<QuickQuestion[]>({
+    queryKey: ['/api/quick-questions/answered'],
+  });
+
+  const answerMutation = useMutation({
+    mutationFn: async ({ id, answer }: { id: string; answer: string }) => {
+      const response = await fetch(`/api/quick-questions/${id}/answer`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer }),
+      });
+      if (!response.ok) throw new Error('Failed to answer question');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم الرد بنجاح' : 'Answer Submitted',
+        description: language === 'ar' ? 'تم إرسال الرد على السؤال' : 'Your answer has been submitted',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions'] });
+      setAnswerText({});
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في إرسال الرد' : 'Failed to submit answer',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/quick-questions/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete question');
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم الحذف' : 'Deleted',
+        description: language === 'ar' ? 'تم حذف السؤال بنجاح' : 'Question deleted successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في حذف السؤال' : 'Failed to delete question',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-orange-600" />
+              {language === 'ar' ? 'الأسئلة الجديدة (بانتظار الرد)' : 'New Questions (Pending Answer)'}
+              <Badge variant="secondary" className="mr-2">{unansweredQuestions.length}</Badge>
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingUnanswered ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full" />
+            </div>
+          ) : unansweredQuestions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <MessageCircleQuestion className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>{language === 'ar' ? 'لا توجد أسئلة جديدة' : 'No new questions'}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {unansweredQuestions.map((q) => (
+                <Card key={q.id} className="border-orange-200 dark:border-orange-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className="text-orange-600 border-orange-300">
+                            {language === 'ar' ? 'جديد' : 'New'}
+                          </Badge>
+                          {q.askerName && (
+                            <span className="text-sm text-muted-foreground">{q.askerName}</span>
+                          )}
+                          <span className="text-xs text-muted-foreground">{formatDate(q.createdAt)}</span>
+                        </div>
+                        <p className="text-lg font-medium mb-3">{q.question}</p>
+                        
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder={language === 'ar' ? 'اكتب الرد هنا...' : 'Write your answer here...'}
+                            value={answerText[q.id] || ''}
+                            onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                            rows={3}
+                            data-testid={`input-answer-${q.id}`}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => answerMutation.mutate({ id: q.id, answer: answerText[q.id] || '' })}
+                              disabled={!answerText[q.id]?.trim() || answerMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                              data-testid={`button-submit-answer-${q.id}`}
+                            >
+                              <CheckCircle className="w-4 h-4 ml-2" />
+                              {answerMutation.isPending 
+                                ? (language === 'ar' ? 'جاري الإرسال...' : 'Sending...') 
+                                : (language === 'ar' ? 'إرسال الرد' : 'Submit Answer')}
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="text-red-600 hover:bg-red-50" data-testid={`button-delete-question-${q.id}`}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{language === 'ar' ? 'حذف السؤال' : 'Delete Question'}</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {language === 'ar' 
+                                      ? 'هل أنت متأكد من حذف هذا السؤال؟ لا يمكن التراجع عن هذا الإجراء.'
+                                      : 'Are you sure you want to delete this question? This action cannot be undone.'}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteMutation.mutate(q.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    {language === 'ar' ? 'حذف' : 'Delete'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            {language === 'ar' ? 'الأسئلة المجابة' : 'Answered Questions'}
+            <Badge variant="secondary" className="mr-2">{answeredQuestions.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingAnswered ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full" />
+            </div>
+          ) : answeredQuestions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>{language === 'ar' ? 'لا توجد أسئلة مجابة' : 'No answered questions'}</p>
+            </div>
+          ) : (
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-3">
+                {answeredQuestions.map((q) => (
+                  <Card key={q.id} className="border-green-200 dark:border-green-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-green-600 border-green-300">
+                              {language === 'ar' ? 'تمت الإجابة' : 'Answered'}
+                            </Badge>
+                            {q.askerName && (
+                              <span className="text-sm text-muted-foreground">{q.askerName}</span>
+                            )}
+                          </div>
+                          <div className="mb-2">
+                            <span className="text-green-700 dark:text-green-400 font-bold ml-1">س:</span>
+                            <span>{q.question}</span>
+                          </div>
+                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                            <span className="text-green-700 dark:text-green-400 font-bold ml-1">ج:</span>
+                            <span>{q.answer}</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                            <span>{language === 'ar' ? 'تاريخ الرد:' : 'Answered on:'} {formatDate(q.answeredAt)}</span>
+                          </div>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" data-testid={`button-delete-answered-${q.id}`}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{language === 'ar' ? 'حذف السؤال' : 'Delete Question'}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {language === 'ar' 
+                                  ? 'هل أنت متأكد من حذف هذا السؤال والرد عليه؟'
+                                  : 'Are you sure you want to delete this question and answer?'}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteMutation.mutate(q.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                {language === 'ar' ? 'حذف' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -1234,6 +1490,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="team" data-testid="tab-team" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'فريق العمل' : 'Team'}</TabsTrigger>
             <TabsTrigger value="content" data-testid="tab-content" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'محتوى الموقع' : 'Website Content'}</TabsTrigger>
             <TabsTrigger value="invites" data-testid="tab-invites" className="shrink-0 whitespace-nowrap">{language === 'ar' ? 'رموز الدعوة' : 'Invite Codes'}</TabsTrigger>
+            <TabsTrigger value="questions" data-testid="tab-questions" className="shrink-0 whitespace-nowrap flex items-center gap-1">
+              <MessageCircleQuestion className="w-4 h-4" />
+              {language === 'ar' ? 'الأسئلة السريعة' : 'Quick Questions'}
+            </TabsTrigger>
           </TabsList>
 
           {/* Places Management */}
@@ -2179,6 +2439,11 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Quick Questions Management */}
+          <TabsContent value="questions">
+            <QuickQuestionsManagement language={language} toast={toast} />
           </TabsContent>
         </Tabs>
 

@@ -25,6 +25,7 @@ import JoinGuide from "@/pages/join-guide";
 import GuideRequirements from "@/pages/guide-requirements";
 import GuideManual from "@/pages/guide-manual";
 import NotFound from "@/pages/not-found";
+import QuickQuestionsBubble from "@/components/quick-questions-bubble";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -110,6 +111,7 @@ function AppContent() {
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background font-arabic">
       <Router />
       <Toaster />
+      <QuickQuestionsBubble />
     </div>
   );
 }

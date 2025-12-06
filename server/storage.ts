@@ -8,6 +8,7 @@ import {
   invites,
   siteContent,
   teamMembers,
+  quickQuestions,
   type User,
   type UpsertUser,
   type Place,
@@ -26,6 +27,8 @@ import {
   type InsertSiteContent,
   type TeamMember,
   type InsertTeamMember,
+  type QuickQuestion,
+  type InsertQuickQuestion,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, asc } from "drizzle-orm";
@@ -92,6 +95,14 @@ export interface IStorage {
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: string, updates: Partial<InsertTeamMember>): Promise<TeamMember>;
   deleteTeamMember(id: string): Promise<void>;
+  
+  // Quick questions operations
+  getAllQuickQuestions(): Promise<QuickQuestion[]>;
+  getUnansweredQuickQuestions(): Promise<QuickQuestion[]>;
+  getAnsweredQuickQuestions(): Promise<QuickQuestion[]>;
+  createQuickQuestion(question: InsertQuickQuestion): Promise<QuickQuestion>;
+  answerQuickQuestion(id: string, answer: string, answeredBy: string): Promise<QuickQuestion>;
+  deleteQuickQuestion(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -533,6 +544,49 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: string): Promise<void> {
     await db.delete(teamMembers).where(eq(teamMembers.id, id));
+  }
+
+  // Quick questions operations
+  async getAllQuickQuestions(): Promise<QuickQuestion[]> {
+    return await db.select().from(quickQuestions).orderBy(desc(quickQuestions.createdAt));
+  }
+
+  async getUnansweredQuickQuestions(): Promise<QuickQuestion[]> {
+    return await db.select().from(quickQuestions)
+      .where(eq(quickQuestions.isAnswered, false))
+      .orderBy(desc(quickQuestions.createdAt));
+  }
+
+  async getAnsweredQuickQuestions(): Promise<QuickQuestion[]> {
+    return await db.select().from(quickQuestions)
+      .where(eq(quickQuestions.isAnswered, true))
+      .orderBy(desc(quickQuestions.answeredAt));
+  }
+
+  async createQuickQuestion(question: InsertQuickQuestion): Promise<QuickQuestion> {
+    const [result] = await db
+      .insert(quickQuestions)
+      .values(question)
+      .returning();
+    return result;
+  }
+
+  async answerQuickQuestion(id: string, answer: string, answeredBy: string): Promise<QuickQuestion> {
+    const [result] = await db
+      .update(quickQuestions)
+      .set({
+        answer,
+        answeredBy,
+        isAnswered: true,
+        answeredAt: new Date(),
+      })
+      .where(eq(quickQuestions.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteQuickQuestion(id: string): Promise<void> {
+    await db.delete(quickQuestions).where(eq(quickQuestions.id, id));
   }
 }
 

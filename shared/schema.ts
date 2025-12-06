@@ -144,6 +144,19 @@ export const teamMembers = pgTable("team_members", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const quickQuestions = pgTable("quick_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  question: text("question").notNull(),
+  askerName: text("asker_name"),
+  askerEmail: text("asker_email"),
+  userId: varchar("user_id").references(() => users.id),
+  answer: text("answer"),
+  answeredBy: varchar("answered_by").references(() => users.id),
+  isAnswered: boolean("is_answered").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  answeredAt: timestamp("answered_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   guide: one(guides, {
@@ -227,6 +240,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, c
 export const insertInviteSchema = createInsertSchema(invites).omit({ id: true, createdAt: true, usedAt: true });
 export const insertSiteContentSchema = createInsertSchema(siteContent).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertQuickQuestionSchema = createInsertSchema(quickQuestions).omit({ id: true, createdAt: true, answeredAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -247,3 +261,5 @@ export type InsertSiteContent = z.infer<typeof insertSiteContentSchema>;
 export type SiteContent = typeof siteContent.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertQuickQuestion = z.infer<typeof insertQuickQuestionSchema>;
+export type QuickQuestion = typeof quickQuestions.$inferSelect;
