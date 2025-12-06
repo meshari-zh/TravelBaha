@@ -598,9 +598,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateQuickQuestion(id: string, updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string }): Promise<QuickQuestion> {
+    const [existing] = await db.select().from(quickQuestions).where(eq(quickQuestions.id, id));
+    if (!existing) throw new Error('Question not found');
+    
+    const mergedUpdates: Partial<typeof existing> = {};
+    if (updates.question !== undefined && updates.question.trim() !== '') {
+      mergedUpdates.question = updates.question.trim();
+    }
+    if (updates.questionEn !== undefined && updates.questionEn.trim() !== '') {
+      mergedUpdates.questionEn = updates.questionEn.trim();
+    } else if (updates.questionEn === '' && existing.questionEn) {
+      mergedUpdates.questionEn = existing.questionEn;
+    }
+    if (updates.answer !== undefined && updates.answer.trim() !== '') {
+      mergedUpdates.answer = updates.answer.trim();
+    }
+    if (updates.answerEn !== undefined && updates.answerEn.trim() !== '') {
+      mergedUpdates.answerEn = updates.answerEn.trim();
+    } else if (updates.answerEn === '' && existing.answerEn) {
+      mergedUpdates.answerEn = existing.answerEn;
+    }
+
+    if (Object.keys(mergedUpdates).length === 0) {
+      return existing;
+    }
+
     const [result] = await db
       .update(quickQuestions)
-      .set(updates)
+      .set(mergedUpdates)
       .where(eq(quickQuestions.id, id))
       .returning();
     return result;

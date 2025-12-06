@@ -215,6 +215,10 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
   const [answerText, setAnswerText] = useState<{ [key: string]: string }>({});
   const [answerEnText, setAnswerEnText] = useState<{ [key: string]: string }>({});
   const [questionEnText, setQuestionEnText] = useState<{ [key: string]: string }>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ question: string; questionEn: string; answer: string; answerEn: string }>({
+    question: '', questionEn: '', answer: '', answerEn: ''
+  });
 
   const { data: unansweredQuestions = [], isLoading: loadingUnanswered } = useQuery<QuickQuestion[]>({
     queryKey: ['/api/quick-questions/unanswered'],
@@ -288,6 +292,59 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
       });
     },
   });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string } }) => {
+      const response = await fetch(`/api/quick-questions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to update question');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم التحديث' : 'Updated',
+        description: language === 'ar' ? 'تم تحديث السؤال والإجابة بنجاح' : 'Question and answer updated successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/unanswered'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/answered'] });
+      setEditingId(null);
+      setEditForm({ question: '', questionEn: '', answer: '', answerEn: '' });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في تحديث السؤال' : 'Failed to update question',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const startEditing = (q: QuickQuestion) => {
+    setEditingId(q.id);
+    setEditForm({
+      question: q.question || '',
+      questionEn: q.questionEn || '',
+      answer: q.answer || '',
+      answerEn: q.answerEn || '',
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditForm({ question: '', questionEn: '', answer: '', answerEn: '' });
+  };
+
+  const saveEditing = () => {
+    if (!editingId) return;
+    updateMutation.mutate({
+      id: editingId,
+      updates: editForm,
+    });
+  };
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return '';
@@ -456,76 +513,156 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
               <p>{language === 'ar' ? 'لا توجد أسئلة مجابة' : 'No answered questions'}</p>
             </div>
           ) : (
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[500px]">
               <div className="space-y-3">
                 {answeredQuestions.map((q) => (
                   <Card key={q.id} className="border-green-200 dark:border-green-800">
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-green-600 border-green-300">
-                              {language === 'ar' ? 'تمت الإجابة' : 'Answered'}
+                      {editingId === q.id ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline" className="text-blue-600 border-blue-300">
+                              {language === 'ar' ? 'وضع التعديل' : 'Edit Mode'}
                             </Badge>
-                            {q.askerName && (
-                              <span className="text-sm text-muted-foreground">{q.askerName}</span>
-                            )}
                           </div>
-                          <div className="mb-2 space-y-1">
+                          <div className="grid gap-3">
                             <div>
-                              <span className="text-green-700 dark:text-green-400 font-bold ml-1">س (عربي):</span>
-                              <span>{q.question}</span>
+                              <Label className="text-sm font-medium">{language === 'ar' ? 'السؤال (عربي):' : 'Question (Arabic):'}</Label>
+                              <Textarea
+                                value={editForm.question}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, question: e.target.value }))}
+                                rows={2}
+                                className="mt-1"
+                                data-testid={`edit-question-${q.id}`}
+                              />
                             </div>
-                            {q.questionEn && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                <span className="font-bold ml-1">Q (English):</span>
-                                <span>{q.questionEn}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 space-y-2">
                             <div>
-                              <span className="text-green-700 dark:text-green-400 font-bold ml-1">ج (عربي):</span>
-                              <span>{q.answer}</span>
+                              <Label className="text-sm font-medium">{language === 'ar' ? 'السؤال (إنجليزي):' : 'Question (English):'}</Label>
+                              <Textarea
+                                value={editForm.questionEn}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, questionEn: e.target.value }))}
+                                rows={2}
+                                className="mt-1"
+                                placeholder={language === 'ar' ? 'ترجمة السؤال...' : 'Question translation...'}
+                                data-testid={`edit-question-en-${q.id}`}
+                              />
                             </div>
-                            {q.answerEn && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400 border-t pt-2 mt-2">
-                                <span className="font-bold ml-1">A (English):</span>
-                                <span>{q.answerEn}</span>
-                              </div>
-                            )}
+                            <div>
+                              <Label className="text-sm font-medium">{language === 'ar' ? 'الإجابة (عربي):' : 'Answer (Arabic):'}</Label>
+                              <Textarea
+                                value={editForm.answer}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, answer: e.target.value }))}
+                                rows={3}
+                                className="mt-1"
+                                data-testid={`edit-answer-${q.id}`}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">{language === 'ar' ? 'الإجابة (إنجليزي):' : 'Answer (English):'}</Label>
+                              <Textarea
+                                value={editForm.answerEn}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, answerEn: e.target.value }))}
+                                rows={3}
+                                className="mt-1"
+                                placeholder={language === 'ar' ? 'ترجمة الإجابة...' : 'Answer translation...'}
+                                data-testid={`edit-answer-en-${q.id}`}
+                              />
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                            <span>{language === 'ar' ? 'تاريخ الرد:' : 'Answered on:'} {formatDate(q.answeredAt)}</span>
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" onClick={cancelEditing} data-testid={`cancel-edit-${q.id}`}>
+                              {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                            </Button>
+                            <Button 
+                              onClick={saveEditing} 
+                              disabled={updateMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                              data-testid={`save-edit-${q.id}`}
+                            >
+                              {updateMutation.isPending 
+                                ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+                                : (language === 'ar' ? 'حفظ التعديلات' : 'Save Changes')}
+                            </Button>
                           </div>
                         </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" data-testid={`button-delete-answered-${q.id}`}>
-                              <Trash2 className="w-4 h-4" />
+                      ) : (
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="text-green-600 border-green-300">
+                                {language === 'ar' ? 'تمت الإجابة' : 'Answered'}
+                              </Badge>
+                              {q.askerName && (
+                                <span className="text-sm text-muted-foreground">{q.askerName}</span>
+                              )}
+                            </div>
+                            <div className="mb-2 space-y-1">
+                              <div>
+                                <span className="text-green-700 dark:text-green-400 font-bold ml-1">س (عربي):</span>
+                                <span>{q.question}</span>
+                              </div>
+                              {q.questionEn && (
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                  <span className="font-bold ml-1">Q (English):</span>
+                                  <span>{q.questionEn}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 space-y-2">
+                              <div>
+                                <span className="text-green-700 dark:text-green-400 font-bold ml-1">ج (عربي):</span>
+                                <span>{q.answer}</span>
+                              </div>
+                              {q.answerEn && (
+                                <div className="text-sm text-gray-600 dark:text-gray-400 border-t pt-2 mt-2">
+                                  <span className="font-bold ml-1">A (English):</span>
+                                  <span>{q.answerEn}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                              <span>{language === 'ar' ? 'تاريخ الرد:' : 'Answered on:'} {formatDate(q.answeredAt)}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-blue-600 hover:bg-blue-50" 
+                              onClick={() => startEditing(q)}
+                              data-testid={`button-edit-${q.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{language === 'ar' ? 'حذف السؤال' : 'Delete Question'}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {language === 'ar' 
-                                  ? 'هل أنت متأكد من حذف هذا السؤال والرد عليه؟'
-                                  : 'Are you sure you want to delete this question and answer?'}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteMutation.mutate(q.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                {language === 'ar' ? 'حذف' : 'Delete'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" data-testid={`button-delete-answered-${q.id}`}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{language === 'ar' ? 'حذف السؤال' : 'Delete Question'}</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {language === 'ar' 
+                                      ? 'هل أنت متأكد من حذف هذا السؤال والرد عليه؟'
+                                      : 'Are you sure you want to delete this question and answer?'}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteMutation.mutate(q.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    {language === 'ar' ? 'حذف' : 'Delete'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

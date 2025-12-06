@@ -1219,17 +1219,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { question, questionEn, answer, answerEn } = req.body;
+      
+      if (!question && !questionEn && !answer && !answerEn) {
+        return res.status(400).json({ message: "At least one field is required for update" });
+      }
+
       const updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string } = {};
       
-      if (question !== undefined) updates.question = question;
-      if (questionEn !== undefined) updates.questionEn = questionEn;
-      if (answer !== undefined) updates.answer = answer;
-      if (answerEn !== undefined) updates.answerEn = answerEn;
+      if (question !== undefined && typeof question === 'string') updates.question = question;
+      if (questionEn !== undefined && typeof questionEn === 'string') updates.questionEn = questionEn;
+      if (answer !== undefined && typeof answer === 'string') updates.answer = answer;
+      if (answerEn !== undefined && typeof answerEn === 'string') updates.answerEn = answerEn;
 
       const updatedQuestion = await storage.updateQuickQuestion(req.params.id, updates);
       res.json(updatedQuestion);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating quick question:", error);
+      if (error.message === 'Question not found') {
+        return res.status(404).json({ message: "Question not found" });
+      }
       res.status(500).json({ message: "Failed to update quick question" });
     }
   });
