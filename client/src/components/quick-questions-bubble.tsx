@@ -167,26 +167,30 @@ export default function QuickQuestionsBubble() {
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {answeredQuestions.map((q) => (
-                          <div
-                            key={q.id}
-                            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm"
-                            data-testid={`answered-question-${q.id}`}
-                          >
-                            <div className="flex items-start gap-2 mb-2">
-                              <span className="text-green-600 font-bold">س:</span>
-                              <p className="text-gray-700 dark:text-gray-300">{q.question}</p>
+                        {answeredQuestions.map((q) => {
+                          const displayQuestion = language === 'en' && q.questionEn ? q.questionEn : q.question;
+                          const displayAnswer = language === 'en' && q.answerEn ? q.answerEn : q.answer;
+                          return (
+                            <div
+                              key={q.id}
+                              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm"
+                              data-testid={`answered-question-${q.id}`}
+                            >
+                              <div className="flex items-start gap-2 mb-2">
+                                <span className="text-green-600 font-bold">{language === 'ar' ? 'س:' : 'Q:'}</span>
+                                <p className="text-gray-700 dark:text-gray-300">{displayQuestion}</p>
+                              </div>
+                              <div className="flex items-start gap-2 bg-green-50 dark:bg-green-900/20 rounded p-2">
+                                <span className="text-green-700 dark:text-green-400 font-bold">{language === 'ar' ? 'ج:' : 'A:'}</span>
+                                <p className="text-gray-700 dark:text-gray-300">{displayAnswer}</p>
+                              </div>
+                              <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                {q.askerName && <span>{q.askerName}</span>}
+                                <span>{formatDate(q.answeredAt)}</span>
+                              </div>
                             </div>
-                            <div className="flex items-start gap-2 bg-green-50 dark:bg-green-900/20 rounded p-2">
-                              <span className="text-green-700 dark:text-green-400 font-bold">ج:</span>
-                              <p className="text-gray-700 dark:text-gray-300">{q.answer}</p>
-                            </div>
-                            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                              {q.askerName && <span>{q.askerName}</span>}
-                              <span>{formatDate(q.answeredAt)}</span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </ScrollArea>

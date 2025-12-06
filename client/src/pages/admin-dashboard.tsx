@@ -213,6 +213,8 @@ function MapContentEditorComponent() {
 // مكون إدارة الأسئلة السريعة
 function QuickQuestionsManagement({ language, toast }: { language: string; toast: any }) {
   const [answerText, setAnswerText] = useState<{ [key: string]: string }>({});
+  const [answerEnText, setAnswerEnText] = useState<{ [key: string]: string }>({});
+  const [questionEnText, setQuestionEnText] = useState<{ [key: string]: string }>({});
 
   const { data: unansweredQuestions = [], isLoading: loadingUnanswered } = useQuery<QuickQuestion[]>({
     queryKey: ['/api/quick-questions/unanswered'],
@@ -223,11 +225,21 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
   });
 
   const answerMutation = useMutation({
-    mutationFn: async ({ id, answer }: { id: string; answer: string }) => {
+    mutationFn: async ({ id, answer, answerEn, questionEn }: { id: string; answer: string; answerEn?: string; questionEn?: string }) => {
+      if (questionEn) {
+        const translationResponse = await fetch(`/api/quick-questions/${id}/translation`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionEn }),
+          credentials: 'include',
+        });
+        if (!translationResponse.ok) throw new Error('Failed to update question translation');
+      }
       const response = await fetch(`/api/quick-questions/${id}/answer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer }),
+        body: JSON.stringify({ answer, answerEn }),
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to answer question');
       return response.json();
@@ -235,15 +247,18 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
     onSuccess: () => {
       toast({
         title: language === 'ar' ? 'تم الرد بنجاح' : 'Answer Submitted',
-        description: language === 'ar' ? 'تم إرسال الرد على السؤال' : 'Your answer has been submitted',
+        description: language === 'ar' ? 'تم إرسال الرد على السؤال مع الترجمة' : 'Your answer and translation have been submitted',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/unanswered'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/answered'] });
       setAnswerText({});
+      setAnswerEnText({});
+      setQuestionEnText({});
     },
     onError: () => {
       toast({
         title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'فشل في إرسال الرد' : 'Failed to submit answer',
+        description: language === 'ar' ? 'فشل في إرسال الرد أو الترجمة' : 'Failed to submit answer or translation',
         variant: 'destructive',
       });
     },
@@ -253,6 +268,7 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/quick-questions/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to delete question');
     },
@@ -261,7 +277,8 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
         title: language === 'ar' ? 'تم الحذف' : 'Deleted',
         description: language === 'ar' ? 'تم حذف السؤال بنجاح' : 'Question deleted successfully',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/unanswered'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/quick-questions/answered'] });
     },
     onError: () => {
       toast({
@@ -322,19 +339,58 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
                           )}
                           <span className="text-xs text-muted-foreground">{formatDate(q.createdAt)}</span>
                         </div>
-                        <p className="text-lg font-medium mb-3">{q.question}</p>
+                        <div className="mb-4">
+                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                            {language === 'ar' ? 'السؤال (عربي):' : 'Question (Arabic):'}
+                          </Label>
+                          <p className="text-lg font-medium bg-gray-50 dark:bg-gray-800 p-2 rounded">{q.question}</p>
+                        </div>
                         
-                        <div className="space-y-2">
-                          <Textarea
-                            placeholder={language === 'ar' ? 'اكتب الرد هنا...' : 'Write your answer here...'}
-                            value={answerText[q.id] || ''}
-                            onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
-                            rows={3}
-                            data-testid={`input-answer-${q.id}`}
+                        <div className="mb-4">
+                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                            {language === 'ar' ? 'ترجمة السؤال (إنجليزي):' : 'Question Translation (English):'}
+                          </Label>
+                          <Input
+                            placeholder={language === 'ar' ? 'اكتب ترجمة السؤال بالإنجليزية...' : 'Write question translation in English...'}
+                            value={questionEnText[q.id] || q.questionEn || ''}
+                            onChange={(e) => setQuestionEnText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                            data-testid={`input-question-en-${q.id}`}
                           />
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                              {language === 'ar' ? 'الرد (عربي):' : 'Answer (Arabic):'}
+                            </Label>
+                            <Textarea
+                              placeholder={language === 'ar' ? 'اكتب الرد بالعربية...' : 'Write answer in Arabic...'}
+                              value={answerText[q.id] || ''}
+                              onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              rows={3}
+                              data-testid={`input-answer-${q.id}`}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                              {language === 'ar' ? 'الرد (إنجليزي):' : 'Answer (English):'}
+                            </Label>
+                            <Textarea
+                              placeholder={language === 'ar' ? 'اكتب الرد بالإنجليزية...' : 'Write answer in English...'}
+                              value={answerEnText[q.id] || ''}
+                              onChange={(e) => setAnswerEnText(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              rows={3}
+                              data-testid={`input-answer-en-${q.id}`}
+                            />
+                          </div>
                           <div className="flex gap-2">
                             <Button
-                              onClick={() => answerMutation.mutate({ id: q.id, answer: answerText[q.id] || '' })}
+                              onClick={() => answerMutation.mutate({ 
+                                id: q.id, 
+                                answer: answerText[q.id] || '', 
+                                answerEn: answerEnText[q.id] || '',
+                                questionEn: questionEnText[q.id] || ''
+                              })}
                               disabled={!answerText[q.id]?.trim() || answerMutation.isPending}
                               className="bg-green-600 hover:bg-green-700"
                               data-testid={`button-submit-answer-${q.id}`}
@@ -415,13 +471,29 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
                               <span className="text-sm text-muted-foreground">{q.askerName}</span>
                             )}
                           </div>
-                          <div className="mb-2">
-                            <span className="text-green-700 dark:text-green-400 font-bold ml-1">س:</span>
-                            <span>{q.question}</span>
+                          <div className="mb-2 space-y-1">
+                            <div>
+                              <span className="text-green-700 dark:text-green-400 font-bold ml-1">س (عربي):</span>
+                              <span>{q.question}</span>
+                            </div>
+                            {q.questionEn && (
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                                <span className="font-bold ml-1">Q (English):</span>
+                                <span>{q.questionEn}</span>
+                              </div>
+                            )}
                           </div>
-                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-                            <span className="text-green-700 dark:text-green-400 font-bold ml-1">ج:</span>
-                            <span>{q.answer}</span>
+                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 space-y-2">
+                            <div>
+                              <span className="text-green-700 dark:text-green-400 font-bold ml-1">ج (عربي):</span>
+                              <span>{q.answer}</span>
+                            </div>
+                            {q.answerEn && (
+                              <div className="text-sm text-gray-600 dark:text-gray-400 border-t pt-2 mt-2">
+                                <span className="font-bold ml-1">A (English):</span>
+                                <span>{q.answerEn}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                             <span>{language === 'ar' ? 'تاريخ الرد:' : 'Answered on:'} {formatDate(q.answeredAt)}</span>
