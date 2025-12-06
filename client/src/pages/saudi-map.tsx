@@ -572,23 +572,47 @@ export default function SaudiMap() {
                       )
                     })}
 
-                    {/* خط الطريق إلى مكة (أحمر) */}
+                    {/* خط الطريق إلى مكة (أحمر) - قابل للنقر */}
                     <Polyline 
                       positions={roadToMecca} 
                       color="red" 
-                      weight={4}
+                      weight={6}
                       opacity={0.8}
                       dashArray="10, 10"
-                    />
+                      eventHandlers={{
+                        click: () => {
+                          window.open(`https://www.google.com/maps/dir/${cities.albaha.lat},${cities.albaha.lng}/${cities.mecca.lat},${cities.mecca.lng}`, '_blank');
+                        }
+                      }}
+                    >
+                      <Tooltip sticky>
+                        <div className="text-center p-2">
+                          <p className="font-bold text-red-700">{language === 'ar' ? 'طريق الباحة - مكة' : 'AlBaha - Mecca Road'}</p>
+                          <p className="text-sm">{language === 'ar' ? 'انقر لفتح في خرائط جوجل' : 'Click to open in Google Maps'}</p>
+                        </div>
+                      </Tooltip>
+                    </Polyline>
 
-                    {/* خط الطريق إلى الرياض (أزرق) */}
+                    {/* خط الطريق إلى الرياض (أزرق) - قابل للنقر */}
                     <Polyline 
                       positions={roadToRiyadh} 
                       color="blue" 
-                      weight={4}
+                      weight={6}
                       opacity={0.8}
                       dashArray="10, 10"
-                    />
+                      eventHandlers={{
+                        click: () => {
+                          window.open(`https://www.google.com/maps/dir/${cities.albaha.lat},${cities.albaha.lng}/${cities.riyadh.lat},${cities.riyadh.lng}`, '_blank');
+                        }
+                      }}
+                    >
+                      <Tooltip sticky>
+                        <div className="text-center p-2">
+                          <p className="font-bold text-blue-700">{language === 'ar' ? 'طريق الباحة - الرياض' : 'AlBaha - Riyadh Road'}</p>
+                          <p className="text-sm">{language === 'ar' ? 'انقر لفتح في خرائط جوجل' : 'Click to open in Google Maps'}</p>
+                        </div>
+                      </Tooltip>
+                    </Polyline>
                   </MapContainer>
                 </div>
               </div>
