@@ -101,7 +101,8 @@ export interface IStorage {
   getUnansweredQuickQuestions(): Promise<QuickQuestion[]>;
   getAnsweredQuickQuestions(): Promise<QuickQuestion[]>;
   createQuickQuestion(question: InsertQuickQuestion): Promise<QuickQuestion>;
-  answerQuickQuestion(id: string, answer: string, answeredBy: string): Promise<QuickQuestion>;
+  answerQuickQuestion(id: string, answer: string, answerEn: string | null, answeredBy: string): Promise<QuickQuestion>;
+  updateQuickQuestionTranslation(id: string, questionEn: string): Promise<QuickQuestion>;
   deleteQuickQuestion(id: string): Promise<void>;
 }
 
@@ -571,15 +572,25 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async answerQuickQuestion(id: string, answer: string, answeredBy: string): Promise<QuickQuestion> {
+  async answerQuickQuestion(id: string, answer: string, answerEn: string | null, answeredBy: string): Promise<QuickQuestion> {
     const [result] = await db
       .update(quickQuestions)
       .set({
         answer,
+        answerEn,
         answeredBy,
         isAnswered: true,
         answeredAt: new Date(),
       })
+      .where(eq(quickQuestions.id, id))
+      .returning();
+    return result;
+  }
+
+  async updateQuickQuestionTranslation(id: string, questionEn: string): Promise<QuickQuestion> {
+    const [result] = await db
+      .update(quickQuestions)
+      .set({ questionEn })
       .where(eq(quickQuestions.id, id))
       .returning();
     return result;

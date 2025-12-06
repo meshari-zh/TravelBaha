@@ -1182,16 +1182,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { answer } = req.body;
+      const { answer, answerEn } = req.body;
       if (!answer || answer.trim() === '') {
         return res.status(400).json({ message: "Answer is required" });
       }
 
-      const question = await storage.answerQuickQuestion(req.params.id, answer, user.id);
+      const question = await storage.answerQuickQuestion(req.params.id, answer, answerEn || null, user.id);
       res.json(question);
     } catch (error) {
       console.error("Error answering quick question:", error);
       res.status(500).json({ message: "Failed to answer quick question" });
+    }
+  });
+
+  app.put('/api/quick-questions/:id/translation', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { questionEn } = req.body;
+      const question = await storage.updateQuickQuestionTranslation(req.params.id, questionEn || '');
+      res.json(question);
+    } catch (error) {
+      console.error("Error updating question translation:", error);
+      res.status(500).json({ message: "Failed to update translation" });
     }
   });
 
