@@ -1,20 +1,33 @@
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText, UserPlus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { SiGoogle, SiApple } from "react-icons/si";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
 export default function Navbar() {
   const { user } = useAuth();
   const [location] = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const isActive = (path: string) => location === path;
+  
+  const handleLoginClick = () => {
+    setShowLoginDialog(true);
+  };
+  
+  const proceedToLogin = () => {
+    setShowLoginDialog(false);
+    window.location.href = "/api/login";
+  };
 
   const getUserDisplayName = () => {
     const firstName = user?.firstName || '';
@@ -55,7 +68,7 @@ export default function Navbar() {
               size="sm" 
               variant="secondary"
               className="h-7 text-xs"
-              onClick={() => window.location.href = "/api/login"}
+              onClick={handleLoginClick}
               data-testid="button-discount-login"
             >
               <LogIn className="w-3 h-3 ml-1" />
@@ -131,7 +144,7 @@ export default function Navbar() {
                         </p>
                         <Button 
                           className="w-full" 
-                          onClick={() => window.location.href = "/api/login"}
+                          onClick={handleLoginClick}
                           data-testid="mobile-login-button"
                         >
                           <LogIn className="w-4 h-4 ml-2" />
@@ -560,7 +573,7 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <Button 
-                onClick={() => window.location.href = "/api/login"}
+                onClick={handleLoginClick}
                 className="flex items-center gap-2"
                 data-testid="desktop-login-button"
               >
@@ -572,6 +585,68 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    
+    {/* Login Dialog with explanation */}
+    <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <LogIn className="w-5 h-5" />
+            {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
+          </DialogTitle>
+          <DialogDescription className="text-right pt-2">
+            {language === 'ar' 
+              ? 'يمكنك تسجيل الدخول باستخدام حسابك في Google أو Apple أو البريد الإلكتروني. إذا كانت هذه أول مرة، سيتم إنشاء حساب جديد لك تلقائياً.'
+              : 'You can login using your Google, Apple, or email account. If this is your first time, a new account will be created automatically.'}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 pt-4">
+          <div className="bg-muted/50 rounded-lg p-4 text-center">
+            <UserPlus className="w-10 h-10 mx-auto mb-3 text-primary" />
+            <p className="text-sm text-muted-foreground">
+              {language === 'ar' 
+                ? 'ملاحظة: إذا لم يكن لديك حساب، سيتم إنشاء حساب جديد لك تلقائياً عند تسجيل الدخول لأول مرة.'
+                : 'Note: If you don\'t have an account, a new account will be created automatically when you login for the first time.'}
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-center">
+              {language === 'ar' ? 'طرق تسجيل الدخول المتاحة:' : 'Available login methods:'}
+            </p>
+            <div className="flex justify-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <SiGoogle className="w-5 h-5" />
+                <span>Google</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <SiApple className="w-5 h-5" />
+                <span>Apple</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-2">
+            <Button 
+              className="flex-1"
+              onClick={proceedToLogin}
+              data-testid="dialog-proceed-login"
+            >
+              <LogIn className="w-4 h-4 ml-2" />
+              {language === 'ar' ? 'متابعة تسجيل الدخول' : 'Proceed to Login'}
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setShowLoginDialog(false)}
+              data-testid="dialog-cancel-login"
+            >
+              {language === 'ar' ? 'إلغاء' : 'Cancel'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
