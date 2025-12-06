@@ -27,7 +27,7 @@ export default function QuickQuestionsBubble() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: { question: string; askerName?: string }) => {
+    mutationFn: async (data: { question: string; questionEn?: string; askerName?: string }) => {
       return apiRequest('POST', '/api/quick-questions', data);
     },
     onSuccess: () => {
@@ -52,12 +52,21 @@ export default function QuickQuestionsBubble() {
     },
   });
 
+  const isArabicText = (text: string): boolean => {
+    const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+    return arabicPattern.test(text);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
     
+    const trimmedQuestion = question.trim();
+    const isArabic = isArabicText(trimmedQuestion);
+    
     submitMutation.mutate({
-      question: question.trim(),
+      question: isArabic ? trimmedQuestion : '',
+      questionEn: isArabic ? undefined : trimmedQuestion,
       askerName: askerName.trim() || undefined,
     });
   };
@@ -168,8 +177,12 @@ export default function QuickQuestionsBubble() {
                     ) : (
                       <div className="space-y-3">
                         {answeredQuestions.map((q) => {
-                          const displayQuestion = language === 'en' && q.questionEn ? q.questionEn : q.question;
-                          const displayAnswer = language === 'en' && q.answerEn ? q.answerEn : q.answer;
+                          const displayQuestion = language === 'en' 
+                            ? (q.questionEn || q.question) 
+                            : (q.question || q.questionEn);
+                          const displayAnswer = language === 'en' 
+                            ? (q.answerEn || q.answer) 
+                            : (q.answer || q.answerEn);
                           return (
                             <div
                               key={q.id}

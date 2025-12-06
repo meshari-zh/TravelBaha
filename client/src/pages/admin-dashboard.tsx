@@ -400,8 +400,16 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
                           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
                             {language === 'ar' ? 'السؤال (عربي):' : 'Question (Arabic):'}
                           </Label>
-                          <p className="text-lg font-medium bg-gray-50 dark:bg-gray-800 p-2 rounded">{q.question}</p>
+                          <p className="text-lg font-medium bg-gray-50 dark:bg-gray-800 p-2 rounded">{q.question || (language === 'ar' ? '(لا يوجد - السؤال بالإنجليزية)' : '(None - Question in English)')}</p>
                         </div>
+                        {q.questionEn && (
+                          <div className="mb-4">
+                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                              {language === 'ar' ? 'السؤال الأصلي (إنجليزي):' : 'Original Question (English):'}
+                            </Label>
+                            <p className="text-lg font-medium bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-blue-800 dark:text-blue-200">{q.questionEn}</p>
+                          </div>
+                        )}
                         
                         <div className="mb-4">
                           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">

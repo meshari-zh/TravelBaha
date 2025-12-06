@@ -1162,13 +1162,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = req.user.claims.sub;
       }
       
+      const { question, questionEn, askerName, askerEmail } = req.body;
+      
+      if ((!question || question.trim() === '') && (!questionEn || questionEn.trim() === '')) {
+        return res.status(400).json({ message: "Question is required in Arabic or English" });
+      }
+      
       const validatedData = insertQuickQuestionSchema.parse({
-        ...req.body,
+        question: question?.trim() || '',
+        questionEn: questionEn?.trim() || null,
+        askerName: askerName?.trim() || null,
+        askerEmail: askerEmail?.trim() || null,
         userId,
         isAnswered: false,
       });
-      const question = await storage.createQuickQuestion(validatedData);
-      res.status(201).json(question);
+      const createdQuestion = await storage.createQuickQuestion(validatedData);
+      res.status(201).json(createdQuestion);
     } catch (error) {
       console.error("Error creating quick question:", error);
       res.status(500).json({ message: "Failed to create quick question" });
