@@ -101,48 +101,54 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {user?.role === 'tourist' && (
                 <>
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">🗺️</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in AlBaha'}</p>
-                      <Link href="/places">
-                        <Button size="sm" className="w-full" data-testid="button-explore-places">
-                          {language === 'ar' ? 'تصفح الأماكن' : 'Browse Places'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in AlBaha'}</p>
+                      <div className="mt-auto">
+                        <Link href="/places">
+                          <Button size="sm" className="w-full min-w-[160px]" data-testid="button-explore-places">
+                            {language === 'ar' ? 'تصفح الأماكن' : 'Browse Places'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">👨‍🏫</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{language === 'ar' ? 'اختر مرشدك' : 'Choose Your Guide'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'تعرف على المرشدين المحليين الخبراء' : 'Meet expert local guides'}</p>
-                      <Link href="/guides">
-                        <Button size="sm" variant="secondary" className="w-full" data-testid="button-find-guides">
-                          {language === 'ar' ? 'البحث عن مرشد' : 'Find a Guide'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? 'اختر مرشدك' : 'Choose Your Guide'}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'تعرف على المرشدين المحليين الخبراء' : 'Meet expert local guides'}</p>
+                      <div className="mt-auto">
+                        <Link href="/guides">
+                          <Button size="sm" variant="secondary" className="w-full min-w-[160px]" data-testid="button-find-guides">
+                            {language === 'ar' ? 'البحث عن مرشد' : 'Find a Guide'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">💬</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('messages')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'تواصل مع المرشدين واحجز رحلتك' : 'Communicate with guides and book your trip'}</p>
-                      <Link href="/messages">
-                        <Button size="sm" variant="outline" className="w-full" data-testid="button-view-messages">
-                          {language === 'ar' ? 'المحادثات' : 'Conversations'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('messages')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'تواصل مع المرشدين واحجز رحلتك' : 'Communicate with guides and book your trip'}</p>
+                      <div className="mt-auto">
+                        <Link href="/messages">
+                          <Button size="sm" variant="outline" className="w-full min-w-[160px]" data-testid="button-view-messages">
+                            {language === 'ar' ? 'المحادثات' : 'Conversations'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
                 </>
@@ -150,48 +156,54 @@ export default function Home() {
 
               {user?.role === 'guide' && (
                 <>
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">👤</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('profile')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة معلوماتك وتخصصاتك' : 'Manage your information and specialties'}</p>
-                      <Link href="/dashboard">
-                        <Button size="sm" className="w-full" data-testid="button-manage-profile">
-                          {language === 'ar' ? 'إدارة الملف' : 'Manage Profile'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('profile')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة معلوماتك وتخصصاتك' : 'Manage your information and specialties'}</p>
+                      <div className="mt-auto">
+                        <Link href="/dashboard">
+                          <Button size="sm" className="w-full min-w-[160px]" data-testid="button-manage-profile">
+                            {language === 'ar' ? 'إدارة الملف' : 'Manage Profile'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">📅</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'متابعة طلبات الحجز والجولات' : 'Track booking requests and tours'}</p>
-                      <Link href="/bookings">
-                        <Button size="sm" variant="secondary" className="w-full" data-testid="button-view-bookings">
-                          {language === 'ar' ? 'عرض الحجوزات' : 'View Bookings'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? 'الحجوزات' : 'Bookings'}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'متابعة طلبات الحجز والجولات' : 'Track booking requests and tours'}</p>
+                      <div className="mt-auto">
+                        <Link href="/bookings">
+                          <Button size="sm" variant="secondary" className="w-full min-w-[160px]" data-testid="button-view-bookings">
+                            {language === 'ar' ? 'عرض الحجوزات' : 'View Bookings'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">💬</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('messages')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'التواصل مع العملاء' : 'Communicate with customers'}</p>
-                      <Link href="/messages">
-                        <Button size="sm" variant="outline" className="w-full" data-testid="button-guide-messages">
-                          {language === 'ar' ? 'المحادثات' : 'Conversations'}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('messages')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'التواصل مع العملاء' : 'Communicate with customers'}</p>
+                      <div className="mt-auto">
+                        <Link href="/messages">
+                          <Button size="sm" variant="outline" className="w-full min-w-[160px]" data-testid="button-guide-messages">
+                            {language === 'ar' ? 'المحادثات' : 'Conversations'}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
                 </>
@@ -199,48 +211,54 @@ export default function Home() {
 
               {user?.role === 'admin' && (
                 <>
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">⚙️</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('dashboard')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة المنصة والمحتوى' : 'Manage platform and content'}</p>
-                      <Link href="/admin">
-                        <Button size="sm" className="w-full" data-testid="button-admin-dashboard">
-                          {t('adminDashboard')}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('dashboard')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة المنصة والمحتوى' : 'Manage platform and content'}</p>
+                      <div className="mt-auto">
+                        <Link href="/admin">
+                          <Button size="sm" className="w-full min-w-[160px]" data-testid="button-admin-dashboard">
+                            {t('adminDashboard')}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">🗺️</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('places')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة الوجهات والمعالم' : 'Manage destinations and landmarks'}</p>
-                      <Link href="/places">
-                        <Button size="sm" variant="secondary" className="w-full" data-testid="button-manage-places">
-                          {t('managePlaces')}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('places')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة الوجهات والمعالم' : 'Manage destinations and landmarks'}</p>
+                      <div className="mt-auto">
+                        <Link href="/places">
+                          <Button size="sm" variant="secondary" className="w-full min-w-[160px]" data-testid="button-manage-places">
+                            {t('managePlaces')}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="text-center hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
+                  <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <CardContent className="p-6 flex flex-col flex-grow">
                       <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">👥</span>
                       </div>
-                      <h3 className="font-semibold mb-2">{t('guides')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{language === 'ar' ? 'إدارة المرشدين السياحيين' : 'Manage tour guides'}</p>
-                      <Link href="/guides">
-                        <Button size="sm" variant="outline" className="w-full" data-testid="button-manage-guides">
-                          {t('manageGuides')}
-                        </Button>
-                      </Link>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('guides')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة المرشدين السياحيين' : 'Manage tour guides'}</p>
+                      <div className="mt-auto">
+                        <Link href="/guides">
+                          <Button size="sm" variant="outline" className="w-full min-w-[160px]" data-testid="button-manage-guides">
+                            {t('manageGuides')}
+                          </Button>
+                        </Link>
+                      </div>
                     </CardContent>
                   </Card>
                 </>

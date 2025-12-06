@@ -57,74 +57,82 @@ export default function GuideCard({ guide, showContactButton = false, showBookBu
   };
 
   return (
-    <Card className="overflow-hidden card-hover" data-testid={`guide-card-${guide.id}`}>
-      <div className="relative h-48 bg-muted flex items-center justify-center">
+    <Card className="overflow-hidden card-hover h-full flex flex-col" data-testid={`guide-card-${guide.id}`}>
+      <div className="relative h-48 bg-muted flex items-center justify-center flex-shrink-0">
         <Avatar className="w-24 h-24">
           <AvatarImage src={guide.user?.profileImageUrl || undefined} />
           <AvatarFallback className="text-2xl">{getUserInitials()}</AvatarFallback>
         </Avatar>
       </div>
       
-      <CardContent className="p-4">
-        <h3 className="text-lg font-semibold mb-1" data-testid={`guide-name-${guide.id}`}>
+      <CardContent className="p-4 flex flex-col flex-grow">
+        {/* Name - Fixed height */}
+        <h3 className="text-lg font-semibold mb-1 min-h-[28px]" data-testid={`guide-name-${guide.id}`}>
           {getGuideName()}
         </h3>
         
-        {(guide.bio || guide.bioEn) && (
-          <p className="text-muted-foreground text-sm mb-2 line-clamp-2" data-testid={`guide-bio-${guide.id}`}>
-            {getGuideBio()}
+        {/* Bio - Fixed height with placeholder */}
+        <div className="min-h-[40px] mb-2">
+          <p className="text-muted-foreground text-sm line-clamp-2" data-testid={`guide-bio-${guide.id}`}>
+            {getGuideBio() || (language === 'ar' ? 'مرشد سياحي' : 'Tour guide')}
           </p>
-        )}
+        </div>
         
-        {/* Specialties */}
-        {guide.specialties && guide.specialties.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {guide.specialties.slice(0, 2).map((specialty, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="text-xs"
-                data-testid={`guide-specialty-${guide.id}-${index}`}
-              >
-                {specialty}
-              </Badge>
-            ))}
-            {guide.specialties.length > 2 && (
-              <Badge variant="outline" className="text-xs">
-                +{guide.specialties.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-        
-        {/* Languages */}
-        {guide.languages && guide.languages.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {guide.languages.slice(0, 2).map((language, index) => (
-              <Badge 
-                key={index} 
-                variant="outline" 
-                className="text-xs"
-                data-testid={`guide-language-${guide.id}-${index}`}
-              >
-                {language}
-              </Badge>
-            ))}
-            {guide.languages.length > 2 && (
-              <Badge variant="outline" className="text-xs">
-                +{guide.languages.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-        
-        {/* Rating and Price */}
-        <div className="flex justify-between items-center mb-3">
-          {guide.dailyRate && (
-            <span className="text-secondary font-semibold text-sm" data-testid={`guide-rate-${guide.id}`}>
-              {language === 'ar' ? `${guide.dailyRate} ر.س/يوم` : `${guide.dailyRate} SAR/day`}
-            </span>
+        {/* Specialties - Fixed height */}
+        <div className="flex flex-wrap gap-1 mb-3 min-h-[26px]">
+          {guide.specialties && guide.specialties.length > 0 ? (
+            <>
+              {guide.specialties.slice(0, 2).map((specialty, index) => (
+                <Badge 
+                  key={index} 
+                  variant="secondary" 
+                  className="text-xs"
+                  data-testid={`guide-specialty-${guide.id}-${index}`}
+                >
+                  {specialty}
+                </Badge>
+              ))}
+              {guide.specialties.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{guide.specialties.length - 2}
+                </Badge>
+              )}
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground invisible">-</span>
           )}
+        </div>
+        
+        {/* Languages - Fixed height */}
+        <div className="flex flex-wrap gap-1 mb-3 min-h-[26px]">
+          {guide.languages && guide.languages.length > 0 ? (
+            <>
+              {guide.languages.slice(0, 2).map((lang, index) => (
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="text-xs"
+                  data-testid={`guide-language-${guide.id}-${index}`}
+                >
+                  {lang}
+                </Badge>
+              ))}
+              {guide.languages.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{guide.languages.length - 2}
+                </Badge>
+              )}
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground invisible">-</span>
+          )}
+        </div>
+        
+        {/* Rating and Price - Fixed height */}
+        <div className="flex justify-between items-center mb-3 min-h-[24px]">
+          <span className="text-secondary font-semibold text-sm" data-testid={`guide-rate-${guide.id}`}>
+            {guide.dailyRate ? (language === 'ar' ? `${guide.dailyRate} ر.س/يوم` : `${guide.dailyRate} SAR/day`) : '-'}
+          </span>
           
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-500 fill-current" />
@@ -137,8 +145,8 @@ export default function GuideCard({ guide, showContactButton = false, showBookBu
           </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="space-y-2">
+        {/* Action Buttons - Push to bottom */}
+        <div className="space-y-2 mt-auto">
           <Link href={`/guide/${guide.id}`}>
             <Button 
               className="w-full" 
