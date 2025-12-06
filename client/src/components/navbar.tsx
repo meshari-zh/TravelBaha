@@ -7,9 +7,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText, UserPlus } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText, UserPlus, Mail } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { SiGoogle, SiApple } from "react-icons/si";
+import { SiGoogle, SiGithub, SiX } from "react-icons/si";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
 
 export default function Navbar() {
@@ -596,8 +596,8 @@ export default function Navbar() {
           </DialogTitle>
           <DialogDescription className="text-right pt-2">
             {language === 'ar' 
-              ? 'يمكنك تسجيل الدخول باستخدام حسابك في Google أو Apple أو البريد الإلكتروني. إذا كانت هذه أول مرة، سيتم إنشاء حساب جديد لك تلقائياً.'
-              : 'You can login using your Google, Apple, or email account. If this is your first time, a new account will be created automatically.'}
+              ? 'يمكنك تسجيل الدخول باستخدام حسابك في Google أو GitHub أو X أو البريد الإلكتروني. إذا كانت هذه أول مرة، سيتم إنشاء حساب جديد لك تلقائياً.'
+              : 'You can login using your Google, GitHub, X, or email account. If this is your first time, a new account will be created automatically.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -615,14 +615,22 @@ export default function Navbar() {
             <p className="text-sm font-medium text-center">
               {language === 'ar' ? 'طرق تسجيل الدخول المتاحة:' : 'Available login methods:'}
             </p>
-            <div className="flex justify-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <SiGoogle className="w-5 h-5" />
+            <div className="flex justify-center flex-wrap gap-3">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <SiGoogle className="w-4 h-4" />
                 <span>Google</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <SiApple className="w-5 h-5" />
-                <span>Apple</span>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <SiGithub className="w-4 h-4" />
+                <span>GitHub</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <SiX className="w-4 h-4" />
+                <span>X</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Mail className="w-4 h-4" />
+                <span>{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</span>
               </div>
             </div>
           </div>
