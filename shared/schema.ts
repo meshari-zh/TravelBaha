@@ -147,10 +147,12 @@ export const teamMembers = pgTable("team_members", {
 export const quickQuestions = pgTable("quick_questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   question: text("question").notNull(),
+  questionEn: text("question_en"),
   askerName: text("asker_name"),
   askerEmail: text("asker_email"),
   userId: varchar("user_id").references(() => users.id),
   answer: text("answer"),
+  answerEn: text("answer_en"),
   answeredBy: varchar("answered_by").references(() => users.id),
   isAnswered: boolean("is_answered").default(false),
   createdAt: timestamp("created_at").defaultNow(),
