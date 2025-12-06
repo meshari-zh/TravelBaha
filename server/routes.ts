@@ -1211,6 +1211,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/quick-questions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { question, questionEn, answer, answerEn } = req.body;
+      const updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string } = {};
+      
+      if (question !== undefined) updates.question = question;
+      if (questionEn !== undefined) updates.questionEn = questionEn;
+      if (answer !== undefined) updates.answer = answer;
+      if (answerEn !== undefined) updates.answerEn = answerEn;
+
+      const updatedQuestion = await storage.updateQuickQuestion(req.params.id, updates);
+      res.json(updatedQuestion);
+    } catch (error) {
+      console.error("Error updating quick question:", error);
+      res.status(500).json({ message: "Failed to update quick question" });
+    }
+  });
+
   app.delete('/api/quick-questions/:id', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);

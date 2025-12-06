@@ -597,6 +597,15 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async updateQuickQuestion(id: string, updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string }): Promise<QuickQuestion> {
+    const [result] = await db
+      .update(quickQuestions)
+      .set(updates)
+      .where(eq(quickQuestions.id, id))
+      .returning();
+    return result;
+  }
+
   async deleteQuickQuestion(id: string): Promise<void> {
     await db.delete(quickQuestions).where(eq(quickQuestions.id, id));
   }
