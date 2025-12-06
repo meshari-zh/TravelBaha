@@ -103,6 +103,7 @@ export interface IStorage {
   createQuickQuestion(question: InsertQuickQuestion): Promise<QuickQuestion>;
   answerQuickQuestion(id: string, answer: string, answerEn: string | null, answeredBy: string): Promise<QuickQuestion>;
   updateQuickQuestionTranslation(id: string, questionEn: string): Promise<QuickQuestion>;
+  updateQuickQuestion(id: string, updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string }): Promise<QuickQuestion>;
   deleteQuickQuestion(id: string): Promise<void>;
 }
 
