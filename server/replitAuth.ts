@@ -9,9 +9,7 @@ import connectPg from "connect-pg-simple";
 import MemoryStore from "memorystore";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+// REPLIT_DOMAINS check is handled dynamically in setupAuth
 
 const getOidcConfig = memoize(
   async () => {
@@ -105,60 +103,68 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
+  // Track registered strategies to avoid duplicates
+  const registeredStrategies = new Set<string>();
+  
+  // Helper function to ensure strategy exists for a domain
+  const ensureStrategy = (domain: string) => {
+    const strategyName = `replitauth:${domain}`;
+    if (!registeredStrategies.has(strategyName)) {
+      const strategy = new Strategy(
+        {
+          name: strategyName,
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${domain}/api/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
+      registeredStrategies.add(strategyName);
+      console.log(`Registered auth strategy for domain: ${domain}`);
+    }
+  };
+
+  // Pre-register strategies for known domains from REPLIT_DOMAINS
+  const replitDomains = process.env.REPLIT_DOMAINS?.split(",") || [];
+  for (const domain of replitDomains) {
+    if (domain.trim()) {
+      ensureStrategy(domain.trim());
+    }
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  // Get the primary domain from REPLIT_DOMAINS
-  const domains = process.env.REPLIT_DOMAINS!.split(",");
-  const primaryDomain = domains[0];
-
-  const getAuthDomain = (hostname: string) => {
-    // Check if hostname is in the list of valid domains
-    if (domains.includes(hostname)) {
-      return hostname;
-    }
-    // Fallback to primary domain for localhost or invalid hostnames
-    return primaryDomain;
-  };
-
   app.get("/api/login", (req, res, next) => {
-    const authDomain = getAuthDomain(req.hostname);
-    passport.authenticate(`replitauth:${authDomain}`, {
+    const hostname = req.hostname;
+    ensureStrategy(hostname);
+    passport.authenticate(`replitauth:${hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const authDomain = getAuthDomain(req.hostname);
-    passport.authenticate(`replitauth:${authDomain}`, {
+    const hostname = req.hostname;
+    ensureStrategy(hostname);
+    passport.authenticate(`replitauth:${hostname}`, {
       failureRedirect: "/api/login",
     }, (err: any, user: any) => {
       if (err) {
+        console.error('Auth callback error:', err);
         return next(err);
       }
       if (!user) {
+        console.log('Auth callback: no user, redirecting to login');
         return res.redirect("/api/login");
       }
       req.logIn(user, (loginErr) => {
         if (loginErr) {
+          console.error('Login error:', loginErr);
           return next(loginErr);
         }
-        // Redirect to the home page after successful login
+        console.log('Login successful, redirecting to home');
         return res.redirect("/");
       });
     })(req, res, next);
