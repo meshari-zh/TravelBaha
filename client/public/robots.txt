@@ -7,4 +7,4 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Sitemap: https://albaha-tourism.replit.app/sitemap.xml
+Sitemap: https://travelbaha.com/sitemap.xml
