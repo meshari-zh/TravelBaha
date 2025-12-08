@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,16 +8,25 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText, UserPlus, Mail } from "lucide-react";
+import { Home, MapPin, Users, MessageCircle, Settings, LogOut, UserCog, Ticket, User, Info, Menu, Map, Globe, CalendarCheck, Gift, LogIn, ChevronDown, FileText, UserPlus, Mail, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { SiGoogle, SiGithub, SiX } from "react-icons/si";
 import siteLogo from "@assets/لوقو الموقع_1757794549973.png";
+import type { NavigationItem } from "@shared/schema";
 
 export default function Navbar() {
   const { user } = useAuth();
   const [location] = useLocation();
   const { language, setLanguage, t } = useLanguage();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+  const { data: dynamicNavItems = [] } = useQuery<NavigationItem[]>({
+    queryKey: ['/api/navigation'],
+  });
+
+  const visibleNavItems = dynamicNavItems.filter(item => item.isVisible);
+  const parentNavItems = visibleNavItems.filter(item => !item.parentId);
+  const getChildItems = (parentId: string) => visibleNavItems.filter(item => item.parentId === parentId);
 
   const isActive = (path: string) => location === path;
   
@@ -243,6 +253,92 @@ export default function Navbar() {
                           </Button>
                         </Link>
                       </SheetClose>
+
+                      {/* Dynamic Navigation Items - Mobile */}
+                      {parentNavItems.map((item) => {
+                        const children = getChildItems(item.id);
+                        const itemLabel = language === 'ar' ? item.labelAr : (item.labelEn || item.labelAr);
+                        const itemHref = item.path || item.externalUrl;
+                        const isExternal = !!item.externalUrl;
+
+                        if (item.type === 'dropdown' && children.length > 0) {
+                          return (
+                            <div key={item.id} className="space-y-1">
+                              <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+                                {itemLabel}
+                              </div>
+                              {children.map((child) => {
+                                const childLabel = language === 'ar' ? child.labelAr : (child.labelEn || child.labelAr);
+                                const childHref = child.path || child.externalUrl;
+                                const isChildExternal = !!child.externalUrl;
+                                return (
+                                  <SheetClose key={child.id} asChild>
+                                    {isChildExternal ? (
+                                      <a
+                                        href={childHref || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full"
+                                      >
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="w-full justify-start flex items-center gap-3 pr-8"
+                                        >
+                                          <ExternalLink className="w-4 h-4" />
+                                          {childLabel}
+                                        </Button>
+                                      </a>
+                                    ) : (
+                                      <Link href={childHref || '#'}>
+                                        <Button
+                                          variant={isActive(childHref || '') ? "default" : "ghost"}
+                                          size="sm"
+                                          className="w-full justify-start flex items-center gap-3 pr-8"
+                                        >
+                                          {childLabel}
+                                        </Button>
+                                      </Link>
+                                    )}
+                                  </SheetClose>
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <SheetClose key={item.id} asChild>
+                            {isExternal ? (
+                              <a
+                                href={itemHref || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full"
+                              >
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full justify-start flex items-center gap-3"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                  {itemLabel}
+                                </Button>
+                              </a>
+                            ) : (
+                              <Link href={itemHref || '#'}>
+                                <Button
+                                  variant={isActive(itemHref || '') ? "default" : "ghost"}
+                                  size="sm"
+                                  className="w-full justify-start flex items-center gap-3"
+                                >
+                                  {itemLabel}
+                                </Button>
+                              </Link>
+                            )}
+                          </SheetClose>
+                        );
+                      })}
                       
                       {user && (
                         <SheetClose asChild>
@@ -436,6 +532,85 @@ export default function Navbar() {
                 {t('map')}
               </Button>
             </Link>
+
+            {/* Dynamic Navigation Items - Desktop */}
+            {parentNavItems.map((item) => {
+              const children = getChildItems(item.id);
+              const itemLabel = language === 'ar' ? item.labelAr : (item.labelEn || item.labelAr);
+              const itemHref = item.path || item.externalUrl;
+              const isExternal = !!item.externalUrl;
+
+              if (item.type === 'dropdown' && children.length > 0) {
+                return (
+                  <DropdownMenu key={item.id}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        {itemLabel}
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-48">
+                      {children.map((child) => {
+                        const childLabel = language === 'ar' ? child.labelAr : (child.labelEn || child.labelAr);
+                        const childHref = child.path || child.externalUrl;
+                        const isChildExternal = !!child.externalUrl;
+                        return (
+                          <DropdownMenuItem key={child.id} asChild>
+                            {isChildExternal ? (
+                              <a
+                                href={childHref || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 cursor-pointer"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                {childLabel}
+                              </a>
+                            ) : (
+                              <Link href={childHref || '#'} className="flex items-center gap-2 cursor-pointer">
+                                {childLabel}
+                              </Link>
+                            )}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
+              return isExternal ? (
+                <a
+                  key={item.id}
+                  href={itemHref || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    {itemLabel}
+                  </Button>
+                </a>
+              ) : (
+                <Link key={item.id} href={itemHref || '#'}>
+                  <Button
+                    variant={isActive(itemHref || '') ? "default" : "ghost"}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    {itemLabel}
+                  </Button>
+                </Link>
+              );
+            })}
             
             {user && (
               <Link href="/invite">
