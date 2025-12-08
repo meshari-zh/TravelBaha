@@ -20,13 +20,17 @@ export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
-  const { data: dynamicNavItems = [] } = useQuery<NavigationItem[]>({
+  const { data: dynamicNavItems = [], isLoading: isLoadingNav } = useQuery<NavigationItem[]>({
     queryKey: ['/api/navigation'],
   });
 
   const visibleNavItems = dynamicNavItems.filter(item => item.isVisible);
-  const parentNavItems = visibleNavItems.filter(item => !item.parentId);
-  const getChildItems = (parentId: string) => visibleNavItems.filter(item => item.parentId === parentId);
+  const parentNavItems = visibleNavItems
+    .filter(item => !item.parentId)
+    .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+  const getChildItems = (parentId: string) => visibleNavItems
+    .filter(item => item.parentId === parentId)
+    .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
   const isActive = (path: string) => location === path;
   
@@ -165,95 +169,6 @@ export default function Navbar() {
                     
                     {/* Navigation Links - Mobile */}
                     <nav className="space-y-2">
-                      <SheetClose asChild>
-                        <Link href="/">
-                          <Button 
-                            variant={isActive("/") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-home"
-                          >
-                            <Home className="w-4 h-4" />
-                            {t('home')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                      
-                      <SheetClose asChild>
-                        <Link href="/places">
-                          <Button 
-                            variant={isActive("/places") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-places"
-                          >
-                            <MapPin className="w-4 h-4" />
-                            {t('places')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                      
-                      <SheetClose asChild>
-                        <Link href="/guides">
-                          <Button 
-                            variant={isActive("/guides") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-guides"
-                          >
-                            <Users className="w-4 h-4" />
-                            {t('guides')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                      
-                      <div className="space-y-1">
-                        <div className="px-3 py-2 text-sm font-medium text-muted-foreground flex items-center gap-2">
-                          <Info className="w-4 h-4" />
-                          {t('about')}
-                        </div>
-                        <SheetClose asChild>
-                          <Link href="/team">
-                            <Button 
-                              variant={isActive("/team") ? "default" : "ghost"} 
-                              size="sm"
-                              className="w-full justify-start flex items-center gap-3 pr-8"
-                              data-testid="mobile-nav-team"
-                            >
-                              <Users className="w-4 h-4" />
-                              {language === 'ar' ? 'فريق العمل' : 'Our Team'}
-                            </Button>
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link href="/about-project">
-                            <Button 
-                              variant={isActive("/about-project") ? "default" : "ghost"} 
-                              size="sm"
-                              className="w-full justify-start flex items-center gap-3 pr-8"
-                              data-testid="mobile-nav-about-project"
-                            >
-                              <FileText className="w-4 h-4" />
-                              {language === 'ar' ? 'نبذة عن المشروع' : 'About the Project'}
-                            </Button>
-                          </Link>
-                        </SheetClose>
-                      </div>
-                      
-                      <SheetClose asChild>
-                        <Link href="/map">
-                          <Button 
-                            variant={isActive("/map") ? "default" : "ghost"} 
-                            size="sm"
-                            className="w-full justify-start flex items-center gap-3"
-                            data-testid="mobile-nav-map"
-                          >
-                            <Map className="w-4 h-4" />
-                            {t('map')}
-                          </Button>
-                        </Link>
-                      </SheetClose>
-
                       {/* Dynamic Navigation Items - Mobile */}
                       {parentNavItems.map((item) => {
                         const children = getChildItems(item.id);
@@ -456,83 +371,6 @@ export default function Navbar() {
 
           {/* Desktop Navigation Menu */}
           <nav className="hidden md:flex items-center space-x-6 space-x-reverse">
-            <Link href="/">
-              <Button 
-                variant={isActive("/") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-home"
-              >
-                <Home className="w-4 h-4" />
-                {t('home')}
-              </Button>
-            </Link>
-            
-            <Link href="/places">
-              <Button 
-                variant={isActive("/places") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-places"
-              >
-                <MapPin className="w-4 h-4" />
-                {t('places')}
-              </Button>
-            </Link>
-            
-            <Link href="/guides">
-              <Button 
-                variant={isActive("/guides") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-guides"
-              >
-                <Users className="w-4 h-4" />
-                {t('guides')}
-              </Button>
-            </Link>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant={(isActive("/about") || isActive("/team") || isActive("/about-project")) ? "default" : "ghost"} 
-                  size="sm"
-                  className="flex items-center gap-2"
-                  data-testid="nav-about-dropdown"
-                >
-                  <Info className="w-4 h-4" />
-                  {t('about')}
-                  <ChevronDown className="w-3 h-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/team" className="flex items-center gap-2 cursor-pointer">
-                    <Users className="w-4 h-4" />
-                    {language === 'ar' ? 'فريق العمل' : 'Our Team'}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/about-project" className="flex items-center gap-2 cursor-pointer">
-                    <FileText className="w-4 h-4" />
-                    {language === 'ar' ? 'نبذة عن المشروع' : 'About the Project'}
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <Link href="/map">
-              <Button 
-                variant={isActive("/map") ? "default" : "ghost"} 
-                size="sm"
-                className="flex items-center gap-2"
-                data-testid="nav-map"
-              >
-                <Map className="w-4 h-4" />
-                {t('map')}
-              </Button>
-            </Link>
-
             {/* Dynamic Navigation Items - Desktop */}
             {parentNavItems.map((item) => {
               const children = getChildItems(item.id);
