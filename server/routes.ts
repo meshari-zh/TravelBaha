@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, insertQuickQuestionSchema, insertNavigationItemSchema, type Booking, type User } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, insertQuickQuestionSchema, insertNavigationItemSchema, insertDynamicPageSchema, type Booking, type User } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -1354,6 +1354,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error reordering navigation items:", error);
       res.status(500).json({ message: "Failed to reorder navigation items" });
+    }
+  });
+
+  // Dynamic pages routes
+  app.get('/api/pages', async (req, res) => {
+    try {
+      const pages = await storage.getAllDynamicPages();
+      res.json(pages);
+    } catch (error) {
+      console.error("Error fetching dynamic pages:", error);
+      res.status(500).json({ message: "Failed to fetch dynamic pages" });
+    }
+  });
+
+  app.get('/api/pages/:slug', async (req, res) => {
+    try {
+      const page = await storage.getDynamicPageBySlug(req.params.slug);
+      if (!page) {
+        return res.status(404).json({ message: "Page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error fetching dynamic page:", error);
+      res.status(500).json({ message: "Failed to fetch dynamic page" });
+    }
+  });
+
+  app.post('/api/pages', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertDynamicPageSchema.parse(req.body);
+      const page = await storage.createDynamicPage(validatedData);
+      res.status(201).json(page);
+    } catch (error) {
+      console.error("Error creating dynamic page:", error);
+      res.status(500).json({ message: "Failed to create dynamic page" });
+    }
+  });
+
+  app.put('/api/pages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertDynamicPageSchema.partial().parse(req.body);
+      const page = await storage.updateDynamicPage(req.params.id, validatedData);
+      res.json(page);
+    } catch (error) {
+      console.error("Error updating dynamic page:", error);
+      res.status(500).json({ message: "Failed to update dynamic page" });
+    }
+  });
+
+  app.delete('/api/pages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteDynamicPage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting dynamic page:", error);
+      res.status(500).json({ message: "Failed to delete dynamic page" });
     }
   });
 
