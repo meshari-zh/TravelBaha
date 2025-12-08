@@ -210,6 +210,234 @@ function MapContentEditorComponent() {
   );
 }
 
+// مكون إدارة محتوى الصفحة الرئيسية ولوحة التحكم
+function HomeAndDashboardContentEditor() {
+  const { toast } = useToast();
+  const { language } = useLanguage();
+  const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
+
+  const contentKeys = [
+    { key: 'hero_title', defaultAr: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', defaultEn: 'Discover the beauty of AlBaha with the best tour guides' },
+    { key: 'hero_subtitle', defaultAr: 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة', defaultEn: 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region' },
+    { key: 'welcome_title', defaultAr: 'أهلاً وسهلاً', defaultEn: 'Welcome' },
+    { key: 'tourist_subtitle', defaultAr: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', defaultEn: 'Discover the beauty of AlBaha with the best tour guides' },
+    { key: 'guide_subtitle', defaultAr: 'مرحباً بك في لوحة التحكم الخاصة بك', defaultEn: 'Welcome to your control panel' },
+    { key: 'admin_subtitle', defaultAr: 'مرحباً بك في لوحة تحكم المشرف', defaultEn: 'Welcome to admin control panel' },
+    { key: 'explore_places_title', defaultAr: 'استكشف الأماكن', defaultEn: 'Explore Places' },
+    { key: 'explore_places_desc', defaultAr: 'اكتشف أجمل الوجهات السياحية في الباحة', defaultEn: 'Discover the most beautiful tourist destinations in AlBaha' },
+    { key: 'find_guide_title', defaultAr: 'اختر مرشداً', defaultEn: 'Find a Guide' },
+    { key: 'find_guide_desc', defaultAr: 'تواصل مع أفضل المرشدين المحليين', defaultEn: 'Connect with the best local guides' },
+    { key: 'my_bookings_title', defaultAr: 'حجوزاتي', defaultEn: 'My Bookings' },
+    { key: 'my_bookings_desc', defaultAr: 'تابع رحلاتك القادمة والسابقة', defaultEn: 'Track your upcoming and past trips' },
+    { key: 'admin_dashboard_title', defaultAr: 'إدارة المنصة والمحتوى', defaultEn: 'Platform and Content Management' },
+    { key: 'admin_panel_title', defaultAr: 'لوحة الإدارة', defaultEn: 'Admin Panel' },
+    { key: 'places_management_title', defaultAr: 'الأماكن السياحية', defaultEn: 'Tourist Places' },
+    { key: 'places_management_desc', defaultAr: 'إدارة الوجهات والمعالم', defaultEn: 'Manage destinations and landmarks' },
+    { key: 'guides_management_title', defaultAr: 'المرشدين السياحيين', defaultEn: 'Tour Guides' },
+    { key: 'guides_management_desc', defaultAr: 'إدارة المرشدين السياحيين', defaultEn: 'Manage tour guides' },
+  ];
+
+  const queries = contentKeys.map(item => {
+    const { data, refetch } = useQuery({
+      queryKey: ['/api/site-content', item.key],
+      select: (data: any) => ({
+        ar: data?.content || item.defaultAr,
+        en: data?.contentEn || item.defaultEn
+      })
+    });
+    return { key: item.key, data, refetch, defaultAr: item.defaultAr, defaultEn: item.defaultEn };
+  });
+
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ key, title, content, contentEn }: { key: string; title: string; content: string; contentEn?: string }) => {
+      const response = await fetch('/api/site-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, title, content, contentEn }),
+      });
+      if (!response.ok) throw new Error('Failed to update content');
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: language === 'ar' ? "تم التحديث بنجاح" : "Updated Successfully",
+        description: language === 'ar' ? "تم حفظ التغييرات" : "Changes have been saved",
+      });
+      setIsEditing(prev => ({ ...prev, [variables.key]: false }));
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+      queries.find(q => q.key === variables.key)?.refetch();
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حفظ التغييرات" : "Failed to save changes",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = (key: string, title: string) => (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const contentAr = formData.get('contentAr') as string;
+    const contentEn = formData.get('contentEn') as string;
+    
+    if (!contentAr.trim()) {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "المحتوى العربي مطلوب" : "Arabic content is required",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    updateContentMutation.mutate({ key, title, content: contentAr, contentEn });
+  };
+
+  const sections = [
+    {
+      title: language === 'ar' ? 'محتوى الصفحة الرئيسية (للزوار)' : 'Home Page Content (Visitors)',
+      icon: '🏠',
+      items: [
+        { key: 'hero_title', label: language === 'ar' ? 'العنوان الرئيسي' : 'Main Title' },
+        { key: 'hero_subtitle', label: language === 'ar' ? 'العنوان الفرعي' : 'Subtitle' },
+      ]
+    },
+    {
+      title: language === 'ar' ? 'ترحيب المستخدمين المسجلين' : 'Welcome for Logged-in Users',
+      icon: '👋',
+      items: [
+        { key: 'welcome_title', label: language === 'ar' ? 'رسالة الترحيب' : 'Welcome Message' },
+        { key: 'tourist_subtitle', label: language === 'ar' ? 'رسالة السائح' : 'Tourist Message' },
+        { key: 'guide_subtitle', label: language === 'ar' ? 'رسالة المرشد' : 'Guide Message' },
+        { key: 'admin_subtitle', label: language === 'ar' ? 'رسالة المشرف' : 'Admin Message' },
+      ]
+    },
+    {
+      title: language === 'ar' ? 'بطاقات قسم السائح' : 'Tourist Section Cards',
+      icon: '🗺️',
+      items: [
+        { key: 'explore_places_title', label: language === 'ar' ? 'عنوان استكشف الأماكن' : 'Explore Places Title' },
+        { key: 'explore_places_desc', label: language === 'ar' ? 'وصف استكشف الأماكن' : 'Explore Places Desc' },
+        { key: 'find_guide_title', label: language === 'ar' ? 'عنوان اختر مرشد' : 'Find Guide Title' },
+        { key: 'find_guide_desc', label: language === 'ar' ? 'وصف اختر مرشد' : 'Find Guide Desc' },
+        { key: 'my_bookings_title', label: language === 'ar' ? 'عنوان حجوزاتي' : 'My Bookings Title' },
+        { key: 'my_bookings_desc', label: language === 'ar' ? 'وصف حجوزاتي' : 'My Bookings Desc' },
+      ]
+    },
+    {
+      title: language === 'ar' ? 'بطاقات قسم المشرف' : 'Admin Section Cards',
+      icon: '⚙️',
+      items: [
+        { key: 'admin_dashboard_title', label: language === 'ar' ? 'عنوان إدارة المنصة' : 'Platform Management Title' },
+        { key: 'admin_panel_title', label: language === 'ar' ? 'عنوان لوحة الإدارة' : 'Admin Panel Title' },
+        { key: 'places_management_title', label: language === 'ar' ? 'عنوان إدارة الأماكن' : 'Places Management Title' },
+        { key: 'places_management_desc', label: language === 'ar' ? 'وصف إدارة الأماكن' : 'Places Management Desc' },
+        { key: 'guides_management_title', label: language === 'ar' ? 'عنوان إدارة المرشدين' : 'Guides Management Title' },
+        { key: 'guides_management_desc', label: language === 'ar' ? 'وصف إدارة المرشدين' : 'Guides Management Desc' },
+      ]
+    }
+  ];
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <span className="text-xl">📝</span>
+          {language === 'ar' ? 'إدارة محتوى الصفحة الرئيسية ولوحة التحكم' : 'Home & Dashboard Content Management'}
+        </CardTitle>
+        <p className="text-muted-foreground">
+          {language === 'ar' ? 'تعديل العناوين والنصوص المعروضة للمستخدمين' : 'Edit titles and texts displayed to users'}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {sections.map((section) => (
+          <div key={section.title} className="space-y-4">
+            <h3 className="font-semibold flex items-center gap-2 text-lg border-b pb-2">
+              <span>{section.icon}</span>
+              {section.title}
+            </h3>
+            <div className="grid gap-4">
+              {section.items.map((item) => {
+                const queryData = queries.find(q => q.key === item.key);
+                const currentValue = queryData?.data || { ar: queryData?.defaultAr || '', en: queryData?.defaultEn || '' };
+                
+                return (
+                  <Card key={item.key} className="border-l-4 border-l-primary/50">
+                    <CardHeader className="py-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">{item.label}</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
+                          data-testid={`button-edit-${item.key}`}
+                        >
+                          <Edit className="w-4 h-4 ml-1" />
+                          {isEditing[item.key] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="py-3">
+                      {!isEditing[item.key] ? (
+                        <div className="space-y-2">
+                          <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">🇸🇦 عربي</p>
+                            <p className="text-sm">{currentValue.ar}</p>
+                          </div>
+                          <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">🇬🇧 English</p>
+                            <p className="text-sm">{currentValue.en}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleSubmit(item.key, item.label)} className="space-y-4">
+                          <div>
+                            <Label htmlFor={`contentAr-${item.key}`}>🇸🇦 {language === 'ar' ? 'المحتوى العربي' : 'Arabic Content'}</Label>
+                            <Textarea
+                              id={`contentAr-${item.key}`}
+                              name="contentAr"
+                              defaultValue={currentValue.ar}
+                              rows={2}
+                              className="mt-1"
+                              dir="rtl"
+                              data-testid={`input-ar-${item.key}`}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`contentEn-${item.key}`}>🇬🇧 {language === 'ar' ? 'المحتوى الإنجليزي' : 'English Content'}</Label>
+                            <Textarea
+                              id={`contentEn-${item.key}`}
+                              name="contentEn"
+                              defaultValue={currentValue.en}
+                              rows={2}
+                              className="mt-1"
+                              dir="ltr"
+                              data-testid={`input-en-${item.key}`}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button type="submit" disabled={updateContentMutation.isPending} data-testid={`button-save-${item.key}`}>
+                              {updateContentMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ' : 'Save')}
+                            </Button>
+                            <Button type="button" variant="outline" onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: false }))}>
+                              {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                            </Button>
+                          </div>
+                        </form>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 // مكون إدارة الأسئلة السريعة
 function QuickQuestionsManagement({ language, toast }: { language: string; toast: any }) {
   const [answerText, setAnswerText] = useState<{ [key: string]: string }>({});
@@ -3364,6 +3592,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <MapContentEditorComponent />
+                  <HomeAndDashboardContentEditor />
                 </CardContent>
               </Card>
               

@@ -9,7 +9,7 @@ import GuideCard from "@/components/guide-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import type { Place, Guide, Booking } from "@shared/schema";
+import type { Place, Guide, Booking, SiteContent } from "@shared/schema";
 import newHeroVideo from "@assets/فديو جديد 2_1759000332280.mp4";
 import videoPoster from "@assets/رغدان_1757793151105.jpg";
 
@@ -28,6 +28,16 @@ export default function Home() {
   const { data: bookings = [] } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
   });
+
+  const { data: siteContent = [] } = useQuery<SiteContent[]>({
+    queryKey: ["/api/site-content"],
+  });
+
+  const getContent = (key: string, defaultAr: string, defaultEn: string) => {
+    const content = siteContent.find(c => c.key === key);
+    if (!content) return language === 'ar' ? defaultAr : defaultEn;
+    return language === 'ar' ? (content.content || defaultAr) : (content.contentEn || defaultEn);
+  };
 
   const recentPlaces = places.slice(0, 3);
   const topGuides = guides.slice(0, 4);
@@ -59,10 +69,10 @@ export default function Home() {
           {/* Hero Content */}
           <div className="relative z-10 container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
-              {language === 'ar' ? 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين' : 'Discover the beauty of AlBaha with the best tour guides'}
+              {getContent('hero_title', 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', 'Discover the beauty of AlBaha with the best tour guides')}
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-8 drop-shadow-lg">
-              {language === 'ar' ? 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة' : 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region'}
+              {getContent('hero_subtitle', 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة', 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region')}
             </p>
             
             {/* Call to Action Buttons */}
@@ -88,12 +98,12 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                {language === 'ar' ? `أهلاً وسهلاً ${user?.firstName || "بك"}!` : `Welcome ${user?.firstName || ""}!`}
+                {getContent('welcome_title', 'أهلاً وسهلاً', 'Welcome')} {user?.firstName || ""}!
               </h1>
               <p className="text-lg text-muted-foreground">
-                {user?.role === 'tourist' && (language === 'ar' ? "اكتشف جمال الباحة مع أفضل المرشدين السياحيين" : "Discover the beauty of AlBaha with the best tour guides")}
-                {user?.role === 'guide' && (language === 'ar' ? "مرحباً بك في لوحة التحكم الخاصة بك" : "Welcome to your control panel")}
-                {user?.role === 'admin' && (language === 'ar' ? "مرحباً بك في لوحة تحكم المشرف" : "Welcome to admin control panel")}
+                {user?.role === 'tourist' && getContent('tourist_subtitle', 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', 'Discover the beauty of AlBaha with the best tour guides')}
+                {user?.role === 'guide' && getContent('guide_subtitle', 'مرحباً بك في لوحة التحكم الخاصة بك', 'Welcome to your control panel')}
+                {user?.role === 'admin' && getContent('admin_subtitle', 'مرحباً بك في لوحة تحكم المشرف', 'Welcome to admin control panel')}
               </p>
             </div>
 
@@ -106,8 +116,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">🗺️</span>
                       </div>
-                      <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? 'استكشف الأماكن' : 'Explore Places'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'اكتشف أجمل الوجهات السياحية في الباحة' : 'Discover the most beautiful tourist destinations in AlBaha'}</p>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{getContent('explore_places_title', 'استكشف الأماكن', 'Explore Places')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{getContent('explore_places_desc', 'اكتشف أجمل الوجهات السياحية في الباحة', 'Discover the most beautiful tourist destinations in AlBaha')}</p>
                       <div className="mt-auto">
                         <Link href="/places">
                           <Button size="sm" className="w-full min-w-[160px]" data-testid="button-explore-places">
@@ -123,8 +133,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">👨‍🏫</span>
                       </div>
-                      <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? 'اختر مرشدك' : 'Choose Your Guide'}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'تعرف على المرشدين المحليين الخبراء' : 'Meet expert local guides'}</p>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{getContent('find_guide_title', 'اختر مرشداً', 'Find a Guide')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{getContent('find_guide_desc', 'تواصل مع أفضل المرشدين المحليين', 'Connect with the best local guides')}</p>
                       <div className="mt-auto">
                         <Link href="/guides">
                           <Button size="sm" variant="secondary" className="w-full min-w-[160px]" data-testid="button-find-guides">
@@ -216,8 +226,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">⚙️</span>
                       </div>
-                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('dashboard')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة المنصة والمحتوى' : 'Manage platform and content'}</p>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{getContent('admin_panel_title', 'لوحة الإدارة', 'Admin Panel')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{getContent('admin_dashboard_title', 'إدارة المنصة والمحتوى', 'Platform and Content Management')}</p>
                       <div className="mt-auto">
                         <Link href="/admin">
                           <Button size="sm" className="w-full min-w-[160px]" data-testid="button-admin-dashboard">
@@ -233,8 +243,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">🗺️</span>
                       </div>
-                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('places')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة الوجهات والمعالم' : 'Manage destinations and landmarks'}</p>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{getContent('places_management_title', 'الأماكن السياحية', 'Tourist Places')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{getContent('places_management_desc', 'إدارة الوجهات والمعالم', 'Manage destinations and landmarks')}</p>
                       <div className="mt-auto">
                         <Link href="/places">
                           <Button size="sm" variant="secondary" className="w-full min-w-[160px]" data-testid="button-manage-places">
@@ -250,8 +260,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-2xl">👥</span>
                       </div>
-                      <h3 className="font-semibold mb-2 min-h-[24px]">{t('guides')}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? 'إدارة المرشدين السياحيين' : 'Manage tour guides'}</p>
+                      <h3 className="font-semibold mb-2 min-h-[24px]">{getContent('guides_management_title', 'المرشدين السياحيين', 'Tour Guides')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{getContent('guides_management_desc', 'إدارة المرشدين السياحيين', 'Manage tour guides')}</p>
                       <div className="mt-auto">
                         <Link href="/guides">
                           <Button size="sm" variant="outline" className="w-full min-w-[160px]" data-testid="button-manage-guides">
