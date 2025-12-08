@@ -119,11 +119,13 @@ export const invites = pgTable("invites", {
 
 export const siteContent = pgTable("site_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  key: varchar("key", { length: 100 }).notNull().unique(),
+  key: varchar("key", { length: 100 }).notNull(),
+  sectionKey: varchar("section_key", { length: 100 }),
   title: text("title").notNull(),
   titleEn: text("title_en"),
   content: text("content").notNull(),
   contentEn: text("content_en"),
+  orderIndex: integer("order_index").default(0),
   updatedBy: varchar("updated_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

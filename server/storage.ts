@@ -93,7 +93,11 @@ export interface IStorage {
   // Site content operations
   getAllSiteContent(): Promise<SiteContent[]>;
   getSiteContent(key: string): Promise<SiteContent | undefined>;
+  getSiteContentById(id: string): Promise<SiteContent | undefined>;
+  getSiteContentBySection(sectionKey: string): Promise<SiteContent[]>;
   createOrUpdateSiteContent(content: InsertSiteContent): Promise<SiteContent>;
+  createSiteContentCard(content: InsertSiteContent): Promise<SiteContent>;
+  deleteSiteContent(id: string): Promise<void>;
   
   // Team members operations
   getAllTeamMembers(): Promise<TeamMember[]>;
@@ -521,22 +525,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrUpdateSiteContent(content: InsertSiteContent): Promise<SiteContent> {
-    const [result] = await db
-      .insert(siteContent)
-      .values({ ...content, updatedAt: new Date() })
-      .onConflictDoUpdate({
-        target: siteContent.key,
-        set: {
+    const existing = await this.getSiteContent(content.key);
+    if (existing) {
+      const [result] = await db
+        .update(siteContent)
+        .set({
           title: content.title,
           titleEn: content.titleEn,
           content: content.content,
           contentEn: content.contentEn,
+          sectionKey: content.sectionKey,
+          orderIndex: content.orderIndex,
           updatedBy: content.updatedBy,
           updatedAt: new Date(),
-        },
-      })
+        })
+        .where(eq(siteContent.key, content.key))
+        .returning();
+      return result;
+    } else {
+      const [result] = await db
+        .insert(siteContent)
+        .values({ ...content, updatedAt: new Date() })
+        .returning();
+      return result;
+    }
+  }
+
+  async getSiteContentById(id: string): Promise<SiteContent | undefined> {
+    const [content] = await db.select().from(siteContent).where(eq(siteContent.id, id));
+    return content;
+  }
+
+  async getSiteContentBySection(sectionKey: string): Promise<SiteContent[]> {
+    return await db.select().from(siteContent)
+      .where(eq(siteContent.sectionKey, sectionKey))
+      .orderBy(asc(siteContent.orderIndex));
+  }
+
+  async createSiteContentCard(content: InsertSiteContent): Promise<SiteContent> {
+    const [result] = await db
+      .insert(siteContent)
+      .values({ ...content, updatedAt: new Date() })
       .returning();
     return result;
+  }
+
+  async deleteSiteContent(id: string): Promise<void> {
+    await db.delete(siteContent).where(eq(siteContent.id, id));
   }
 
   // Team members operations
