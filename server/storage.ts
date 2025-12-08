@@ -10,6 +10,7 @@ import {
   teamMembers,
   quickQuestions,
   navigationItems,
+  dynamicPages,
   type User,
   type UpsertUser,
   type Place,
@@ -32,6 +33,8 @@ import {
   type InsertQuickQuestion,
   type NavigationItem,
   type InsertNavigationItem,
+  type DynamicPage,
+  type InsertDynamicPage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, asc } from "drizzle-orm";
@@ -116,6 +119,14 @@ export interface IStorage {
   updateNavigationItem(id: string, updates: Partial<InsertNavigationItem>): Promise<NavigationItem>;
   deleteNavigationItem(id: string): Promise<void>;
   reorderNavigationItems(items: { id: string; orderIndex: number }[]): Promise<void>;
+  
+  // Dynamic pages operations
+  getAllDynamicPages(): Promise<DynamicPage[]>;
+  getDynamicPage(id: string): Promise<DynamicPage | undefined>;
+  getDynamicPageBySlug(slug: string): Promise<DynamicPage | undefined>;
+  createDynamicPage(page: InsertDynamicPage): Promise<DynamicPage>;
+  updateDynamicPage(id: string, updates: Partial<InsertDynamicPage>): Promise<DynamicPage>;
+  deleteDynamicPage(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -690,6 +701,42 @@ export class DatabaseStorage implements IStorage {
           .where(eq(navigationItems.id, item.id));
       }
     });
+  }
+
+  // Dynamic pages operations
+  async getAllDynamicPages(): Promise<DynamicPage[]> {
+    return await db.select().from(dynamicPages).orderBy(desc(dynamicPages.createdAt));
+  }
+
+  async getDynamicPage(id: string): Promise<DynamicPage | undefined> {
+    const [page] = await db.select().from(dynamicPages).where(eq(dynamicPages.id, id));
+    return page;
+  }
+
+  async getDynamicPageBySlug(slug: string): Promise<DynamicPage | undefined> {
+    const [page] = await db.select().from(dynamicPages).where(eq(dynamicPages.slug, slug));
+    return page;
+  }
+
+  async createDynamicPage(page: InsertDynamicPage): Promise<DynamicPage> {
+    const [result] = await db
+      .insert(dynamicPages)
+      .values({ ...page, updatedAt: new Date() })
+      .returning();
+    return result;
+  }
+
+  async updateDynamicPage(id: string, updates: Partial<InsertDynamicPage>): Promise<DynamicPage> {
+    const [result] = await db
+      .update(dynamicPages)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(dynamicPages.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteDynamicPage(id: string): Promise<void> {
+    await db.delete(dynamicPages).where(eq(dynamicPages.id, id));
   }
 }
 
