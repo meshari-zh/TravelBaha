@@ -21,7 +21,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
-import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem, DynamicPage, InsertDynamicPage } from "@shared/schema";
+import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem, DynamicPage, InsertDynamicPage, SiteContent } from "@shared/schema";
 
 // مكون تعديل محتوى الخريطة
 function MapContentEditorComponent() {
@@ -216,37 +216,39 @@ function HomeAndDashboardContentEditor() {
   const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
 
-  const contentKeys = [
-    { key: 'hero_title', defaultAr: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', defaultEn: 'Discover the beauty of AlBaha with the best tour guides' },
-    { key: 'hero_subtitle', defaultAr: 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة', defaultEn: 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region' },
-    { key: 'welcome_title', defaultAr: 'أهلاً وسهلاً', defaultEn: 'Welcome' },
-    { key: 'tourist_subtitle', defaultAr: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', defaultEn: 'Discover the beauty of AlBaha with the best tour guides' },
-    { key: 'guide_subtitle', defaultAr: 'مرحباً بك في لوحة التحكم الخاصة بك', defaultEn: 'Welcome to your control panel' },
-    { key: 'admin_subtitle', defaultAr: 'مرحباً بك في لوحة تحكم المشرف', defaultEn: 'Welcome to admin control panel' },
-    { key: 'explore_places_title', defaultAr: 'استكشف الأماكن', defaultEn: 'Explore Places' },
-    { key: 'explore_places_desc', defaultAr: 'اكتشف أجمل الوجهات السياحية في الباحة', defaultEn: 'Discover the most beautiful tourist destinations in AlBaha' },
-    { key: 'find_guide_title', defaultAr: 'اختر مرشداً', defaultEn: 'Find a Guide' },
-    { key: 'find_guide_desc', defaultAr: 'تواصل مع أفضل المرشدين المحليين', defaultEn: 'Connect with the best local guides' },
-    { key: 'my_bookings_title', defaultAr: 'حجوزاتي', defaultEn: 'My Bookings' },
-    { key: 'my_bookings_desc', defaultAr: 'تابع رحلاتك القادمة والسابقة', defaultEn: 'Track your upcoming and past trips' },
-    { key: 'admin_dashboard_title', defaultAr: 'إدارة المنصة والمحتوى', defaultEn: 'Platform and Content Management' },
-    { key: 'admin_panel_title', defaultAr: 'لوحة الإدارة', defaultEn: 'Admin Panel' },
-    { key: 'places_management_title', defaultAr: 'الأماكن السياحية', defaultEn: 'Tourist Places' },
-    { key: 'places_management_desc', defaultAr: 'إدارة الوجهات والمعالم', defaultEn: 'Manage destinations and landmarks' },
-    { key: 'guides_management_title', defaultAr: 'المرشدين السياحيين', defaultEn: 'Tour Guides' },
-    { key: 'guides_management_desc', defaultAr: 'إدارة المرشدين السياحيين', defaultEn: 'Manage tour guides' },
-  ];
+  const contentDefaults: { [key: string]: { ar: string; en: string } } = {
+    'hero_title': { ar: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', en: 'Discover the beauty of AlBaha with the best tour guides' },
+    'hero_subtitle': { ar: 'استمتع برحلة لا تُنسى في أجمل المناطق الطبيعية والتراثية في منطقة الباحة', en: 'Enjoy an unforgettable journey through the most beautiful natural and heritage areas in AlBaha region' },
+    'welcome_title': { ar: 'أهلاً وسهلاً', en: 'Welcome' },
+    'tourist_subtitle': { ar: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', en: 'Discover the beauty of AlBaha with the best tour guides' },
+    'guide_subtitle': { ar: 'مرحباً بك في لوحة التحكم الخاصة بك', en: 'Welcome to your control panel' },
+    'admin_subtitle': { ar: 'مرحباً بك في لوحة تحكم المشرف', en: 'Welcome to admin control panel' },
+    'explore_places_title': { ar: 'استكشف الأماكن', en: 'Explore Places' },
+    'explore_places_desc': { ar: 'اكتشف أجمل الوجهات السياحية في الباحة', en: 'Discover the most beautiful tourist destinations in AlBaha' },
+    'find_guide_title': { ar: 'اختر مرشداً', en: 'Find a Guide' },
+    'find_guide_desc': { ar: 'تواصل مع أفضل المرشدين المحليين', en: 'Connect with the best local guides' },
+    'my_bookings_title': { ar: 'حجوزاتي', en: 'My Bookings' },
+    'my_bookings_desc': { ar: 'تابع رحلاتك القادمة والسابقة', en: 'Track your upcoming and past trips' },
+    'admin_dashboard_title': { ar: 'إدارة المنصة والمحتوى', en: 'Platform and Content Management' },
+    'admin_panel_title': { ar: 'لوحة الإدارة', en: 'Admin Panel' },
+    'places_management_title': { ar: 'الأماكن السياحية', en: 'Tourist Places' },
+    'places_management_desc': { ar: 'إدارة الوجهات والمعالم', en: 'Manage destinations and landmarks' },
+    'guides_management_title': { ar: 'المرشدين السياحيين', en: 'Tour Guides' },
+    'guides_management_desc': { ar: 'إدارة المرشدين السياحيين', en: 'Manage tour guides' },
+  };
 
-  const queries = contentKeys.map(item => {
-    const { data, refetch } = useQuery({
-      queryKey: ['/api/site-content', item.key],
-      select: (data: any) => ({
-        ar: data?.content || item.defaultAr,
-        en: data?.contentEn || item.defaultEn
-      })
-    });
-    return { key: item.key, data, refetch, defaultAr: item.defaultAr, defaultEn: item.defaultEn };
+  const { data: allContent = [] } = useQuery<SiteContent[]>({
+    queryKey: ['/api/site-content'],
   });
+
+  const getContentValue = (key: string) => {
+    const item = allContent.find(c => c.key === key);
+    const defaults = contentDefaults[key] || { ar: '', en: '' };
+    return {
+      ar: item?.content || defaults.ar,
+      en: item?.contentEn || defaults.en
+    };
+  };
 
   const updateContentMutation = useMutation({
     mutationFn: async ({ key, title, content, contentEn }: { key: string; title: string; content: string; contentEn?: string }) => {
@@ -265,7 +267,6 @@ function HomeAndDashboardContentEditor() {
       });
       setIsEditing(prev => ({ ...prev, [variables.key]: false }));
       queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
-      queries.find(q => q.key === variables.key)?.refetch();
     },
     onError: () => {
       toast({
@@ -359,8 +360,7 @@ function HomeAndDashboardContentEditor() {
             </h3>
             <div className="grid gap-4">
               {section.items.map((item) => {
-                const queryData = queries.find(q => q.key === item.key);
-                const currentValue = queryData?.data || { ar: queryData?.defaultAr || '', en: queryData?.defaultEn || '' };
+                const currentValue = getContentValue(item.key);
                 
                 return (
                   <Card key={item.key} className="border-l-4 border-l-primary/50">
