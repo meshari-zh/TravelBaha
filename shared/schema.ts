@@ -183,6 +183,26 @@ export const navigationItemsRelations = relations(navigationItems, ({ one, many 
   children: many(navigationItems, { relationName: "parentChild" }),
 }));
 
+export const dynamicPages = pgTable("dynamic_pages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  titleAr: text("title_ar").notNull(),
+  titleEn: text("title_en").notNull(),
+  contentAr: text("content_ar"),
+  contentEn: text("content_en"),
+  isPublished: boolean("is_published").default(true),
+  navigationItemId: varchar("navigation_item_id").references(() => navigationItems.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dynamicPagesRelations = relations(dynamicPages, ({ one }) => ({
+  navigationItem: one(navigationItems, {
+    fields: [dynamicPages.navigationItemId],
+    references: [navigationItems.id],
+  }),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   guide: one(guides, {
@@ -268,6 +288,7 @@ export const insertSiteContentSchema = createInsertSchema(siteContent).omit({ id
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertQuickQuestionSchema = createInsertSchema(quickQuestions).omit({ id: true, createdAt: true, answeredAt: true });
 export const insertNavigationItemSchema = createInsertSchema(navigationItems).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDynamicPageSchema = createInsertSchema(dynamicPages).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -292,3 +313,5 @@ export type InsertQuickQuestion = z.infer<typeof insertQuickQuestionSchema>;
 export type QuickQuestion = typeof quickQuestions.$inferSelect;
 export type InsertNavigationItem = z.infer<typeof insertNavigationItemSchema>;
 export type NavigationItem = typeof navigationItems.$inferSelect;
+export type InsertDynamicPage = z.infer<typeof insertDynamicPageSchema>;
+export type DynamicPage = typeof dynamicPages.$inferSelect;
