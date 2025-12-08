@@ -19,9 +19,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
-import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion } from "@shared/schema";
+import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem } from "@shared/schema";
 
 // مكون تعديل محتوى الخريطة
 function MapContentEditorComponent() {
@@ -1053,6 +1053,465 @@ function ContactInfoEditorComponent() {
   );
 }
 
+// مكون إدارة عناصر القوائم
+function NavigationManagement({ language, toast }: { language: string; toast: any }) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
+  const [formData, setFormData] = useState({
+    labelAr: '',
+    labelEn: '',
+    path: '',
+    externalUrl: '',
+    type: 'link' as 'link' | 'dropdown',
+    parentId: null as string | null,
+    orderIndex: 0,
+    isVisible: true,
+    icon: '',
+  });
+
+  const { data: navItems = [], isLoading } = useQuery<NavigationItem[]>({
+    queryKey: ['/api/navigation'],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<InsertNavigationItem>) => {
+      const response = await fetch('/api/navigation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to create navigation item');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تمت الإضافة' : 'Added',
+        description: language === 'ar' ? 'تمت إضافة عنصر القائمة بنجاح' : 'Navigation item added successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/navigation'] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في إضافة عنصر القائمة' : 'Failed to add navigation item',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertNavigationItem> }) => {
+      const response = await fetch(`/api/navigation/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to update navigation item');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم التحديث' : 'Updated',
+        description: language === 'ar' ? 'تم تحديث عنصر القائمة بنجاح' : 'Navigation item updated successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/navigation'] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في تحديث عنصر القائمة' : 'Failed to update navigation item',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/navigation/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to delete navigation item');
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم الحذف' : 'Deleted',
+        description: language === 'ar' ? 'تم حذف عنصر القائمة بنجاح' : 'Navigation item deleted successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/navigation'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في حذف عنصر القائمة' : 'Failed to delete navigation item',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const toggleVisibilityMutation = useMutation({
+    mutationFn: async ({ id, isVisible }: { id: string; isVisible: boolean }) => {
+      const response = await fetch(`/api/navigation/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVisible }),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to toggle visibility');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/navigation'] });
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      labelAr: '',
+      labelEn: '',
+      path: '',
+      externalUrl: '',
+      type: 'link',
+      parentId: null,
+      orderIndex: navItems.length,
+      isVisible: true,
+      icon: '',
+    });
+    setEditingItem(null);
+  };
+
+  const openEditDialog = (item: NavigationItem) => {
+    setEditingItem(item);
+    setFormData({
+      labelAr: item.labelAr,
+      labelEn: item.labelEn || '',
+      path: item.path || '',
+      externalUrl: item.externalUrl || '',
+      type: item.type,
+      parentId: item.parentId,
+      orderIndex: item.orderIndex ?? 0,
+      isVisible: item.isVisible ?? true,
+      icon: item.icon || '',
+    });
+    setIsDialogOpen(true);
+  };
+
+  const openAddDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.labelAr.trim()) {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'يجب ملء الاسم العربي' : 'Arabic name is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.type === 'link' && !formData.path.trim() && !formData.externalUrl.trim()) {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'يجب ملء الرابط الداخلي أو الخارجي' : 'Internal or external link is required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const data = {
+      labelAr: formData.labelAr.trim(),
+      labelEn: formData.labelEn.trim() || undefined,
+      path: formData.path.trim() || undefined,
+      externalUrl: formData.externalUrl.trim() || undefined,
+      type: formData.type,
+      parentId: formData.parentId || undefined,
+      orderIndex: formData.orderIndex,
+      isVisible: formData.isVisible,
+      icon: formData.icon.trim() || undefined,
+    };
+
+    if (editingItem) {
+      updateMutation.mutate({ id: editingItem.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const parentItems = navItems.filter(item => !item.parentId && item.id !== editingItem?.id);
+  const childItems = (parentId: string) => navItems.filter(item => item.parentId === parentId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Menu className="w-5 h-5 text-primary" />
+            {language === 'ar' ? 'إدارة قوائم الموقع' : 'Website Navigation Management'}
+          </CardTitle>
+          <Button onClick={openAddDialog} data-testid="button-add-nav-item">
+            <Plus className="w-4 h-4 ml-2" />
+            {language === 'ar' ? 'إضافة عنصر جديد' : 'Add New Item'}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : navItems.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Menu className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>{language === 'ar' ? 'لا توجد عناصر قائمة' : 'No navigation items'}</p>
+            <p className="text-sm">{language === 'ar' ? 'اضغط على "إضافة عنصر جديد" للبدء' : 'Click "Add New Item" to get started'}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {parentItems.map((item, index) => (
+              <div key={item.id} className="border rounded-lg overflow-hidden">
+                <div className={`flex items-center gap-3 p-3 ${item.isVisible ? 'bg-background' : 'bg-muted/50'}`}>
+                  <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{item.labelAr}</span>
+                      {item.labelEn && <span className="text-muted-foreground text-sm">({item.labelEn})</span>}
+                      {!item.isVisible && <Badge variant="secondary" className="text-xs">{language === 'ar' ? 'مخفي' : 'Hidden'}</Badge>}
+                      {item.externalUrl && <ExternalLink className="w-3 h-3 text-muted-foreground" />}
+                      {item.type === 'dropdown' && <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground" dir="ltr">{item.path || item.externalUrl || (item.type === 'dropdown' ? '(dropdown)' : '')}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleVisibilityMutation.mutate({ id: item.id, isVisible: !item.isVisible })}
+                      data-testid={`button-toggle-nav-${item.id}`}
+                    >
+                      {item.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditDialog(item)}
+                      data-testid={`button-edit-nav-${item.id}`}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-nav-${item.id}`}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{language === 'ar' ? 'حذف عنصر القائمة' : 'Delete Navigation Item'}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {language === 'ar'
+                              ? `هل أنت متأكد من حذف "${item.labelAr}"؟ سيتم أيضاً فصل العناصر الفرعية.`
+                              : `Are you sure you want to delete "${item.labelAr}"? Child items will be unlinked.`}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteMutation.mutate(item.id)} className="bg-red-600 hover:bg-red-700">
+                            {language === 'ar' ? 'حذف' : 'Delete'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                {childItems(item.id).length > 0 && (
+                  <div className="border-t bg-muted/20 pr-8">
+                    {childItems(item.id).map((child) => (
+                      <div key={child.id} className={`flex items-center gap-3 p-3 border-b last:border-b-0 ${child.isVisible ? '' : 'opacity-50'}`}>
+                        <ChevronDown className="w-4 h-4 text-muted-foreground rotate-[-90deg]" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{child.labelAr}</span>
+                            {child.labelEn && <span className="text-muted-foreground text-xs">({child.labelEn})</span>}
+                            {!child.isVisible && <Badge variant="secondary" className="text-xs">{language === 'ar' ? 'مخفي' : 'Hidden'}</Badge>}
+                            {child.externalUrl && <ExternalLink className="w-3 h-3 text-muted-foreground" />}
+                          </div>
+                          <p className="text-xs text-muted-foreground" dir="ltr">{child.path || child.externalUrl}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleVisibilityMutation.mutate({ id: child.id, isVisible: !child.isVisible })}
+                          >
+                            {child.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(child)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{language === 'ar' ? 'حذف عنصر القائمة' : 'Delete Navigation Item'}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {language === 'ar' ? `هل أنت متأكد من حذف "${child.labelAr}"؟` : `Are you sure you want to delete "${child.labelAr}"?`}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteMutation.mutate(child.id)} className="bg-red-600 hover:bg-red-700">
+                                  {language === 'ar' ? 'حذف' : 'Delete'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingItem
+                  ? (language === 'ar' ? 'تعديل عنصر القائمة' : 'Edit Navigation Item')
+                  : (language === 'ar' ? 'إضافة عنصر قائمة جديد' : 'Add New Navigation Item')}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>{language === 'ar' ? 'الاسم (عربي) *' : 'Name (Arabic) *'}</Label>
+                  <Input
+                    value={formData.labelAr}
+                    onChange={(e) => setFormData(prev => ({ ...prev, labelAr: e.target.value }))}
+                    placeholder={language === 'ar' ? 'الأماكن السياحية' : 'Tourist Places'}
+                    required
+                    dir="rtl"
+                    data-testid="input-nav-label-ar"
+                  />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'الاسم (إنجليزي)' : 'Name (English)'}</Label>
+                  <Input
+                    value={formData.labelEn}
+                    onChange={(e) => setFormData(prev => ({ ...prev, labelEn: e.target.value }))}
+                    placeholder="Tourist Places"
+                    dir="ltr"
+                    data-testid="input-nav-label-en"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>{language === 'ar' ? 'نوع العنصر' : 'Item Type'}</Label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as 'link' | 'dropdown' }))}
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  data-testid="select-nav-type"
+                >
+                  <option value="link">{language === 'ar' ? 'رابط' : 'Link'}</option>
+                  <option value="dropdown">{language === 'ar' ? 'قائمة منسدلة' : 'Dropdown Menu'}</option>
+                </select>
+              </div>
+              {formData.type === 'link' && (
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label>{language === 'ar' ? 'الرابط الداخلي' : 'Internal Link'}</Label>
+                    <Input
+                      value={formData.path}
+                      onChange={(e) => setFormData(prev => ({ ...prev, path: e.target.value }))}
+                      placeholder="/places"
+                      dir="ltr"
+                      data-testid="input-nav-path"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {language === 'ar' ? 'للصفحات داخل الموقع مثل: /places' : 'For internal pages like: /places'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>{language === 'ar' ? 'أو رابط خارجي' : 'Or External Link'}</Label>
+                    <Input
+                      value={formData.externalUrl}
+                      onChange={(e) => setFormData(prev => ({ ...prev, externalUrl: e.target.value }))}
+                      placeholder="https://example.com"
+                      dir="ltr"
+                      data-testid="input-nav-external-url"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {language === 'ar' ? 'للمواقع الخارجية (يفتح في نافذة جديدة)' : 'For external websites (opens in new tab)'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div>
+                <Label>{language === 'ar' ? 'القائمة الأب (للقوائم الفرعية)' : 'Parent Menu (for submenu)'}</Label>
+                <select
+                  value={formData.parentId || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value || null }))}
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  data-testid="select-nav-parent"
+                >
+                  <option value="">{language === 'ar' ? 'بدون أب (قائمة رئيسية)' : 'No parent (main menu)'}</option>
+                  {parentItems.map(item => (
+                    <option key={item.id} value={item.id}>{item.labelAr}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isVisible}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isVisible: e.target.checked }))}
+                    className="w-4 h-4"
+                    data-testid="checkbox-nav-visible"
+                  />
+                  <span className="text-sm">{language === 'ar' ? 'مرئي' : 'Visible'}</span>
+                </label>
+              </div>
+              {formData.externalUrl && (
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  {language === 'ar' ? 'الروابط الخارجية تفتح تلقائياً في نافذة جديدة' : 'External links automatically open in a new tab'}
+                </p>
+              )}
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="flex-1" data-testid="button-save-nav">
+                  {(createMutation.isPending || updateMutation.isPending)
+                    ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...')
+                    : (language === 'ar' ? 'حفظ' : 'Save')}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { language } = useLanguage();
@@ -1072,7 +1531,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'content', 'invites'].includes(tab)) {
+    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'content', 'invites', 'questions', 'navigation'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -1710,6 +2169,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="questions" data-testid="tab-questions" className="shrink-0 whitespace-nowrap flex items-center gap-1">
               <MessageCircleQuestion className="w-4 h-4" />
               {language === 'ar' ? 'الأسئلة السريعة' : 'Quick Questions'}
+            </TabsTrigger>
+            <TabsTrigger value="navigation" data-testid="tab-navigation" className="shrink-0 whitespace-nowrap flex items-center gap-1">
+              <Menu className="w-4 h-4" />
+              {language === 'ar' ? 'قوائم الموقع' : 'Navigation'}
             </TabsTrigger>
           </TabsList>
 
@@ -2661,6 +3124,11 @@ export default function AdminDashboard() {
           {/* Quick Questions Management */}
           <TabsContent value="questions">
             <QuickQuestionsManagement language={language} toast={toast} />
+          </TabsContent>
+
+          {/* Navigation Management */}
+          <TabsContent value="navigation">
+            <NavigationManagement language={language} toast={toast} />
           </TabsContent>
         </Tabs>
 
