@@ -21,7 +21,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
-import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem } from "@shared/schema";
+import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem, DynamicPage, InsertDynamicPage } from "@shared/schema";
 
 // مكون تعديل محتوى الخريطة
 function MapContentEditorComponent() {
@@ -1053,10 +1053,263 @@ function ContactInfoEditorComponent() {
   );
 }
 
+// مكون إدارة الصفحات الديناميكية
+function PagesManagement({ language, toast }: { language: string; toast: any }) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPage, setEditingPage] = useState<DynamicPage | null>(null);
+  const [formData, setFormData] = useState({
+    titleAr: '',
+    titleEn: '',
+    contentAr: '',
+    contentEn: '',
+    isPublished: true,
+  });
+
+  const { data: pages = [], isLoading } = useQuery<DynamicPage[]>({
+    queryKey: ['/api/pages'],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertDynamicPage> }) => {
+      const response = await fetch(`/api/pages/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to update page');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم التحديث' : 'Updated',
+        description: language === 'ar' ? 'تم تحديث الصفحة بنجاح' : 'Page updated successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
+      setIsDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في تحديث الصفحة' : 'Failed to update page',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/pages/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to delete page');
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم الحذف' : 'Deleted',
+        description: language === 'ar' ? 'تم حذف الصفحة بنجاح' : 'Page deleted successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/navigation'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في حذف الصفحة' : 'Failed to delete page',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const openEditDialog = (page: DynamicPage) => {
+    setEditingPage(page);
+    setFormData({
+      titleAr: page.titleAr,
+      titleEn: page.titleEn || '',
+      contentAr: page.contentAr || '',
+      contentEn: page.contentEn || '',
+      isPublished: page.isPublished ?? true,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPage) return;
+
+    updateMutation.mutate({
+      id: editingPage.id,
+      data: {
+        titleAr: formData.titleAr.trim(),
+        titleEn: formData.titleEn.trim() || undefined,
+        contentAr: formData.contentAr.trim() || undefined,
+        contentEn: formData.contentEn.trim() || undefined,
+        isPublished: formData.isPublished,
+      },
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Menu className="w-5 h-5 text-primary" />
+          {language === 'ar' ? 'إدارة الصفحات' : 'Pages Management'}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {language === 'ar' 
+            ? 'يمكنك تعديل محتوى الصفحات التي تم إنشاؤها من قسم القوائم' 
+            : 'You can edit content of pages created from Navigation section'}
+        </p>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : pages.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Menu className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>{language === 'ar' ? 'لا توجد صفحات' : 'No pages'}</p>
+            <p className="text-sm">{language === 'ar' ? 'أضف صفحة جديدة من قسم "القوائم" باختيار "إنشاء صفحة جديدة"' : 'Add a new page from "Navigation" section by choosing "Create new page"'}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pages.map((page) => (
+              <div key={page.id} className={`flex items-center gap-3 p-4 border rounded-lg ${page.isPublished ? 'bg-background' : 'bg-muted/50'}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{page.titleAr}</span>
+                    {page.titleEn && <span className="text-muted-foreground text-sm">({page.titleEn})</span>}
+                    {!page.isPublished && <Badge variant="secondary" className="text-xs">{language === 'ar' ? 'غير منشور' : 'Unpublished'}</Badge>}
+                  </div>
+                  <p className="text-xs text-muted-foreground" dir="ltr">/page/{page.slug}</p>
+                  {page.contentAr && (
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{page.contentAr.substring(0, 100)}...</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEditDialog(page)}
+                    data-testid={`button-edit-page-${page.id}`}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-page-${page.id}`}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{language === 'ar' ? 'حذف الصفحة' : 'Delete Page'}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {language === 'ar'
+                            ? `هل أنت متأكد من حذف "${page.titleAr}"؟ سيتم أيضاً تحديث عنصر القائمة المرتبط.`
+                            : `Are you sure you want to delete "${page.titleAr}"? The associated navigation item will also be updated.`}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteMutation.mutate(page.id)} className="bg-red-600 hover:bg-red-700">
+                          {language === 'ar' ? 'حذف' : 'Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {language === 'ar' ? 'تعديل محتوى الصفحة' : 'Edit Page Content'}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>{language === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}</Label>
+                  <Input
+                    value={formData.titleAr}
+                    onChange={(e) => setFormData(prev => ({ ...prev, titleAr: e.target.value }))}
+                    dir="rtl"
+                    data-testid="input-page-title-ar"
+                  />
+                </div>
+                <div>
+                  <Label>{language === 'ar' ? 'العنوان (إنجليزي)' : 'Title (English)'}</Label>
+                  <Input
+                    value={formData.titleEn}
+                    onChange={(e) => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
+                    dir="ltr"
+                    data-testid="input-page-title-en"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>{language === 'ar' ? 'المحتوى (عربي)' : 'Content (Arabic)'}</Label>
+                <textarea
+                  value={formData.contentAr}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contentAr: e.target.value }))}
+                  className="w-full min-h-[200px] p-3 border rounded-md text-sm"
+                  dir="rtl"
+                  placeholder={language === 'ar' ? 'اكتب المحتوى هنا...' : 'Write content here...'}
+                  data-testid="textarea-page-content-ar"
+                />
+              </div>
+              <div>
+                <Label>{language === 'ar' ? 'المحتوى (إنجليزي)' : 'Content (English)'}</Label>
+                <textarea
+                  value={formData.contentEn}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contentEn: e.target.value }))}
+                  className="w-full min-h-[200px] p-3 border rounded-md text-sm"
+                  dir="ltr"
+                  placeholder="Write content here..."
+                  data-testid="textarea-page-content-en"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isPublished}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
+                  className="w-4 h-4"
+                  data-testid="checkbox-page-published"
+                />
+                <span className="text-sm">{language === 'ar' ? 'منشور' : 'Published'}</span>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={updateMutation.isPending} className="flex-1" data-testid="button-save-page">
+                  {updateMutation.isPending
+                    ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...')
+                    : (language === 'ar' ? 'حفظ' : 'Save')}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+}
+
 // مكون إدارة عناصر القوائم
 function NavigationManagement({ language, toast }: { language: string; toast: any }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
+  const [linkType, setLinkType] = useState<'internal' | 'external' | 'page'>('internal');
   const [formData, setFormData] = useState({
     labelAr: '',
     labelEn: '',
@@ -1067,6 +1320,7 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
     orderIndex: 0,
     isVisible: true,
     icon: '',
+    pageSlug: '',
   });
 
   const { data: navItems = [], isLoading } = useQuery<NavigationItem[]>({
@@ -1182,12 +1436,16 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
       orderIndex: navItems.length,
       isVisible: true,
       icon: '',
+      pageSlug: '',
     });
+    setLinkType('internal');
     setEditingItem(null);
   };
 
   const openEditDialog = (item: NavigationItem) => {
     setEditingItem(item);
+    const itemLinkType = item.externalUrl ? 'external' : (item.path?.startsWith('/page/') ? 'page' : 'internal');
+    setLinkType(itemLinkType);
     setFormData({
       labelAr: item.labelAr,
       labelEn: item.labelEn || '',
@@ -1198,6 +1456,7 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
       orderIndex: item.orderIndex ?? 0,
       isVisible: item.isVisible ?? true,
       icon: item.icon || '',
+      pageSlug: item.path?.startsWith('/page/') ? item.path.replace('/page/', '') : '',
     });
     setIsDialogOpen(true);
   };
@@ -1207,7 +1466,23 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createPageMutation = useMutation({
+    mutationFn: async (data: { slug: string; titleAr: string; titleEn: string; navigationItemId?: string }) => {
+      const response = await fetch('/api/pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to create page');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/pages'] });
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.labelAr.trim()) {
       toast({
@@ -1218,20 +1493,50 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
       return;
     }
 
-    if (formData.type === 'link' && !formData.path.trim() && !formData.externalUrl.trim()) {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'يجب ملء الرابط الداخلي أو الخارجي' : 'Internal or external link is required',
-        variant: 'destructive',
-      });
-      return;
+    if (formData.type === 'link') {
+      if (linkType === 'internal' && !formData.path.trim()) {
+        toast({
+          title: language === 'ar' ? 'خطأ' : 'Error',
+          description: language === 'ar' ? 'يجب ملء الرابط الداخلي' : 'Internal link is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (linkType === 'external' && !formData.externalUrl.trim()) {
+        toast({
+          title: language === 'ar' ? 'خطأ' : 'Error',
+          description: language === 'ar' ? 'يجب ملء الرابط الخارجي' : 'External link is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (linkType === 'page' && !formData.pageSlug.trim()) {
+        toast({
+          title: language === 'ar' ? 'خطأ' : 'Error',
+          description: language === 'ar' ? 'يجب ملء رابط الصفحة' : 'Page slug is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    let pathValue = formData.path.trim() || undefined;
+    let externalUrlValue = formData.externalUrl.trim() || undefined;
+
+    if (linkType === 'page') {
+      pathValue = `/page/${formData.pageSlug.trim()}`;
+      externalUrlValue = undefined;
+    } else if (linkType === 'internal') {
+      externalUrlValue = undefined;
+    } else if (linkType === 'external') {
+      pathValue = undefined;
     }
 
     const data = {
       labelAr: formData.labelAr.trim(),
       labelEn: formData.labelEn.trim() || undefined,
-      path: formData.path.trim() || undefined,
-      externalUrl: formData.externalUrl.trim() || undefined,
+      path: pathValue,
+      externalUrl: externalUrlValue,
       type: formData.type,
       parentId: formData.parentId || undefined,
       orderIndex: formData.orderIndex,
@@ -1242,7 +1547,31 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
     if (editingItem) {
       updateMutation.mutate({ id: editingItem.id, data });
     } else {
-      createMutation.mutate(data);
+      if (linkType === 'page') {
+        try {
+          const navItem = await createMutation.mutateAsync(data);
+          await createPageMutation.mutateAsync({
+            slug: formData.pageSlug.trim(),
+            titleAr: formData.labelAr.trim(),
+            titleEn: formData.labelEn.trim() || formData.labelAr.trim(),
+            navigationItemId: navItem.id,
+          });
+          toast({
+            title: language === 'ar' ? 'تمت الإضافة' : 'Added',
+            description: language === 'ar' ? 'تمت إضافة الصفحة بنجاح، يمكنك تعديل المحتوى من تبويب الصفحات' : 'Page added successfully, you can edit content from Pages tab',
+          });
+          setIsDialogOpen(false);
+          resetForm();
+        } catch {
+          toast({
+            title: language === 'ar' ? 'خطأ' : 'Error',
+            description: language === 'ar' ? 'فشل في إنشاء الصفحة' : 'Failed to create page',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        createMutation.mutate(data);
+      }
     }
   };
 
@@ -1434,33 +1763,71 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
                 </select>
               </div>
               {formData.type === 'link' && (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-4">
                   <div>
-                    <Label>{language === 'ar' ? 'الرابط الداخلي' : 'Internal Link'}</Label>
-                    <Input
-                      value={formData.path}
-                      onChange={(e) => setFormData(prev => ({ ...prev, path: e.target.value }))}
-                      placeholder="/places"
-                      dir="ltr"
-                      data-testid="input-nav-path"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {language === 'ar' ? 'للصفحات داخل الموقع مثل: /places' : 'For internal pages like: /places'}
-                    </p>
+                    <Label>{language === 'ar' ? 'نوع الرابط' : 'Link Type'}</Label>
+                    <select
+                      value={linkType}
+                      onChange={(e) => setLinkType(e.target.value as 'internal' | 'external' | 'page')}
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                      data-testid="select-link-type"
+                    >
+                      <option value="internal">{language === 'ar' ? 'صفحة موجودة في الموقع' : 'Existing site page'}</option>
+                      <option value="page">{language === 'ar' ? 'إنشاء صفحة جديدة' : 'Create new page'}</option>
+                      <option value="external">{language === 'ar' ? 'رابط خارجي' : 'External link'}</option>
+                    </select>
                   </div>
-                  <div>
-                    <Label>{language === 'ar' ? 'أو رابط خارجي' : 'Or External Link'}</Label>
-                    <Input
-                      value={formData.externalUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, externalUrl: e.target.value }))}
-                      placeholder="https://example.com"
-                      dir="ltr"
-                      data-testid="input-nav-external-url"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {language === 'ar' ? 'للمواقع الخارجية (يفتح في نافذة جديدة)' : 'For external websites (opens in new tab)'}
-                    </p>
-                  </div>
+                  
+                  {linkType === 'internal' && (
+                    <div>
+                      <Label>{language === 'ar' ? 'الرابط الداخلي' : 'Internal Link'}</Label>
+                      <Input
+                        value={formData.path}
+                        onChange={(e) => setFormData(prev => ({ ...prev, path: e.target.value }))}
+                        placeholder="/places"
+                        dir="ltr"
+                        data-testid="input-nav-path"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {language === 'ar' ? 'مثل: /places أو /guides أو /about' : 'Like: /places or /guides or /about'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {linkType === 'page' && (
+                    <div>
+                      <Label>{language === 'ar' ? 'رابط الصفحة (slug)' : 'Page Slug'}</Label>
+                      <Input
+                        value={formData.pageSlug}
+                        onChange={(e) => setFormData(prev => ({ ...prev, pageSlug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }))}
+                        placeholder="about-us"
+                        dir="ltr"
+                        data-testid="input-page-slug"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {language === 'ar' ? 'سيتم إنشاء صفحة جديدة على: /page/about-us' : 'A new page will be created at: /page/about-us'}
+                      </p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        {language === 'ar' ? 'يمكنك تعديل محتوى الصفحة من تبويب "الصفحات" بعد الإنشاء' : 'You can edit page content from "Pages" tab after creation'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {linkType === 'external' && (
+                    <div>
+                      <Label>{language === 'ar' ? 'الرابط الخارجي' : 'External Link'}</Label>
+                      <Input
+                        value={formData.externalUrl}
+                        onChange={(e) => setFormData(prev => ({ ...prev, externalUrl: e.target.value }))}
+                        placeholder="https://example.com"
+                        dir="ltr"
+                        data-testid="input-nav-external-url"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {language === 'ar' ? 'يفتح في نافذة جديدة' : 'Opens in new tab'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
               <div>
@@ -1489,11 +1856,6 @@ function NavigationManagement({ language, toast }: { language: string; toast: an
                   <span className="text-sm">{language === 'ar' ? 'مرئي' : 'Visible'}</span>
                 </label>
               </div>
-              {formData.externalUrl && (
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  {language === 'ar' ? 'الروابط الخارجية تفتح تلقائياً في نافذة جديدة' : 'External links automatically open in a new tab'}
-                </p>
-              )}
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="flex-1" data-testid="button-save-nav">
                   {(createMutation.isPending || updateMutation.isPending)
@@ -1531,7 +1893,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'content', 'invites', 'questions', 'navigation'].includes(tab)) {
+    if (tab && ['places', 'guides', 'bookings', 'users', 'team', 'content', 'invites', 'questions', 'navigation', 'pages'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -2173,6 +2535,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="navigation" data-testid="tab-navigation" className="shrink-0 whitespace-nowrap flex items-center gap-1">
               <Menu className="w-4 h-4" />
               {language === 'ar' ? 'قوائم الموقع' : 'Navigation'}
+            </TabsTrigger>
+            <TabsTrigger value="pages" data-testid="tab-pages" className="shrink-0 whitespace-nowrap flex items-center gap-1">
+              <Edit className="w-4 h-4" />
+              {language === 'ar' ? 'الصفحات' : 'Pages'}
             </TabsTrigger>
           </TabsList>
 
@@ -3129,6 +3495,10 @@ export default function AdminDashboard() {
           {/* Navigation Management */}
           <TabsContent value="navigation">
             <NavigationManagement language={language} toast={toast} />
+          </TabsContent>
+          
+          <TabsContent value="pages">
+            <PagesManagement language={language} toast={toast} />
           </TabsContent>
         </Tabs>
 
