@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
-import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, insertQuickQuestionSchema, type Booking, type User } from "@shared/schema";
+import { insertPlaceSchema, insertGuideSchema, insertBookingSchema, insertMessageSchema, insertReviewSchema, insertInviteSchema, insertSiteContentSchema, insertTeamMemberSchema, insertQuickQuestionSchema, insertNavigationItemSchema, type Booking, type User } from "@shared/schema";
 import session from "express-session";
 import { parse as parseCookie } from "cookie";
 import { unsign } from "cookie-signature";
@@ -1263,6 +1263,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting quick question:", error);
       res.status(500).json({ message: "Failed to delete quick question" });
+    }
+  });
+
+  // Navigation items routes - visible to all (for navbar), manageable by admins
+  app.get('/api/navigation', async (req, res) => {
+    try {
+      const items = await storage.getAllNavigationItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching navigation items:", error);
+      res.status(500).json({ message: "Failed to fetch navigation items" });
+    }
+  });
+
+  app.get('/api/navigation/:id', async (req, res) => {
+    try {
+      const item = await storage.getNavigationItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Navigation item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching navigation item:", error);
+      res.status(500).json({ message: "Failed to fetch navigation item" });
+    }
+  });
+
+  app.post('/api/navigation', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertNavigationItemSchema.parse(req.body);
+      const item = await storage.createNavigationItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating navigation item:", error);
+      res.status(500).json({ message: "Failed to create navigation item" });
+    }
+  });
+
+  app.put('/api/navigation/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertNavigationItemSchema.partial().parse(req.body);
+      const item = await storage.updateNavigationItem(req.params.id, validatedData);
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating navigation item:", error);
+      res.status(500).json({ message: "Failed to update navigation item" });
+    }
+  });
+
+  app.delete('/api/navigation/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteNavigationItem(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting navigation item:", error);
+      res.status(500).json({ message: "Failed to delete navigation item" });
+    }
+  });
+
+  app.put('/api/navigation/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { items } = req.body;
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ message: "Items array is required" });
+      }
+
+      await storage.reorderNavigationItems(items);
+      res.json({ message: "Navigation items reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering navigation items:", error);
+      res.status(500).json({ message: "Failed to reorder navigation items" });
     }
   });
 
