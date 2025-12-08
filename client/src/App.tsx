@@ -25,6 +25,7 @@ import JoinGuide from "@/pages/join-guide";
 import GuideRequirements from "@/pages/guide-requirements";
 import GuideManual from "@/pages/guide-manual";
 import NotFound from "@/pages/not-found";
+import DynamicPageView from "@/pages/dynamic-page";
 import QuickQuestionsBubble from "@/components/quick-questions-bubble";
 
 function Router() {
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/guide-requirements" component={GuideRequirements} />
       <Route path="/guide-manual" component={GuideManual} />
       <Route path="/landing" component={Landing} />
+      <Route path="/page/:slug" component={DynamicPageView} />
       
       {/* Routes requiring authentication */}
       {isAuthenticated ? (
