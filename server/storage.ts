@@ -9,6 +9,7 @@ import {
   siteContent,
   teamMembers,
   quickQuestions,
+  navigationItems,
   type User,
   type UpsertUser,
   type Place,
@@ -29,6 +30,8 @@ import {
   type InsertTeamMember,
   type QuickQuestion,
   type InsertQuickQuestion,
+  type NavigationItem,
+  type InsertNavigationItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, asc } from "drizzle-orm";
@@ -105,6 +108,14 @@ export interface IStorage {
   updateQuickQuestionTranslation(id: string, questionEn: string): Promise<QuickQuestion>;
   updateQuickQuestion(id: string, updates: { question?: string; questionEn?: string; answer?: string; answerEn?: string }): Promise<QuickQuestion>;
   deleteQuickQuestion(id: string): Promise<void>;
+  
+  // Navigation items operations
+  getAllNavigationItems(): Promise<NavigationItem[]>;
+  getNavigationItem(id: string): Promise<NavigationItem | undefined>;
+  createNavigationItem(item: InsertNavigationItem): Promise<NavigationItem>;
+  updateNavigationItem(id: string, updates: Partial<InsertNavigationItem>): Promise<NavigationItem>;
+  deleteNavigationItem(id: string): Promise<void>;
+  reorderNavigationItems(items: { id: string; orderIndex: number }[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -633,6 +644,52 @@ export class DatabaseStorage implements IStorage {
 
   async deleteQuickQuestion(id: string): Promise<void> {
     await db.delete(quickQuestions).where(eq(quickQuestions.id, id));
+  }
+
+  // Navigation items operations
+  async getAllNavigationItems(): Promise<NavigationItem[]> {
+    return await db.select().from(navigationItems).orderBy(asc(navigationItems.orderIndex), asc(navigationItems.labelAr));
+  }
+
+  async getNavigationItem(id: string): Promise<NavigationItem | undefined> {
+    const [item] = await db.select().from(navigationItems).where(eq(navigationItems.id, id));
+    return item;
+  }
+
+  async createNavigationItem(item: InsertNavigationItem): Promise<NavigationItem> {
+    const [result] = await db
+      .insert(navigationItems)
+      .values({ ...item, updatedAt: new Date() })
+      .returning();
+    return result;
+  }
+
+  async updateNavigationItem(id: string, updates: Partial<InsertNavigationItem>): Promise<NavigationItem> {
+    const [result] = await db
+      .update(navigationItems)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(navigationItems.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteNavigationItem(id: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.update(navigationItems)
+        .set({ parentId: null })
+        .where(eq(navigationItems.parentId, id));
+      await tx.delete(navigationItems).where(eq(navigationItems.id, id));
+    });
+  }
+
+  async reorderNavigationItems(items: { id: string; orderIndex: number }[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (const item of items) {
+        await tx.update(navigationItems)
+          .set({ orderIndex: item.orderIndex, updatedAt: new Date() })
+          .where(eq(navigationItems.id, item.id));
+      }
+    });
   }
 }
 

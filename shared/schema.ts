@@ -159,6 +159,30 @@ export const quickQuestions = pgTable("quick_questions", {
   answeredAt: timestamp("answered_at"),
 });
 
+export const navigationItems = pgTable("navigation_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  labelAr: text("label_ar").notNull(),
+  labelEn: text("label_en").notNull(),
+  path: text("path"),
+  externalUrl: text("external_url"),
+  icon: text("icon"),
+  type: varchar("type", { enum: ["link", "dropdown"] }).notNull().default("link"),
+  parentId: varchar("parent_id"),
+  orderIndex: integer("order_index").default(0),
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const navigationItemsRelations = relations(navigationItems, ({ one, many }) => ({
+  parent: one(navigationItems, {
+    fields: [navigationItems.parentId],
+    references: [navigationItems.id],
+    relationName: "parentChild",
+  }),
+  children: many(navigationItems, { relationName: "parentChild" }),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   guide: one(guides, {
@@ -243,6 +267,7 @@ export const insertInviteSchema = createInsertSchema(invites).omit({ id: true, c
 export const insertSiteContentSchema = createInsertSchema(siteContent).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertQuickQuestionSchema = createInsertSchema(quickQuestions).omit({ id: true, createdAt: true, answeredAt: true });
+export const insertNavigationItemSchema = createInsertSchema(navigationItems).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -265,3 +290,5 @@ export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertQuickQuestion = z.infer<typeof insertQuickQuestionSchema>;
 export type QuickQuestion = typeof quickQuestions.$inferSelect;
+export type InsertNavigationItem = z.infer<typeof insertNavigationItemSchema>;
+export type NavigationItem = typeof navigationItems.$inferSelect;
