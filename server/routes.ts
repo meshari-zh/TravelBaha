@@ -1329,6 +1329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      await storage.deleteDynamicPagesByNavigationItemId(req.params.id);
       await storage.deleteNavigationItem(req.params.id);
       res.status(204).send();
     } catch (error) {

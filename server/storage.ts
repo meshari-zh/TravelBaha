@@ -124,9 +124,11 @@ export interface IStorage {
   getAllDynamicPages(): Promise<DynamicPage[]>;
   getDynamicPage(id: string): Promise<DynamicPage | undefined>;
   getDynamicPageBySlug(slug: string): Promise<DynamicPage | undefined>;
+  getDynamicPagesByNavigationItemId(navigationItemId: string): Promise<DynamicPage[]>;
   createDynamicPage(page: InsertDynamicPage): Promise<DynamicPage>;
   updateDynamicPage(id: string, updates: Partial<InsertDynamicPage>): Promise<DynamicPage>;
   deleteDynamicPage(id: string): Promise<void>;
+  deleteDynamicPagesByNavigationItemId(navigationItemId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -737,6 +739,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDynamicPage(id: string): Promise<void> {
     await db.delete(dynamicPages).where(eq(dynamicPages.id, id));
+  }
+
+  async getDynamicPagesByNavigationItemId(navigationItemId: string): Promise<DynamicPage[]> {
+    return await db.select().from(dynamicPages).where(eq(dynamicPages.navigationItemId, navigationItemId));
+  }
+
+  async deleteDynamicPagesByNavigationItemId(navigationItemId: string): Promise<void> {
+    await db.delete(dynamicPages).where(eq(dynamicPages.navigationItemId, navigationItemId));
   }
 }
 
