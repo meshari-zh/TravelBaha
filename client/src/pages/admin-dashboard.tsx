@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown, RefreshCw } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem, DynamicPage, InsertDynamicPage, SiteContent } from "@shared/schema";
@@ -216,7 +217,7 @@ function HomeAndDashboardContentEditor() {
   const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
   const [showAddForm, setShowAddForm] = useState<{[key: string]: boolean}>({});
-  const [newCardData, setNewCardData] = useState<{[key: string]: { titleAr: string; titleEn: string; contentAr: string; contentEn: string }}>({});
+  const [newCardData, setNewCardData] = useState<{[key: string]: { titleAr: string; titleEn: string; contentAr: string; contentEn: string; imageUrl?: string; buttonLink?: string; buttonText?: string; buttonTextEn?: string; position?: string }}>({});
 
   const contentDefaults: { [key: string]: { ar: string; en: string } } = {
     'hero_title': { ar: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', en: 'Discover the beauty of AlBaha with the best tour guides' },
