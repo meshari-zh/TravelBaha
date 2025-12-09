@@ -288,12 +288,15 @@ function HomeAndDashboardContentEditor() {
   });
 
   const addCardMutation = useMutation({
-    mutationFn: async ({ sectionKey, title, titleEn, content, contentEn }: { sectionKey: string; title: string; titleEn: string; content: string; contentEn: string }) => {
+    mutationFn: async ({ sectionKey, title, titleEn, content, contentEn, imageUrl, buttonLink, buttonText, buttonTextEn, position }: { 
+      sectionKey: string; title: string; titleEn: string; content: string; contentEn: string;
+      imageUrl?: string; buttonLink?: string; buttonText?: string; buttonTextEn?: string; position?: string;
+    }) => {
       const key = `${sectionKey}_${Date.now()}`;
       const response = await fetch('/api/site-content/card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, sectionKey, title, titleEn, content, contentEn }),
+        body: JSON.stringify({ key, sectionKey, title, titleEn, content, contentEn, imageUrl, buttonLink, buttonText, buttonTextEn, position }),
       });
       if (!response.ok) throw new Error('Failed to add card');
       return response.json();
@@ -304,7 +307,7 @@ function HomeAndDashboardContentEditor() {
         description: language === 'ar' ? "تم إضافة البطاقة الجديدة" : "New card has been added",
       });
       setShowAddForm(prev => ({ ...prev, [variables.sectionKey]: false }));
-      setNewCardData(prev => ({ ...prev, [variables.sectionKey]: { titleAr: '', titleEn: '', contentAr: '', contentEn: '' } }));
+      setNewCardData(prev => ({ ...prev, [variables.sectionKey]: { titleAr: '', titleEn: '', contentAr: '', contentEn: '', imageUrl: '', buttonLink: '', buttonText: '', buttonTextEn: '', position: 'grid' } }));
       queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
     },
     onError: () => {
@@ -399,7 +402,12 @@ function HomeAndDashboardContentEditor() {
       title: data.titleAr,
       titleEn: data.titleEn || '',
       content: data.contentAr,
-      contentEn: data.contentEn || ''
+      contentEn: data.contentEn || '',
+      imageUrl: data.imageUrl || '',
+      buttonLink: data.buttonLink || '',
+      buttonText: data.buttonText || '',
+      buttonTextEn: data.buttonTextEn || '',
+      position: data.position || 'grid'
     });
   };
 
@@ -568,7 +576,90 @@ function HomeAndDashboardContentEditor() {
                       data-testid={`input-new-content-en-${section.sectionKey}`}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  
+                  <div className="border-t pt-4 mt-4">
+                    <p className="text-sm text-muted-foreground mb-3">{language === 'ar' ? 'خيارات إضافية (اختيارية)' : 'Additional Options (Optional)'}</p>
+                    
+                    <div>
+                      <Label>🖼️ {language === 'ar' ? 'رابط الصورة' : 'Image URL'}</Label>
+                      <Input
+                        value={newCardData[section.sectionKey]?.imageUrl || ''}
+                        onChange={(e) => setNewCardData(prev => ({
+                          ...prev,
+                          [section.sectionKey]: { ...prev[section.sectionKey], imageUrl: e.target.value }
+                        }))}
+                        placeholder={language === 'ar' ? 'https://...' : 'https://...'}
+                        className="mt-1"
+                        data-testid={`input-new-image-${section.sectionKey}`}
+                      />
+                    </div>
+                    
+                    <div className="mt-3">
+                      <Label>🔗 {language === 'ar' ? 'رابط الزر (اختياري)' : 'Button Link (Optional)'}</Label>
+                      <Input
+                        value={newCardData[section.sectionKey]?.buttonLink || ''}
+                        onChange={(e) => setNewCardData(prev => ({
+                          ...prev,
+                          [section.sectionKey]: { ...prev[section.sectionKey], buttonLink: e.target.value }
+                        }))}
+                        placeholder={language === 'ar' ? '/page أو https://...' : '/page or https://...'}
+                        className="mt-1"
+                        data-testid={`input-new-button-link-${section.sectionKey}`}
+                      />
+                    </div>
+                    
+                    {newCardData[section.sectionKey]?.buttonLink && (
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <Label>🇸🇦 {language === 'ar' ? 'نص الزر بالعربي' : 'Arabic Button Text'}</Label>
+                          <Input
+                            value={newCardData[section.sectionKey]?.buttonText || ''}
+                            onChange={(e) => setNewCardData(prev => ({
+                              ...prev,
+                              [section.sectionKey]: { ...prev[section.sectionKey], buttonText: e.target.value }
+                            }))}
+                            dir="rtl"
+                            className="mt-1"
+                            data-testid={`input-new-button-text-ar-${section.sectionKey}`}
+                          />
+                        </div>
+                        <div>
+                          <Label>🇬🇧 {language === 'ar' ? 'نص الزر بالإنجليزي' : 'English Button Text'}</Label>
+                          <Input
+                            value={newCardData[section.sectionKey]?.buttonTextEn || ''}
+                            onChange={(e) => setNewCardData(prev => ({
+                              ...prev,
+                              [section.sectionKey]: { ...prev[section.sectionKey], buttonTextEn: e.target.value }
+                            }))}
+                            dir="ltr"
+                            className="mt-1"
+                            data-testid={`input-new-button-text-en-${section.sectionKey}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="mt-3">
+                      <Label>📍 {language === 'ar' ? 'موضع البطاقة' : 'Card Position'}</Label>
+                      <Select
+                        value={newCardData[section.sectionKey]?.position || 'grid'}
+                        onValueChange={(value) => setNewCardData(prev => ({
+                          ...prev,
+                          [section.sectionKey]: { ...prev[section.sectionKey], position: value }
+                        }))}
+                      >
+                        <SelectTrigger className="mt-1" data-testid={`select-position-${section.sectionKey}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="grid">{language === 'ar' ? 'في الشبكة (الجانب)' : 'In Grid (Side)'}</SelectItem>
+                          <SelectItem value="bottom">{language === 'ar' ? 'في الأسفل' : 'At Bottom'}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 mt-4">
                     <Button
                       onClick={() => handleAddCard(section.sectionKey)}
                       disabled={addCardMutation.isPending}
