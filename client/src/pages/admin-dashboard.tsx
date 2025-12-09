@@ -215,6 +215,8 @@ function HomeAndDashboardContentEditor() {
   const { toast } = useToast();
   const { language } = useLanguage();
   const [isEditing, setIsEditing] = useState<{[key: string]: boolean}>({});
+  const [showAddForm, setShowAddForm] = useState<{[key: string]: boolean}>({});
+  const [newCardData, setNewCardData] = useState<{[key: string]: { titleAr: string; titleEn: string; contentAr: string; contentEn: string }}>({});
 
   const contentDefaults: { [key: string]: { ar: string; en: string } } = {
     'hero_title': { ar: 'اكتشف جمال الباحة مع أفضل المرشدين السياحيين', en: 'Discover the beauty of AlBaha with the best tour guides' },
@@ -245,9 +247,15 @@ function HomeAndDashboardContentEditor() {
     const item = allContent.find(c => c.key === key);
     const defaults = contentDefaults[key] || { ar: '', en: '' };
     return {
+      id: item?.id,
       ar: item?.content || defaults.ar,
-      en: item?.contentEn || defaults.en
+      en: item?.contentEn || defaults.en,
+      sectionKey: item?.sectionKey
     };
+  };
+
+  const getDynamicCards = (sectionKey: string) => {
+    return allContent.filter(c => c.sectionKey === sectionKey);
   };
 
   const updateContentMutation = useMutation({
@@ -277,6 +285,59 @@ function HomeAndDashboardContentEditor() {
     }
   });
 
+  const addCardMutation = useMutation({
+    mutationFn: async ({ sectionKey, title, titleEn, content, contentEn }: { sectionKey: string; title: string; titleEn: string; content: string; contentEn: string }) => {
+      const key = `${sectionKey}_${Date.now()}`;
+      const response = await fetch('/api/site-content/card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, sectionKey, title, titleEn, content, contentEn }),
+      });
+      if (!response.ok) throw new Error('Failed to add card');
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: language === 'ar' ? "تمت الإضافة بنجاح" : "Card Added Successfully",
+        description: language === 'ar' ? "تم إضافة البطاقة الجديدة" : "New card has been added",
+      });
+      setShowAddForm(prev => ({ ...prev, [variables.sectionKey]: false }));
+      setNewCardData(prev => ({ ...prev, [variables.sectionKey]: { titleAr: '', titleEn: '', contentAr: '', contentEn: '' } }));
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إضافة البطاقة" : "Failed to add card",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteCardMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/site-content/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete card');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? "تم الحذف بنجاح" : "Card Deleted Successfully",
+        description: language === 'ar' ? "تم حذف البطاقة" : "Card has been deleted",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في حذف البطاقة" : "Failed to delete card",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSubmit = (key: string, title: string) => (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
@@ -295,10 +356,31 @@ function HomeAndDashboardContentEditor() {
     updateContentMutation.mutate({ key, title, content: contentAr, contentEn });
   };
 
+  const handleAddCard = (sectionKey: string) => {
+    const data = newCardData[sectionKey];
+    if (!data?.titleAr?.trim() || !data?.contentAr?.trim()) {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "العنوان والمحتوى العربي مطلوبان" : "Arabic title and content are required",
+        variant: "destructive"
+      });
+      return;
+    }
+    addCardMutation.mutate({
+      sectionKey,
+      title: data.titleAr,
+      titleEn: data.titleEn || '',
+      content: data.contentAr,
+      contentEn: data.contentEn || ''
+    });
+  };
+
   const sections = [
     {
       title: language === 'ar' ? 'محتوى الصفحة الرئيسية (للزوار)' : 'Home Page Content (Visitors)',
       icon: '🏠',
+      sectionKey: 'hero',
+      allowDynamic: true,
       items: [
         { key: 'hero_title', label: language === 'ar' ? 'العنوان الرئيسي' : 'Main Title' },
         { key: 'hero_subtitle', label: language === 'ar' ? 'العنوان الفرعي' : 'Subtitle' },
@@ -307,6 +389,8 @@ function HomeAndDashboardContentEditor() {
     {
       title: language === 'ar' ? 'ترحيب المستخدمين المسجلين' : 'Welcome for Logged-in Users',
       icon: '👋',
+      sectionKey: 'welcome',
+      allowDynamic: true,
       items: [
         { key: 'welcome_title', label: language === 'ar' ? 'رسالة الترحيب' : 'Welcome Message' },
         { key: 'tourist_subtitle', label: language === 'ar' ? 'رسالة السائح' : 'Tourist Message' },
@@ -317,6 +401,8 @@ function HomeAndDashboardContentEditor() {
     {
       title: language === 'ar' ? 'بطاقات قسم السائح' : 'Tourist Section Cards',
       icon: '🗺️',
+      sectionKey: 'tourist_cards',
+      allowDynamic: true,
       items: [
         { key: 'explore_places_title', label: language === 'ar' ? 'عنوان استكشف الأماكن' : 'Explore Places Title' },
         { key: 'explore_places_desc', label: language === 'ar' ? 'وصف استكشف الأماكن' : 'Explore Places Desc' },
@@ -329,6 +415,8 @@ function HomeAndDashboardContentEditor() {
     {
       title: language === 'ar' ? 'بطاقات قسم المشرف' : 'Admin Section Cards',
       icon: '⚙️',
+      sectionKey: 'admin_cards',
+      allowDynamic: true,
       items: [
         { key: 'admin_dashboard_title', label: language === 'ar' ? 'عنوان إدارة المنصة' : 'Platform Management Title' },
         { key: 'admin_panel_title', label: language === 'ar' ? 'عنوان لوحة الإدارة' : 'Admin Panel Title' },
@@ -352,12 +440,111 @@ function HomeAndDashboardContentEditor() {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {sections.map((section) => (
+        {sections.map((section) => {
+          const dynamicCards = getDynamicCards(section.sectionKey);
+          
+          return (
           <div key={section.title} className="space-y-4">
-            <h3 className="font-semibold flex items-center gap-2 text-lg border-b pb-2">
-              <span>{section.icon}</span>
-              {section.title}
-            </h3>
+            <div className="flex items-center justify-between border-b pb-2">
+              <h3 className="font-semibold flex items-center gap-2 text-lg">
+                <span>{section.icon}</span>
+                {section.title}
+              </h3>
+              {section.allowDynamic && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddForm(prev => ({ ...prev, [section.sectionKey]: !prev[section.sectionKey] }))}
+                  data-testid={`button-add-card-${section.sectionKey}`}
+                >
+                  <Plus className="w-4 h-4 ml-1" />
+                  {language === 'ar' ? 'إضافة بطاقة' : 'Add Card'}
+                </Button>
+              )}
+            </div>
+            
+            {showAddForm[section.sectionKey] && (
+              <Card className="border-2 border-dashed border-primary/50 bg-primary/5">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">{language === 'ar' ? 'إضافة بطاقة جديدة' : 'Add New Card'}</CardTitle>
+                </CardHeader>
+                <CardContent className="py-3 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>🇸🇦 {language === 'ar' ? 'العنوان العربي' : 'Arabic Title'}</Label>
+                      <Input
+                        value={newCardData[section.sectionKey]?.titleAr || ''}
+                        onChange={(e) => setNewCardData(prev => ({
+                          ...prev,
+                          [section.sectionKey]: { ...prev[section.sectionKey], titleAr: e.target.value }
+                        }))}
+                        dir="rtl"
+                        className="mt-1"
+                        data-testid={`input-new-title-ar-${section.sectionKey}`}
+                      />
+                    </div>
+                    <div>
+                      <Label>🇬🇧 {language === 'ar' ? 'العنوان الإنجليزي' : 'English Title'}</Label>
+                      <Input
+                        value={newCardData[section.sectionKey]?.titleEn || ''}
+                        onChange={(e) => setNewCardData(prev => ({
+                          ...prev,
+                          [section.sectionKey]: { ...prev[section.sectionKey], titleEn: e.target.value }
+                        }))}
+                        dir="ltr"
+                        className="mt-1"
+                        data-testid={`input-new-title-en-${section.sectionKey}`}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>🇸🇦 {language === 'ar' ? 'المحتوى العربي' : 'Arabic Content'}</Label>
+                    <Textarea
+                      value={newCardData[section.sectionKey]?.contentAr || ''}
+                      onChange={(e) => setNewCardData(prev => ({
+                        ...prev,
+                        [section.sectionKey]: { ...prev[section.sectionKey], contentAr: e.target.value }
+                      }))}
+                      dir="rtl"
+                      rows={2}
+                      className="mt-1"
+                      data-testid={`input-new-content-ar-${section.sectionKey}`}
+                    />
+                  </div>
+                  <div>
+                    <Label>🇬🇧 {language === 'ar' ? 'المحتوى الإنجليزي' : 'English Content'}</Label>
+                    <Textarea
+                      value={newCardData[section.sectionKey]?.contentEn || ''}
+                      onChange={(e) => setNewCardData(prev => ({
+                        ...prev,
+                        [section.sectionKey]: { ...prev[section.sectionKey], contentEn: e.target.value }
+                      }))}
+                      dir="ltr"
+                      rows={2}
+                      className="mt-1"
+                      data-testid={`input-new-content-en-${section.sectionKey}`}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleAddCard(section.sectionKey)}
+                      disabled={addCardMutation.isPending}
+                      data-testid={`button-save-new-card-${section.sectionKey}`}
+                    >
+                      {addCardMutation.isPending ? (language === 'ar' ? 'جاري الإضافة...' : 'Adding...') : (language === 'ar' ? 'إضافة' : 'Add')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAddForm(prev => ({ ...prev, [section.sectionKey]: false }))}
+                    >
+                      {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid gap-4">
               {section.items.map((item) => {
                 const currentValue = getContentValue(item.key);
@@ -430,9 +617,102 @@ function HomeAndDashboardContentEditor() {
                   </Card>
                 );
               })}
+              
+              {dynamicCards.map((card) => (
+                <Card key={card.id} className="border-l-4 border-l-green-500/50">
+                  <CardHeader className="py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">{language === 'ar' ? 'مخصص' : 'Custom'}</Badge>
+                        <CardTitle className="text-base">{language === 'ar' ? card.title : (card.titleEn || card.title)}</CardTitle>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditing(prev => ({ ...prev, [card.id]: !prev[card.id] }))}
+                          data-testid={`button-edit-dynamic-${card.id}`}
+                        >
+                          <Edit className="w-4 h-4 ml-1" />
+                          {isEditing[card.id] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm" data-testid={`button-delete-dynamic-${card.id}`}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {language === 'ar' ? 'هل أنت متأكد من حذف هذه البطاقة؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete this card? This action cannot be undone.'}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteCardMutation.mutate(card.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {language === 'ar' ? 'حذف' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="py-3">
+                    {!isEditing[card.id] ? (
+                      <div className="space-y-2">
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">🇸🇦 عربي</p>
+                          <p className="text-sm">{card.content}</p>
+                        </div>
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">🇬🇧 English</p>
+                          <p className="text-sm">{card.contentEn || '-'}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSubmit(card.key, card.title)} className="space-y-4">
+                        <div>
+                          <Label>🇸🇦 {language === 'ar' ? 'المحتوى العربي' : 'Arabic Content'}</Label>
+                          <Textarea
+                            name="contentAr"
+                            defaultValue={card.content}
+                            rows={2}
+                            className="mt-1"
+                            dir="rtl"
+                          />
+                        </div>
+                        <div>
+                          <Label>🇬🇧 {language === 'ar' ? 'المحتوى الإنجليزي' : 'English Content'}</Label>
+                          <Textarea
+                            name="contentEn"
+                            defaultValue={card.contentEn || ''}
+                            rows={2}
+                            className="mt-1"
+                            dir="ltr"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="submit" disabled={updateContentMutation.isPending}>
+                            {updateContentMutation.isPending ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'حفظ' : 'Save')}
+                          </Button>
+                          <Button type="button" variant="outline" onClick={() => setIsEditing(prev => ({ ...prev, [card.id]: false }))}>
+                            {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
-        ))}
+        )})}
       </CardContent>
     </Card>
   );

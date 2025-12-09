@@ -1049,6 +1049,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/site-content/card', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const validatedData = insertSiteContentSchema.parse({
+        ...req.body,
+        updatedBy: user.id,
+      });
+      
+      const content = await storage.createSiteContentCard(validatedData);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Error creating site content card:", error);
+      res.status(500).json({ message: "Failed to create site content card" });
+    }
+  });
+
+  app.get('/api/site-content/section/:sectionKey', async (req, res) => {
+    try {
+      const contents = await storage.getSiteContentBySection(req.params.sectionKey);
+      res.json(contents);
+    } catch (error) {
+      console.error("Error fetching site content by section:", error);
+      res.status(500).json({ message: "Failed to fetch site content by section" });
+    }
+  });
+
+  app.delete('/api/site-content/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteSiteContent(req.params.id);
+      res.status(200).json({ message: "Content deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting site content:", error);
+      res.status(500).json({ message: "Failed to delete site content" });
+    }
+  });
+
   // Team members routes
   app.get('/api/team-members', async (req, res) => {
     try {
