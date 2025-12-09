@@ -413,6 +413,21 @@ function HomeAndDashboardContentEditor() {
       ]
     },
     {
+      title: language === 'ar' ? 'بطاقات قسم المرشد' : 'Guide Section Cards',
+      icon: '🎯',
+      sectionKey: 'guide_cards',
+      allowDynamic: true,
+      items: [
+        { key: 'guide_dashboard_title', label: language === 'ar' ? 'عنوان لوحة المرشد' : 'Guide Dashboard Title' },
+        { key: 'guide_bookings_title', label: language === 'ar' ? 'عنوان حجوزات المرشد' : 'Guide Bookings Title' },
+        { key: 'guide_bookings_desc', label: language === 'ar' ? 'وصف حجوزات المرشد' : 'Guide Bookings Desc' },
+        { key: 'guide_profile_title', label: language === 'ar' ? 'عنوان ملف المرشد' : 'Guide Profile Title' },
+        { key: 'guide_profile_desc', label: language === 'ar' ? 'وصف ملف المرشد' : 'Guide Profile Desc' },
+        { key: 'guide_messages_title', label: language === 'ar' ? 'عنوان رسائل المرشد' : 'Guide Messages Title' },
+        { key: 'guide_messages_desc', label: language === 'ar' ? 'وصف رسائل المرشد' : 'Guide Messages Desc' },
+      ]
+    },
+    {
       title: language === 'ar' ? 'بطاقات قسم المشرف' : 'Admin Section Cards',
       icon: '⚙️',
       sectionKey: 'admin_cards',
