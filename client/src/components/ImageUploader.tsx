@@ -32,13 +32,23 @@ export default function ImageUploader({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Upload mutation
+  // Upload mutation using Object Storage for permanent storage
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
+      // Step 1: Get presigned upload URL from server
+      const urlResponse = await fetch('/api/objects/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
       
-      return new Promise<any>((resolve, reject) => {
+      if (!urlResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+      
+      const { uploadURL } = await urlResponse.json();
+      
+      // Step 2: Upload file directly to Object Storage
+      return new Promise<{ url: string; originalName: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         
         xhr.upload.addEventListener('progress', (e) => {
@@ -49,11 +59,17 @@ export default function ImageUploader({
         });
         
         xhr.addEventListener('load', () => {
-          if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
-            resolve(response);
+          if (xhr.status === 200 || xhr.status === 201) {
+            // Extract object path from upload URL
+            const url = new URL(uploadURL);
+            const pathParts = url.pathname.split('/');
+            const objectId = pathParts[pathParts.length - 1];
+            resolve({
+              url: `/objects/uploads/${objectId}`,
+              originalName: file.name
+            });
           } else {
-            reject(new Error(xhr.responseText));
+            reject(new Error('Upload failed'));
           }
         });
         
@@ -61,8 +77,9 @@ export default function ImageUploader({
           reject(new Error('Upload failed'));
         });
         
-        xhr.open('POST', '/api/uploads');
-        xhr.send(formData);
+        xhr.open('PUT', uploadURL);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.send(file);
       });
     },
     onSuccess: (data) => {
