@@ -554,15 +554,43 @@ function HomeAndDashboardContentEditor() {
                     <CardHeader className="py-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base">{item.label}</CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
-                          data-testid={`button-edit-${item.key}`}
-                        >
-                          <Edit className="w-4 h-4 ml-1" />
-                          {isEditing[item.key] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditing(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
+                            data-testid={`button-edit-${item.key}`}
+                          >
+                            <Edit className="w-4 h-4 ml-1" />
+                            {isEditing[item.key] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
+                          </Button>
+                          {currentValue.id && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm" data-testid={`button-delete-${item.key}`}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {language === 'ar' ? 'هل أنت متأكد من حذف هذه البطاقة؟ سيتم استعادة القيمة الافتراضية.' : 'Are you sure you want to delete this card? Default value will be restored.'}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteCardMutation.mutate(currentValue.id!)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {language === 'ar' ? 'حذف' : 'Delete'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="py-3">
