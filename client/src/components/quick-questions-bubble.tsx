@@ -22,6 +22,24 @@ export default function QuickQuestionsBubble() {
   const [question, setQuestion] = useState('');
   const [askerName, setAskerName] = useState('');
 
+  const { data: positionSetting } = useQuery<{ key: string; value: string | null }>({
+    queryKey: ['/api/settings/quickQuestionsPosition'],
+  });
+
+  const position = positionSetting?.value || 'left';
+
+  const getPositionClasses = () => {
+    switch (position) {
+      case 'right':
+        return 'right-6 left-auto';
+      case 'center':
+        return 'left-1/2 -translate-x-1/2';
+      case 'left':
+      default:
+        return 'left-6';
+    }
+  };
+
   const { data: answeredQuestions = [], isLoading } = useQuery<QuickQuestion[]>({
     queryKey: ['/api/quick-questions/answered'],
   });
@@ -86,7 +104,7 @@ export default function QuickQuestionsBubble() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-50 bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
+          className={`fixed bottom-6 ${getPositionClasses()} z-50 bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2`}
           data-testid="button-open-quick-questions"
         >
           <MessageCircleQuestion className="w-6 h-6" />
@@ -97,7 +115,7 @@ export default function QuickQuestionsBubble() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 left-6 z-50 w-[350px] max-w-[calc(100vw-48px)]">
+        <div className={`fixed bottom-6 ${getPositionClasses()} z-50 w-[350px] max-w-[calc(100vw-48px)]`}>
           <Card className="shadow-2xl border-2 border-green-200 dark:border-green-800">
             <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg py-3 px-4">
               <div className="flex items-center justify-between">
