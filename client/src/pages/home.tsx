@@ -36,7 +36,17 @@ export default function Home() {
   const getContent = (key: string, defaultAr: string, defaultEn: string) => {
     const content = siteContent.find(c => c.key === key);
     if (!content) return language === 'ar' ? defaultAr : defaultEn;
+    if (content.content === '__HIDDEN__') return null;
     return language === 'ar' ? (content.content || defaultAr) : (content.contentEn || defaultEn);
+  };
+
+  const isCardHidden = (key: string) => {
+    const content = siteContent.find(c => c.key === key);
+    return content?.content === '__HIDDEN__';
+  };
+
+  const getDynamicCards = (sectionKey: string) => {
+    return siteContent.filter(c => c.sectionKey === sectionKey && c.content !== '__HIDDEN__');
   };
 
   const recentPlaces = places.slice(0, 3);
@@ -161,6 +171,18 @@ export default function Home() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {getDynamicCards('tourist_cards').map((card) => (
+                    <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-2xl">📋</span>
+                        </div>
+                        <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
+                        <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </>
               )}
 
@@ -216,6 +238,18 @@ export default function Home() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {getDynamicCards('guide_cards').map((card) => (
+                    <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-2xl">📋</span>
+                        </div>
+                        <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
+                        <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </>
               )}
 
@@ -271,6 +305,18 @@ export default function Home() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {getDynamicCards('admin_cards').map((card) => (
+                    <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-2xl">📋</span>
+                        </div>
+                        <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
+                        <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </>
               )}
             </div>
