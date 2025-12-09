@@ -19,7 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Users, MapPin, MessageCircle, TrendingUp, UserCheck, UserX, Key, Copy, MessageCircleQuestion, CheckCircle, Clock, Menu, GripVertical, Eye, EyeOff, ExternalLink, ChevronDown, RefreshCw } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import type { Place, Guide, InsertPlace, Booking, User, Invite, TeamMember, InsertTeamMember, QuickQuestion, NavigationItem, InsertNavigationItem, DynamicPage, InsertDynamicPage, SiteContent } from "@shared/schema";
 
@@ -246,11 +246,13 @@ function HomeAndDashboardContentEditor() {
   const getContentValue = (key: string) => {
     const item = allContent.find(c => c.key === key);
     const defaults = contentDefaults[key] || { ar: '', en: '' };
+    const isHidden = item?.content === '__HIDDEN__';
     return {
       id: item?.id,
       ar: item?.content || defaults.ar,
       en: item?.contentEn || defaults.en,
-      sectionKey: item?.sectionKey
+      sectionKey: item?.sectionKey,
+      isHidden
     };
   };
 
@@ -333,6 +335,32 @@ function HomeAndDashboardContentEditor() {
       toast({
         title: language === 'ar' ? "خطأ" : "Error",
         description: language === 'ar' ? "فشل في حذف البطاقة" : "Failed to delete card",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const hideCardMutation = useMutation({
+    mutationFn: async ({ key, title }: { key: string; title: string }) => {
+      const response = await fetch('/api/site-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, title, content: '__HIDDEN__', contentEn: '__HIDDEN__' }),
+      });
+      if (!response.ok) throw new Error('Failed to hide card');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? "تم الإخفاء بنجاح" : "Card Hidden Successfully",
+        description: language === 'ar' ? "تم إخفاء البطاقة" : "Card has been hidden",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/site-content'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? "خطأ" : "Error",
+        description: language === 'ar' ? "فشل في إخفاء البطاقة" : "Failed to hide card",
         variant: "destructive"
       });
     }
@@ -564,6 +592,30 @@ function HomeAndDashboardContentEditor() {
               {section.items.map((item) => {
                 const currentValue = getContentValue(item.key);
                 
+                if (currentValue.isHidden) {
+                  return (
+                    <Card key={item.key} className="border-l-4 border-l-destructive/50 opacity-60">
+                      <CardHeader className="py-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="destructive" className="text-xs">{language === 'ar' ? 'محذوف' : 'Deleted'}</Badge>
+                            <CardTitle className="text-base line-through">{item.label}</CardTitle>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => currentValue.id && deleteCardMutation.mutate(currentValue.id)}
+                            data-testid={`button-restore-${item.key}`}
+                          >
+                            <RefreshCw className="w-4 h-4 ml-1" />
+                            {language === 'ar' ? 'استعادة' : 'Restore'}
+                          </Button>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  );
+                }
+                
                 return (
                   <Card key={item.key} className="border-l-4 border-l-primary/50">
                     <CardHeader className="py-3">
@@ -579,32 +631,36 @@ function HomeAndDashboardContentEditor() {
                             <Edit className="w-4 h-4 ml-1" />
                             {isEditing[item.key] ? (language === 'ar' ? 'إلغاء' : 'Cancel') : (language === 'ar' ? 'تعديل' : 'Edit')}
                           </Button>
-                          {currentValue.id && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="destructive" size="sm" data-testid={`button-delete-${item.key}`}>
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>{language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {language === 'ar' ? 'هل أنت متأكد من حذف هذه البطاقة؟ سيتم استعادة القيمة الافتراضية.' : 'Are you sure you want to delete this card? Default value will be restored.'}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteCardMutation.mutate(currentValue.id!)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    {language === 'ar' ? 'حذف' : 'Delete'}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" data-testid={`button-delete-${item.key}`}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {language === 'ar' ? 'هل أنت متأكد من حذف هذه البطاقة؟' : 'Are you sure you want to delete this card?'}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{language === 'ar' ? 'إلغاء' : 'Cancel'}</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    if (currentValue.id) {
+                                      deleteCardMutation.mutate(currentValue.id);
+                                    } else {
+                                      hideCardMutation.mutate({ key: item.key, title: item.label });
+                                    }
+                                  }}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {language === 'ar' ? 'حذف' : 'Delete'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </CardHeader>
