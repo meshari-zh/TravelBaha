@@ -172,14 +172,38 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  {getDynamicCards('tourist_cards').map((card) => (
+                  {getDynamicCards('tourist_cards').filter(c => c.position !== 'bottom').map((card) => (
                     <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
-                      <CardContent className="p-6 flex flex-col flex-grow">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-2xl">📋</span>
+                      {card.imageUrl && (
+                        <div className="w-full h-32 overflow-hidden rounded-t-lg">
+                          <img src={card.imageUrl} alt={language === 'ar' ? card.title : (card.titleEn || card.title)} className="w-full h-full object-cover" />
                         </div>
+                      )}
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        {!card.imageUrl && (
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">📋</span>
+                          </div>
+                        )}
                         <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
                         <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                        {card.buttonLink && (
+                          <div className="mt-auto">
+                            {card.buttonLink.startsWith('http') ? (
+                              <a href={card.buttonLink} target="_blank" rel="noopener noreferrer">
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </a>
+                            ) : (
+                              <Link href={card.buttonLink}>
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -239,14 +263,38 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  {getDynamicCards('guide_cards').map((card) => (
+                  {getDynamicCards('guide_cards').filter(c => c.position !== 'bottom').map((card) => (
                     <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
-                      <CardContent className="p-6 flex flex-col flex-grow">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-2xl">📋</span>
+                      {card.imageUrl && (
+                        <div className="w-full h-32 overflow-hidden rounded-t-lg">
+                          <img src={card.imageUrl} alt={language === 'ar' ? card.title : (card.titleEn || card.title)} className="w-full h-full object-cover" />
                         </div>
+                      )}
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        {!card.imageUrl && (
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">📋</span>
+                          </div>
+                        )}
                         <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
                         <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                        {card.buttonLink && (
+                          <div className="mt-auto">
+                            {card.buttonLink.startsWith('http') ? (
+                              <a href={card.buttonLink} target="_blank" rel="noopener noreferrer">
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </a>
+                            ) : (
+                              <Link href={card.buttonLink}>
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -306,20 +354,83 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  {getDynamicCards('admin_cards').map((card) => (
+                  {getDynamicCards('admin_cards').filter(c => c.position !== 'bottom').map((card) => (
                     <Card key={card.id} className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
-                      <CardContent className="p-6 flex flex-col flex-grow">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-2xl">📋</span>
+                      {card.imageUrl && (
+                        <div className="w-full h-32 overflow-hidden rounded-t-lg">
+                          <img src={card.imageUrl} alt={language === 'ar' ? card.title : (card.titleEn || card.title)} className="w-full h-full object-cover" />
                         </div>
+                      )}
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        {!card.imageUrl && (
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">📋</span>
+                          </div>
+                        )}
                         <h3 className="font-semibold mb-2 min-h-[24px]">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
                         <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                        {card.buttonLink && (
+                          <div className="mt-auto">
+                            {card.buttonLink.startsWith('http') ? (
+                              <a href={card.buttonLink} target="_blank" rel="noopener noreferrer">
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </a>
+                            ) : (
+                              <Link href={card.buttonLink}>
+                                <Button size="sm" variant="secondary" className="w-full min-w-[160px]">
+                                  {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
                 </>
               )}
             </div>
+            
+            {/* Bottom position cards */}
+            {user && (() => {
+              const sectionKey = user.role === 'admin' ? 'admin_cards' : user.role === 'guide' ? 'guide_cards' : 'tourist_cards';
+              const bottomCards = getDynamicCards(sectionKey).filter(c => c.position === 'bottom');
+              if (bottomCards.length === 0) return null;
+              return (
+                <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {bottomCards.map((card) => (
+                    <Card key={card.id} className="hover:shadow-lg transition-shadow">
+                      {card.imageUrl && (
+                        <div className="w-full h-40 overflow-hidden rounded-t-lg">
+                          <img src={card.imageUrl} alt={language === 'ar' ? card.title : (card.titleEn || card.title)} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <CardContent className="p-6">
+                        <h3 className="font-semibold mb-2 text-lg">{language === 'ar' ? card.title : (card.titleEn || card.title)}</h3>
+                        <p className="text-muted-foreground mb-4">{language === 'ar' ? card.content : (card.contentEn || card.content)}</p>
+                        {card.buttonLink && (
+                          card.buttonLink.startsWith('http') ? (
+                            <a href={card.buttonLink} target="_blank" rel="noopener noreferrer">
+                              <Button variant="secondary" className="w-full">
+                                {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                              </Button>
+                            </a>
+                          ) : (
+                            <Link href={card.buttonLink}>
+                              <Button variant="secondary" className="w-full">
+                                {language === 'ar' ? (card.buttonText || 'المزيد') : (card.buttonTextEn || card.buttonText || 'More')}
+                              </Button>
+                            </Link>
+                          )
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </section>
       )}
