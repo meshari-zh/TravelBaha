@@ -283,6 +283,14 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   }),
 }));
 
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value").notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertPlaceSchema = createInsertSchema(places).omit({ id: true, createdAt: true, updatedAt: true });
@@ -296,6 +304,7 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id:
 export const insertQuickQuestionSchema = createInsertSchema(quickQuestions).omit({ id: true, createdAt: true, answeredAt: true });
 export const insertNavigationItemSchema = createInsertSchema(navigationItems).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDynamicPageSchema = createInsertSchema(dynamicPages).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -322,3 +331,5 @@ export type InsertNavigationItem = z.infer<typeof insertNavigationItemSchema>;
 export type NavigationItem = typeof navigationItems.$inferSelect;
 export type InsertDynamicPage = z.infer<typeof insertDynamicPageSchema>;
 export type DynamicPage = typeof dynamicPages.$inferSelect;
+export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+export type SiteSetting = typeof siteSettings.$inferSelect;

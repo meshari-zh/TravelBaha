@@ -11,6 +11,7 @@ import {
   quickQuestions,
   navigationItems,
   dynamicPages,
+  siteSettings,
   type User,
   type UpsertUser,
   type Place,
@@ -133,6 +134,10 @@ export interface IStorage {
   updateDynamicPage(id: string, updates: Partial<InsertDynamicPage>): Promise<DynamicPage>;
   deleteDynamicPage(id: string): Promise<void>;
   deleteDynamicPagesByNavigationItemId(navigationItemId: string): Promise<void>;
+  
+  // Site settings operations
+  getSiteSetting(key: string): Promise<string | undefined>;
+  setSiteSetting(key: string, value: string, updatedBy?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -782,6 +787,22 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDynamicPagesByNavigationItemId(navigationItemId: string): Promise<void> {
     await db.delete(dynamicPages).where(eq(dynamicPages.navigationItemId, navigationItemId));
+  }
+
+  // Site settings operations
+  async getSiteSetting(key: string): Promise<string | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting?.value;
+  }
+
+  async setSiteSetting(key: string, value: string, updatedBy?: string): Promise<void> {
+    await db
+      .insert(siteSettings)
+      .values({ key, value, updatedBy, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value, updatedBy, updatedAt: new Date() },
+      });
   }
 }
 
