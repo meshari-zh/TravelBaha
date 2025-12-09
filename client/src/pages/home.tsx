@@ -118,7 +118,7 @@ export default function Home() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto justify-items-center">
               {user?.role === 'tourist' && (
                 <>
                   <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
