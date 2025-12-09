@@ -919,6 +919,37 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
     question: '', questionEn: '', answer: '', answerEn: ''
   });
 
+  const { data: positionSetting } = useQuery<{ key: string; value: string | null }>({
+    queryKey: ['/api/settings/quickQuestionsPosition'],
+  });
+
+  const positionMutation = useMutation({
+    mutationFn: async (position: string) => {
+      const response = await fetch('/api/settings/quickQuestionsPosition', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: position }),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to update position');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'ar' ? 'تم التحديث' : 'Updated',
+        description: language === 'ar' ? 'تم تحديث موضع الأسئلة السريعة' : 'Quick questions position updated',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/quickQuestionsPosition'] });
+    },
+    onError: () => {
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'فشل في تحديث الموضع' : 'Failed to update position',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const { data: unansweredQuestions = [], isLoading: loadingUnanswered } = useQuery<QuickQuestion[]>({
     queryKey: ['/api/quick-questions/unanswered'],
   });
@@ -1059,6 +1090,39 @@ function QuickQuestionsManagement({ language, toast }: { language: string; toast
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-blue-600" />
+              {language === 'ar' ? 'إعدادات الأسئلة السريعة' : 'Quick Questions Settings'}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <Label className="min-w-fit">{language === 'ar' ? 'موضع الأسئلة السريعة:' : 'Quick Questions Position:'}</Label>
+            <Select
+              value={positionSetting?.value || 'left'}
+              onValueChange={(value) => positionMutation.mutate(value)}
+              disabled={positionMutation.isPending}
+            >
+              <SelectTrigger className="w-48" data-testid="select-quick-questions-position">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">{language === 'ar' ? 'يسار' : 'Left'}</SelectItem>
+                <SelectItem value="right">{language === 'ar' ? 'يمين' : 'Right'}</SelectItem>
+                <SelectItem value="center">{language === 'ar' ? 'وسط' : 'Center'}</SelectItem>
+              </SelectContent>
+            </Select>
+            {positionMutation.isPending && (
+              <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
