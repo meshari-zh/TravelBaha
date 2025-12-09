@@ -118,7 +118,7 @@ export default function Home() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto justify-items-center">
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {user?.role === 'tourist' && (
                 <>
                   <Card className="text-center hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -399,7 +399,7 @@ export default function Home() {
               const bottomCards = getDynamicCards(sectionKey).filter(c => c.position === 'bottom');
               if (bottomCards.length === 0) return null;
               return (
-                <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {bottomCards.map((card) => (
                     <Card key={card.id} className="hover:shadow-lg transition-shadow">
                       {card.imageUrl && (
