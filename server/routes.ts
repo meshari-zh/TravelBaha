@@ -1390,6 +1390,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Site settings routes
+  app.get('/api/settings/:key', async (req, res) => {
+    try {
+      const value = await storage.getSiteSetting(req.params.key);
+      res.json({ key: req.params.key, value: value || null });
+    } catch (error) {
+      console.error("Error fetching setting:", error);
+      res.status(500).json({ message: "Failed to fetch setting" });
+    }
+  });
+
+  app.put('/api/settings/:key', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { value } = req.body;
+      if (typeof value !== 'string') {
+        return res.status(400).json({ message: "Value must be a string" });
+      }
+
+      await storage.setSiteSetting(req.params.key, value, user.id);
+      res.json({ key: req.params.key, value });
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      res.status(500).json({ message: "Failed to update setting" });
+    }
+  });
+
   // Navigation items routes - visible to all (for navbar), manageable by admins
   app.get('/api/navigation', async (req, res) => {
     try {
