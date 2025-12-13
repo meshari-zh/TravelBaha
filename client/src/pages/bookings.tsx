@@ -21,6 +21,8 @@ export default function Bookings() {
   const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const cancelBookingMutation = useMutation({
     mutationFn: (bookingId: string) => 
@@ -48,6 +50,11 @@ export default function Bookings() {
   const handleCancelBooking = (booking: Booking) => {
     setBookingToCancel(booking);
     setCancelDialogOpen(true);
+  };
+
+  const handleViewDetails = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setDetailsDialogOpen(true);
   };
 
   const confirmCancelBooking = () => {
@@ -273,7 +280,12 @@ export default function Bookings() {
                   )}
 
                   <div className="flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" data-testid={`booking-details-${booking.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleViewDetails(booking)}
+                      data-testid={`booking-details-${booking.id}`}
+                    >
                       {language === 'ar' ? 'عرض التفاصيل' : 'View Details'}
                     </Button>
                     {booking.status === "pending" && (
@@ -366,6 +378,104 @@ export default function Bookings() {
               {cancelBookingMutation.isPending 
                 ? (language === 'ar' ? 'جاري الإلغاء...' : 'Cancelling...') 
                 : (language === 'ar' ? 'تأكيد الإلغاء' : 'Confirm Cancel')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-primary" />
+              {language === 'ar' ? 'تفاصيل الحجز' : 'Booking Details'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ar' ? 'جميع تفاصيل حجزك' : 'All details about your booking'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedBooking && (
+            <div className="space-y-4">
+              {/* Booking ID & Status */}
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">{language === 'ar' ? 'رقم الحجز' : 'Booking ID'}</p>
+                  <p className="font-mono font-medium">{selectedBooking.id.slice(0, 8)}</p>
+                </div>
+                <Badge variant={getStatusBadgeVariant(selectedBooking.status || "pending")}>
+                  {getStatusText(selectedBooking.status || "pending")}
+                </Badge>
+              </div>
+
+              {/* Dates */}
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarDays className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{language === 'ar' ? 'التواريخ' : 'Dates'}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'تاريخ البداية' : 'Start Date'}</p>
+                    <p className="font-medium">{new Date(selectedBooking.startDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">{language === 'ar' ? 'تاريخ النهاية' : 'End Date'}</p>
+                    <p className="font-medium">{new Date(selectedBooking.endDate).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US')}</p>
+                  </div>
+                </div>
+                {selectedBooking.timeSlot && (
+                  <div className="mt-2 pt-2 border-t">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{selectedBooking.timeSlot}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+
+              {/* Payment Info */}
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{language === 'ar' ? 'المبلغ الإجمالي' : 'Total Amount'}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {selectedBooking.totalAmount || '0'} {language === 'ar' ? 'ر.س' : 'SAR'}
+                    </p>
+                  </div>
+                  <Badge variant="outline">
+                    {selectedBooking.paymentMethod === 'bank_transfer' 
+                      ? (language === 'ar' ? '🏦 تحويل بنكي' : '🏦 Bank Transfer')
+                      : (language === 'ar' ? '💵 كاش' : '💵 Cash')}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedBooking.notes && (
+                <div className="p-3 border rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">{language === 'ar' ? 'ملاحظات' : 'Notes'}</p>
+                  <p className="text-sm">{selectedBooking.notes}</p>
+                </div>
+              )}
+
+              {/* Guide ID */}
+              <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                <p className="text-muted-foreground">{language === 'ar' ? 'معرف المرشد' : 'Guide ID'}</p>
+                <p className="font-mono">{selectedBooking.guideId.slice(0, 8)}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setDetailsDialogOpen(false)}
+              data-testid="dialog-button-close-details"
+            >
+              {language === 'ar' ? 'إغلاق' : 'Close'}
             </Button>
           </div>
         </DialogContent>
