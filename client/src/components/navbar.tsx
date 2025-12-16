@@ -33,6 +33,14 @@ export default function Navbar() {
     .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
   const isActive = (path: string) => location === path;
+
+  const formatExternalUrl = (url: string | null): string => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `https://${url}`;
+  };
   
   const handleLoginClick = () => {
     setShowLoginDialog(true);
@@ -184,13 +192,13 @@ export default function Navbar() {
                               </div>
                               {children.map((child) => {
                                 const childLabel = language === 'ar' ? child.labelAr : (child.labelEn || child.labelAr);
-                                const childHref = child.path || child.externalUrl;
+                                const childHref = child.externalUrl ? formatExternalUrl(child.externalUrl) : (child.path || '#');
                                 const isChildExternal = !!child.externalUrl;
                                 return (
                                   <SheetClose key={child.id} asChild>
                                     {isChildExternal ? (
                                       <a
-                                        href={childHref || '#'}
+                                        href={childHref}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-full"
@@ -222,11 +230,12 @@ export default function Navbar() {
                           );
                         }
 
+                        const externalHref = isExternal ? formatExternalUrl(item.externalUrl) : (item.path || '#');
                         return (
                           <SheetClose key={item.id} asChild>
                             {isExternal ? (
                               <a
-                                href={itemHref || '#'}
+                                href={externalHref}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full"
@@ -394,13 +403,13 @@ export default function Navbar() {
                     <DropdownMenuContent align="center" className="w-48">
                       {children.map((child) => {
                         const childLabel = language === 'ar' ? child.labelAr : (child.labelEn || child.labelAr);
-                        const childHref = child.path || child.externalUrl;
+                        const childHref = child.externalUrl ? formatExternalUrl(child.externalUrl) : (child.path || '#');
                         const isChildExternal = !!child.externalUrl;
                         return (
                           <DropdownMenuItem key={child.id} asChild>
                             {isChildExternal ? (
                               <a
-                                href={childHref || '#'}
+                                href={childHref}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 cursor-pointer"
@@ -409,7 +418,7 @@ export default function Navbar() {
                                 {childLabel}
                               </a>
                             ) : (
-                              <Link href={childHref || '#'} className="flex items-center gap-2 cursor-pointer">
+                              <Link href={childHref} className="flex items-center gap-2 cursor-pointer">
                                 {childLabel}
                               </Link>
                             )}
@@ -421,10 +430,11 @@ export default function Navbar() {
                 );
               }
 
+              const desktopExternalHref = isExternal ? formatExternalUrl(item.externalUrl) : (item.path || '#');
               return isExternal ? (
                 <a
                   key={item.id}
-                  href={itemHref || '#'}
+                  href={desktopExternalHref}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -438,7 +448,7 @@ export default function Navbar() {
                   </Button>
                 </a>
               ) : (
-                <Link key={item.id} href={itemHref || '#'}>
+                <Link key={item.id} href={desktopExternalHref}>
                   <Button
                     variant={isActive(itemHref || '') ? "default" : "ghost"}
                     size="sm"
