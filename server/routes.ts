@@ -18,6 +18,22 @@ import { nanoid } from "nanoid";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 
+// Module-level WebSocket connections map for broadcasting messages
+const authenticatedConnections = new Map<WebSocket, string>();
+
+// Helper function to broadcast message to connected users
+export function broadcastMessage(senderId: string, receiverId: string, message: any) {
+  authenticatedConnections.forEach((userId, client) => {
+    if (client.readyState === WebSocket.OPEN && 
+        (userId === senderId || userId === receiverId)) {
+      client.send(JSON.stringify({
+        type: 'new_message',
+        message: message,
+      }));
+    }
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -809,6 +825,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const message = await storage.createMessage(validatedData);
+      
+      // Broadcast to connected WebSocket clients for real-time delivery
+      broadcastMessage(validatedData.senderId, validatedData.receiverId, message);
+      
       res.status(201).json(message);
     } catch (error) {
       console.error("Error creating message:", error);
@@ -1577,9 +1597,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-
-  // Map to track authenticated WebSocket connections with user IDs
-  const authenticatedConnections = new Map<WebSocket, string>();
 
   // Helper function to validate session and get user ID
   async function validateSessionAndGetUserId(req: any): Promise<string | null> {
