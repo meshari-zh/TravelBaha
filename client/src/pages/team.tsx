@@ -97,40 +97,55 @@ export default function Team() {
         ) : (
           <>
             <div className="space-y-4 mb-12">
-              {activeMembers.map((member: TeamMember) => (
-                <Card key={member.id} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${member.id}`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-6">
-                      {member.imageUrl ? (
-                        <img 
-                          src={member.imageUrl} 
-                          alt={language === 'ar' ? member.name : (member.nameEn || member.name)}
-                          className="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-green-200"
-                        />
-                      ) : (
-                        <div className="text-5xl w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full shrink-0">
-                          👤
+              {[...activeMembers]
+                .sort((a, b) => {
+                  const aHasPosition = !!(a.position || a.positionEn);
+                  const bHasPosition = !!(b.position || b.positionEn);
+                  if (aHasPosition && !bHasPosition) return -1;
+                  if (!aHasPosition && bHasPosition) return 1;
+                  return (a.orderIndex || 0) - (b.orderIndex || 0);
+                })
+                .map((member: TeamMember) => {
+                  const displayName = language === 'ar' ? member.name : (member.nameEn || member.name);
+                  const displayPosition = language === 'ar' ? member.position : (member.positionEn || member.position);
+                  return (
+                    <Card key={member.id} className="hover:shadow-lg transition-shadow" data-testid={`card-team-member-${member.id}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-6">
+                          {member.imageUrl ? (
+                            <img 
+                              src={member.imageUrl} 
+                              alt={displayName}
+                              className="w-20 h-20 rounded-full object-cover shrink-0 border-2 border-green-200"
+                            />
+                          ) : (
+                            <div className="text-5xl w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-800 dark:to-blue-800 rounded-full shrink-0">
+                              👤
+                            </div>
+                          )}
+                          <div className="flex-1 space-y-2">
+                            <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
+                              {displayName}
+                              {displayPosition && (
+                                <span className="text-muted-foreground font-normal"> ({displayPosition})</span>
+                              )}
+                            </h3>
+                            <div>
+                              <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
+                                {language === 'ar' ? member.role : (member.roleEn || member.role)}
+                              </span>
+                            </div>
+                            {(member.description || member.descriptionEn) && (
+                              <p className="text-muted-foreground leading-relaxed">
+                                {language === 'ar' ? member.description : (member.descriptionEn || member.description)}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      <div className="flex-1 space-y-2">
-                        <h3 className="text-xl font-bold text-green-800 dark:text-green-200">
-                          {language === 'ar' ? member.name : (member.nameEn || member.name)}
-                        </h3>
-                        <div>
-                          <span className="inline-block bg-primary/10 text-primary font-medium px-3 py-1 rounded-full text-sm">
-                            {language === 'ar' ? member.role : (member.roleEn || member.role)}
-                          </span>
-                        </div>
-                        {(member.description || member.descriptionEn) && (
-                          <p className="text-muted-foreground leading-relaxed">
-                            {language === 'ar' ? member.description : (member.descriptionEn || member.description)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
             </div>
 
             {(supervisorName?.content || supervisorNameEn?.content) && (

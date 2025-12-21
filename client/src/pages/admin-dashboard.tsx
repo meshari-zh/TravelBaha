@@ -3194,6 +3194,8 @@ export default function AdminDashboard() {
     const data: InsertTeamMember = {
       name: formData.get("name") as string,
       nameEn: formData.get("nameEn") as string || null,
+      position: formData.get("position") as string || null,
+      positionEn: formData.get("positionEn") as string || null,
       role: formData.get("role") as string,
       roleEn: formData.get("roleEn") as string || null,
       description: formData.get("description") as string,
@@ -3930,7 +3932,19 @@ export default function AdminDashboard() {
                                 </div>
                                 
                                 <div className="space-y-2">
-                                  <Label htmlFor="role">{language === 'ar' ? 'المنصب (عربي)' : 'Position (Arabic)'}</Label>
+                                  <Label htmlFor="position">{language === 'ar' ? 'المنصب بين قوسين (عربي) - اختياري' : 'Position in parentheses (Arabic) - Optional'}</Label>
+                                  <Input
+                                    id="position"
+                                    name="position"
+                                    defaultValue={editingTeamMember?.position || ""}
+                                    placeholder={language === 'ar' ? 'مثال: المدير العام' : 'Example: General Manager'}
+                                    dir="rtl"
+                                    data-testid="input-team-member-position"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="role">{language === 'ar' ? 'الدور الوظيفي (عربي)' : 'Job Role (Arabic)'}</Label>
                                   <Input
                                     id="role"
                                     name="role"
@@ -3971,7 +3985,19 @@ export default function AdminDashboard() {
                                 </div>
                                 
                                 <div className="space-y-2">
-                                  <Label htmlFor="roleEn">{language === 'ar' ? 'المنصب (إنجليزي)' : 'Position (English)'}</Label>
+                                  <Label htmlFor="positionEn">{language === 'ar' ? 'المنصب بين قوسين (إنجليزي) - اختياري' : 'Position in parentheses (English) - Optional'}</Label>
+                                  <Input
+                                    id="positionEn"
+                                    name="positionEn"
+                                    defaultValue={editingTeamMember?.positionEn || ""}
+                                    placeholder={language === 'ar' ? 'مثال: General Manager' : 'Example: General Manager'}
+                                    dir="ltr"
+                                    data-testid="input-team-member-position-en"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="roleEn">{language === 'ar' ? 'الدور الوظيفي (إنجليزي)' : 'Job Role (English)'}</Label>
                                   <Input
                                     id="roleEn"
                                     name="roleEn"
@@ -4054,60 +4080,75 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teamMembers.map((member) => (
-                      <Card key={member.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                              {member.imageUrl ? (
-                                <img 
-                                  src={member.imageUrl} 
-                                  alt={language === 'en' && member.nameEn ? member.nameEn : member.name}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-lg font-semibold">
-                                  {(language === 'en' && member.nameEn ? member.nameEn : member.name).charAt(0)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold truncate" data-testid={`team-member-name-${member.id}`}>
-                                {language === 'en' && member.nameEn ? member.nameEn : member.name}
-                              </h4>
-                              <p className="text-sm text-primary font-medium" data-testid={`team-member-role-${member.id}`}>
-                                {language === 'en' && member.roleEn ? member.roleEn : member.role}
-                              </p>
-                              {(member.description || member.descriptionEn) && (
-                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2" data-testid={`team-member-description-${member.id}`}>
-                                  {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditTeamMember(member)}
-                              data-testid={`button-edit-team-member-${member.id}`}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteTeamMember(member)}
-                              disabled={deleteTeamMemberMutation.isPending}
-                              data-testid={`button-delete-team-member-${member.id}`}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {[...teamMembers]
+                      .sort((a, b) => {
+                        const aHasPosition = !!(a.position || a.positionEn);
+                        const bHasPosition = !!(b.position || b.positionEn);
+                        if (aHasPosition && !bHasPosition) return -1;
+                        if (!aHasPosition && bHasPosition) return 1;
+                        return (a.orderIndex || 0) - (b.orderIndex || 0);
+                      })
+                      .map((member) => {
+                        const displayName = language === 'en' && member.nameEn ? member.nameEn : member.name;
+                        const displayPosition = language === 'en' && member.positionEn ? member.positionEn : member.position;
+                        return (
+                          <Card key={member.id}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                                  {member.imageUrl ? (
+                                    <img 
+                                      src={member.imageUrl} 
+                                      alt={displayName}
+                                      className="w-full h-full rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-lg font-semibold">
+                                      {displayName.charAt(0)}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold truncate" data-testid={`team-member-name-${member.id}`}>
+                                    {displayName}
+                                    {displayPosition && (
+                                      <span className="text-muted-foreground font-normal"> ({displayPosition})</span>
+                                    )}
+                                  </h4>
+                                  <p className="text-sm text-primary font-medium" data-testid={`team-member-role-${member.id}`}>
+                                    {language === 'en' && member.roleEn ? member.roleEn : member.role}
+                                  </p>
+                                  {(member.description || member.descriptionEn) && (
+                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2" data-testid={`team-member-description-${member.id}`}>
+                                      {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditTeamMember(member)}
+                                  data-testid={`button-edit-team-member-${member.id}`}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteTeamMember(member)}
+                                  disabled={deleteTeamMemberMutation.isPending}
+                                  data-testid={`button-delete-team-member-${member.id}`}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                   </div>
                 )}
               </CardContent>

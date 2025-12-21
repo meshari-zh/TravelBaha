@@ -87,29 +87,44 @@ export default function About() {
                   </div>
                 ) : teamMembers.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {teamMembers.map((member) => (
-                      <div key={member.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted/30" data-testid={`team-member-${member.id}`}>
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={member.imageUrl || undefined} />
-                          <AvatarFallback className="text-lg">
-                            {(language === 'en' && member.nameEn ? member.nameEn : member.name).charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className={`flex-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                          <h3 className="font-semibold text-lg" data-testid={`team-member-name-${member.id}`}>
-                            {language === 'en' && member.nameEn ? member.nameEn : member.name}
-                          </h3>
-                          <p className="text-sm text-primary font-medium mb-2" data-testid={`team-member-role-${member.id}`}>
-                            {language === 'en' && member.roleEn ? member.roleEn : member.role}
-                          </p>
-                          {(member.description || member.descriptionEn) && (
-                            <p className="text-sm text-muted-foreground" data-testid={`team-member-description-${member.id}`}>
-                              {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                    {[...teamMembers]
+                      .sort((a, b) => {
+                        const aHasPosition = !!(a.position || a.positionEn);
+                        const bHasPosition = !!(b.position || b.positionEn);
+                        if (aHasPosition && !bHasPosition) return -1;
+                        if (!aHasPosition && bHasPosition) return 1;
+                        return (a.orderIndex || 0) - (b.orderIndex || 0);
+                      })
+                      .map((member) => {
+                        const displayName = language === 'en' && member.nameEn ? member.nameEn : member.name;
+                        const displayPosition = language === 'en' && member.positionEn ? member.positionEn : member.position;
+                        return (
+                          <div key={member.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted/30" data-testid={`team-member-${member.id}`}>
+                            <Avatar className="w-16 h-16">
+                              <AvatarImage src={member.imageUrl || undefined} />
+                              <AvatarFallback className="text-lg">
+                                {displayName.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className={`flex-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                              <h3 className="font-semibold text-lg" data-testid={`team-member-name-${member.id}`}>
+                                {displayName}
+                                {displayPosition && (
+                                  <span className="text-muted-foreground font-normal"> ({displayPosition})</span>
+                                )}
+                              </h3>
+                              <p className="text-sm text-primary font-medium mb-2" data-testid={`team-member-role-${member.id}`}>
+                                {language === 'en' && member.roleEn ? member.roleEn : member.role}
+                              </p>
+                              {(member.description || member.descriptionEn) && (
+                                <p className="text-sm text-muted-foreground" data-testid={`team-member-description-${member.id}`}>
+                                  {language === 'en' && member.descriptionEn ? member.descriptionEn : member.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
